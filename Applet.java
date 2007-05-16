@@ -80,7 +80,15 @@ public class Applet extends SingleG2DCanvasApplet {
 		getCanvas().addObject(tmpset);
 		
 		getCanvas().addObject(new MMCoordinateSystem());
-		
+
+		set1.setLabel("M_1");
+		getControlPanel().add(set1.getAsContainerContent());
+		getControlPanel().insertLineBreak();
+		set2.setLabel("M_2");
+		getControlPanel().add(set2.getAsContainerContent());
+		getControlPanel().insertLineBreak();
+		set3.setLabel("M_3");
+		getControlPanel().add(set3.getAsContainerContent());
 		
 	}
 	
