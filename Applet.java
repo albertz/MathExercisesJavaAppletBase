@@ -16,6 +16,7 @@ import net.mumie.mathletfactory.mmobject.algebra.MMRelation;
 import net.mumie.mathletfactory.mmobject.geom.affine.MMCoordinateSystem;
 import net.mumie.mathletfactory.mmobject.set.MMSet;
 import net.mumie.mathletfactory.mmobject.set.MMSetDefByRel;
+import net.mumie.mathletfactory.mmobject.util.MMString;
 
 public class Applet extends SingleG2DCanvasApplet {
 
@@ -80,7 +81,7 @@ public class Applet extends SingleG2DCanvasApplet {
 		getCanvas().addObject(tmpset);
 		
 		getCanvas().addObject(new MMCoordinateSystem());
-
+		
 		set1.setLabel("M_1");
 		getControlPanel().add(set1.getAsContainerContent());
 		getControlPanel().insertLineBreak();
