@@ -67,7 +67,7 @@ public class Applet extends SingleG2DCanvasApplet {
 			}
 			public void mouseEntered(MouseEvent e) {}
 			public void mouseExited(MouseEvent e) {}
-			public void mousePressed(MouseEvent e) {				
+			public void mousePressed(MouseEvent e) {
 				System.out.print("mouse: ");
 				System.out.print(e.getX());
 				System.out.print(",");
