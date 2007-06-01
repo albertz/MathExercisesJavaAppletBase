@@ -18,7 +18,7 @@ import net.mumie.mathletfactory.mmobject.set.MMSet;
 import net.mumie.mathletfactory.mmobject.set.MMSetDefByRel;
 import net.mumie.mathletfactory.mmobject.util.MMString;
 
-public class Applet extends SingleG2DCanvasApplet {
+public class Applet_MF extends SingleG2DCanvasApplet {
 
 	private void initDispProp(MMSet set, Color c, double trans) {
 		set.getDisplayProperties().setBorderWidth(8);
@@ -80,7 +80,9 @@ public class Applet extends SingleG2DCanvasApplet {
 		initDispProp(tmpset, Color.ORANGE, 0.5);
 		getCanvas().addObject(tmpset);
 		
-		getCanvas().addObject(new MMCoordinateSystem());
+		MMCoordinateSystem coordsys = new MMCoordinateSystem();
+		//coordsys.addHandler(new Affine2DMouseTranslateHandler(getCanvas()));
+		getCanvas().addObject(coordsys);
 		
 		set1.setLabel("M_1");
 		getControlPanel().add(set1.getAsContainerContent());
