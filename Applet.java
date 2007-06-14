@@ -1,4 +1,4 @@
-package applets.E_23;
+package applets.E_24;
 
 import javax.swing.JPanel;
 import javax.swing.JApplet;
@@ -32,7 +32,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(540, 125);
+		this.setSize(390, 280);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -261,8 +261,7 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
-			String[] choicesOp = new String[] {"+", "-", "∙", "/"};
-			String[] choicesItem = new String[] {"0", "1", "i", "x", "y"};
+			String[] choices = new String[] {"exp t", "cos t", "sin t", "0", "1", "i", "π", "2π"};
 			ItemListener updater = new ItemListener() {
 				public void itemStateChanged(ItemEvent e) {
 					resetSelectorColors();
@@ -270,26 +269,28 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("exp(z')", 10, 10),
-					new VTLabel("= exp( x", 10, 0),
-					new VTSelector("s1", choicesOp, 10, 0, updater),
-					new VTSelector("s2", choicesItem, 10, 0, updater),
-					new VTLabel("∙y )", 5, 0),
-					new VTLabel("= exp(", -2, 30),
-					new VTSelector("s3", choicesItem, 10, 0, updater),
-					new VTLabel(") ∙ [ cos(", 10, 0),
-					new VTSelector("s4", choicesItem, 10, 0, updater),
-					new VTLabel(")", 10, 0),
-					new VTSelector("s5", choicesOp, 10, 0, updater),
-					new VTLabel("i∙sin(", 10, 0),
-					new VTSelector("s6", choicesItem, 10, 0, updater),
-					new VTLabel(") ]", 10, 0),
+					new VTLabel("Satz", 10, 10),
+					new VTLabel("a.", 50, 40),
+					new VTLabel("Für alle t∈ℝ gilt die Euler-Formel", 10, 0),
+					new VTLabel("", -1, 30),
+					new VTLabel("e^(i∙t) =", 70, 0),
+					new VTSelector("s1", choices, 10, 0, updater),
+					new VTLabel("+ i ∙", 10, 0),
+					new VTSelector("s2", choices, 10, 0, updater),
+					new VTLabel("b.", -1, 40),
+					new VTLabel("e^(2πi∙m) =", 10, 0),
+					new VTSelector("s3", choices, 10, 0, updater),
+					new VTLabel(", für alle m∈ℤ", 10, 0),
+					new VTLabel("c.", -1, 40),
+					new VTLabel("Sei z∈ℂ mit e^z = 1, dann gilt", 10, 0),
+					new VTLabel("", -1, 30),
+					new VTLabel("z = 2πi∙m , für ein m∈ℤ", 70, 0),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							boolean correct = true;
-							for(int i = 1; i <= 6; i++) {
+							for(int i = 1; i <= 3; i++) {
 								Component c = getComponentByName("s"+i);
 								String selected = (String) ((JComboBox)c).getSelectedItem();
 								correct = isCorrect(i, selected);
@@ -306,7 +307,7 @@ public class Applet extends JApplet {
 					new VTLabel("result", "leider ist etwas falsch", 10, 0),
 					new VTButton("hilf mir", 10, 0, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
-							for(int i = 1; i <= 6; i++) {
+							for(int i = 1; i <= 3; i++) {
 								JComboBox combo = (JComboBox) getComponentByName("s"+i);
 								String selected = (String) combo.getSelectedItem();
 								boolean correct = isCorrect(i, selected);
@@ -323,17 +324,11 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "-";
+			return selected == "cos t";
 		case 2:
-			return selected == "i";
+			return selected == "sin t";
 		case 3:
-			return selected == "x";
-		case 4:
-			return selected == "y";
-		case 5:
-			return selected == "-";
-		case 6:
-			return selected == "y";
+			return selected == "1";
 		}
 		return false;
 	}
