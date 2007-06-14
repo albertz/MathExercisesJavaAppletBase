@@ -1,4 +1,4 @@
-package applets.E_19;
+package applets.E_23;
 
 import javax.swing.JPanel;
 import javax.swing.JApplet;
@@ -32,7 +32,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(620, 700);
+		this.setSize(540, 125);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -261,10 +261,8 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
-			String[] choices = new String[] {
-					"x", "a", "x+a", "y+b", "e^x", "e^a", "e^y", "e^b",
-					"cos x", "cos y", "sin x", "sin y",
-					"cos a", "cos b", "sin a", "sin b"};
+			String[] choicesOp = new String[] {"+", "-", "∙", "/"};
+			String[] choicesItem = new String[] {"0", "1", "i", "x", "y"};
 			ItemListener updater = new ItemListener() {
 				public void itemStateChanged(ItemEvent e) {
 					resetSelectorColors();
@@ -272,81 +270,26 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("Unter Verwendung der Definition von exp(v) erhält man für die linke Seite", 10, 10),
-					new VTLabel("(z = x + iy , w = a + ib):", 10, 30),
-					new VTLabel("e^(z+w) = e^[(x+a) + i∙(y+b)] = exp(", 10, 60),
-					new VTSelector("s1", choices, 5, 0, updater),
-					new VTLabel(") ∙ [cos(", 5, 0),
-					new VTSelector("s2", choices, 5, 0, updater),
-					new VTLabel(") + i∙sin(", 5, 0),
-					new VTSelector("s3", choices, 5, 0, updater),
-					new VTLabel(")]", 5, 0),
-					new VTLabel("Der erste Faktor kann umgeschrieben werden:", 10, 60),
-					new VTLabel("exp(", 100, 30),
-					new VTSelector("s4", choices, 10, 0, updater),
-					new VTLabel(") = exp(", 10, 0),
-					new VTSelector("s5", choices, 10, 0, updater),
-					new VTLabel(") ∙ exp(", 10, 0),
-					new VTSelector("s6", choices, 10, 0, updater),
+					new VTLabel("exp(z')", 10, 10),
+					new VTLabel("= exp( x", 10, 0),
+					new VTSelector("s1", choicesOp, 10, 0, updater),
+					new VTSelector("s2", choicesItem, 10, 0, updater),
+					new VTLabel("∙y )", 5, 0),
+					new VTLabel("= exp(", -2, 30),
+					new VTSelector("s3", choicesItem, 10, 0, updater),
+					new VTLabel(") ∙ [ cos(", 10, 0),
+					new VTSelector("s4", choicesItem, 10, 0, updater),
 					new VTLabel(")", 10, 0),
-					new VTLabel("Die Ausdrücke im zweiten Faktor können mit dem Additionstheorem", 10, 30),
-					new VTLabel("umgeschrieben werden. So erhält man insgesamt:", 10, 30),
-					new VTLabel("e^(z+w) = ", 10, 60),
-					new VTSelector("s7", choices, 10, 0, updater),
-					new VTLabel("∙", 5, 0),
-					new VTSelector("s8", choices, 5, 0, updater),
-					new VTLabel("∙ [ (", 10, 0), // item nr 5
-					new VTSelector("s9", choices, 5, 0, updater),
-					new VTLabel("∙", 5, 0),
-					new VTSelector("s10", choices, 10, 0, updater),
-					new VTLabel("-", 10, 0),
-					new VTSelector("s11", choices, 10, 0, updater),
-					new VTLabel("∙", 5, 0),
-					new VTSelector("s12", choices, 5, 0, updater),
-					new VTLabel(")", 10, 0),
-					new VTLabel("+ i∙(", -5, 30),
-					new VTSelector("s13", choices, 10, 0, updater),
-					new VTLabel("∙", 5, 0),
-					new VTSelector("s14", choices, 5, 0, updater),
-					new VTLabel("+", 10, 0),
-					new VTSelector("s15", choices, 10, 0, updater),
-					new VTLabel("∙", 5, 0),
-					new VTSelector("s16", choices, 5, 0, updater),
+					new VTSelector("s5", choicesOp, 10, 0, updater),
+					new VTLabel("i∙sin(", 10, 0),
+					new VTSelector("s6", choicesItem, 10, 0, updater),
 					new VTLabel(") ]", 10, 0),
-					new VTLabel("Nun betrachten wir die rechte Seite von Behauptung 2. Die Definition", 10, 60),
-					new VTLabel("liefert direkt:", 10, 30),
-					new VTLabel("e^z ∙ e^w", 10, 30),
-					new VTLabel("= e^(x + iy) ∙ e^(a + ib)", 10, 0),
-					new VTLabel("=", -2, 30),
-					new VTSelector("s17", choices, 10, 0, updater),
-					new VTLabel("∙ (", 5, 0),
-					new VTSelector("s18", choices, 5, 0, updater),
-					new VTLabel("+ i ∙", 5, 0),
-					new VTSelector("s19", choices, 5, 0, updater),
-					new VTLabel(") ∙", 5, 0),
-					new VTSelector("s20", choices, 5, 0, updater),
-					new VTLabel("∙ (", 5, 0),
-					new VTSelector("s21", choices, 5, 0, updater),
-					new VTLabel("+ i ∙", 5, 0),
-					new VTSelector("s22", choices, 5, 0, updater),
-					new VTLabel(")", 5, 0),
-					new VTLabel("=", -1, 30),
-					new VTLabel("e^x ∙ e^a ∙ [", 10, 0),
-					new VTSelector("s23", choices, 10, 0, updater),
-					new VTLabel("∙ cos b + i ∙ cos y ∙", 10, 0),
-					new VTSelector("s24", choices, 10, 0, updater),
-					new VTLabel("+ i ∙", -2, 30),
-					new VTSelector("s25", choices, 10, 0, updater),
-					new VTLabel("∙ cos b + i² ∙ sin y ∙", 10, 0),
-					new VTSelector("s26", choices, 10, 0, updater),
-					new VTLabel("]", 10, 0),
-					new VTLabel("Also, insgesamt: e^(z+w) = e^z ∙ e^w", 10, 60),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							boolean correct = true;
-							for(int i = 1; i <= 26; i++) {
+							for(int i = 1; i <= 6; i++) {
 								Component c = getComponentByName("s"+i);
 								String selected = (String) ((JComboBox)c).getSelectedItem();
 								correct = isCorrect(i, selected);
@@ -363,7 +306,7 @@ public class Applet extends JApplet {
 					new VTLabel("result", "leider ist etwas falsch", 10, 0),
 					new VTButton("hilf mir", 10, 0, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
-							for(int i = 1; i <= 26; i++) {
+							for(int i = 1; i <= 6; i++) {
 								JComboBox combo = (JComboBox) getComponentByName("s"+i);
 								String selected = (String) combo.getSelectedItem();
 								boolean correct = isCorrect(i, selected);
@@ -380,57 +323,17 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "x+a";
+			return selected == "-";
 		case 2:
-			return selected == "y+b";
+			return selected == "i";
 		case 3:
-			return selected == "y+b";
-		case 4:
-			return selected == "x+a";
-		case 5:
 			return selected == "x";
+		case 4:
+			return selected == "y";
+		case 5:
+			return selected == "-";
 		case 6:
-			return selected == "a";
-		case 7:
-			return selected == "e^x";
-		case 8:
-			return selected == "e^a";
-		case 9:
-			return selected == "cos y";
-		case 10:
-			return selected == "cos b";
-		case 11:
-			return selected == "sin y";
-		case 12:
-			return selected == "sin b";
-		case 13:
-			return selected == "sin y";
-		case 14:
-			return selected == "cos b";
-		case 15:
-			return selected == "cos y";
-		case 16:
-			return selected == "sin b";
-		case 17:
-			return selected == "e^x";
-		case 18:
-			return selected == "cos y";
-		case 19:
-			return selected == "sin y";
-		case 20:
-			return selected == "e^a";
-		case 21:
-			return selected == "cos b";
-		case 22:
-			return selected == "sin b";
-		case 23:
-			return selected == "cos y";
-		case 24:
-			return selected == "sin b";
-		case 25:
-			return selected == "sin y";
-		case 26:
-			return selected == "sin b";
+			return selected == "y";
 		}
 		return false;
 	}
