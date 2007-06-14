@@ -1,4 +1,4 @@
-package applets.E_17_a;
+package applets.E_17_b;
 
 import javax.swing.JPanel;
 import javax.swing.JApplet;
@@ -32,7 +32,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(540, 125);
+		this.setSize(540, 150);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -261,7 +261,7 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
-			String[] choices = new String[] {"π", "0", "-1", "i", "1", "-i"};
+			String[] choices = new String[] {"π", "0", "-1", "i", "1", "-i", "x", "z", "-x", "-z"};
 			ItemListener updater = new ItemListener() {
 				public void itemStateChanged(ItemEvent e) {
 					resetSelectorColors();
@@ -269,22 +269,24 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("exp(0)", 10, 10),
-					new VTLabel("= exp(0 + i∙0) = exp(", 10, 0),
+					new VTLabel("exp(z)", 10, 10),
+					new VTLabel("= exp(x + i∙0) = exp(", 10, 0),
 					new VTSelector("s1", choices, 10, 0, updater),
 					new VTLabel(") ∙ [cos(", 10, 0),
 					new VTSelector("s2", choices, 10, 0, updater),
 					new VTLabel(") + i∙sin(", 10, 0),
 					new VTSelector("s3", choices, 10, 0, updater),
 					new VTLabel("]", 10, 0),
-					new VTLabel("=", -2, 30),
+					new VTLabel("= exp(", -2, 30),
 					new VTSelector("s4", choices, 10, 0, updater),
-					new VTLabel("(", 10, 0),
+					new VTLabel(") ∙ (", 10, 0),
 					new VTSelector("s5", choices, 10, 0, updater),
 					new VTLabel("+ i ∙", 10, 0),
 					new VTSelector("s6", choices, 10, 0, updater),
-					new VTLabel(") =", 10, 0),
+					new VTLabel(")", 10, 0),
+					new VTLabel("= exp(", -1, 30),
 					new VTSelector("s7", choices, 10, 0, updater),
+					new VTLabel(") = e^x", 10, 0),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
@@ -295,7 +297,7 @@ public class Applet extends JApplet {
 								String selected = (String) ((JComboBox)c).getSelectedItem();
 								switch(i) {
 								case 1:
-									correct = selected == "0";
+									correct = selected == "x";
 									break;
 								case 2:
 									correct = selected == "0";
@@ -304,7 +306,7 @@ public class Applet extends JApplet {
 									correct = selected == "0";
 									break;
 								case 4:
-									correct = selected == "1";
+									correct = selected == "x";
 									break;
 								case 5:
 									correct = selected == "1";
@@ -313,7 +315,7 @@ public class Applet extends JApplet {
 									correct = selected == "0";
 									break;
 								case 7:
-									correct = selected == "1";
+									correct = selected == "x";
 									break;
 								}
 								if(!correct) break;
@@ -335,7 +337,7 @@ public class Applet extends JApplet {
 								String selected = (String) combo.getSelectedItem();
 								switch(i) {
 								case 1:
-									correct = selected == "0";
+									correct = selected == "x";
 									break;
 								case 2:
 									correct = selected == "0";
@@ -344,7 +346,7 @@ public class Applet extends JApplet {
 									correct = selected == "0";
 									break;
 								case 4:
-									correct = selected == "1";
+									correct = selected == "x";
 									break;
 								case 5:
 									correct = selected == "1";
@@ -353,7 +355,7 @@ public class Applet extends JApplet {
 									correct = selected == "0";
 									break;
 								case 7:
-									correct = selected == "1";
+									correct = selected == "x";
 									break;
 								}
 								combo.setForeground(correct ? Color.MAGENTA : Color.RED);
