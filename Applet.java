@@ -1,4 +1,4 @@
-package applets.E_07;
+package applets.E_08;
 
 import javax.swing.JPanel;
 import javax.swing.JApplet;
@@ -14,6 +14,9 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+
+import applets.E_06.Applet.VTLabel;
+import applets.E_06.Applet.VTSelector;
 
 public class Applet extends JApplet {
 
@@ -261,7 +264,7 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
-			String[] choices = new String[] {"0", "1", "∞", "-∞", "π"};
+			String[] choices = new String[] {"0", "1", "-1", "π", "2π", "1/π", "x", "exp x", "sin x", "cos x"};
 			ItemListener updater = new ItemListener() {
 				public void itemStateChanged(ItemEvent e) {
 					resetSelectorColors();
@@ -269,18 +272,19 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("lim  e^x =", 10, 10),
+					new VTLabel("sin²(x) + cos²(x) =", 10, 10),
 					new VTSelector("s1", choices, 10, 0, updater),
-					new VTLabel("x→-∞", 10, 15),
-					new VTLabel("lim  e^x =", 10, 30),
+					new VTLabel(", für alle x ∈ ℝ", 10, 0),
+					new VTLabel("sin(π/2) =", 10, 30),
 					new VTSelector("s2", choices, 10, 0, updater),
-					new VTLabel("x→∞", 10, 15),
+					new VTLabel("cos(π/2) =", 10, 30),
+					new VTSelector("s3", choices, 10, 0, updater),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							boolean correct = true;
-							for(int i = 1; i <= 2; i++) {
+							for(int i = 1; i <= 3; i++) {
 								Component c = getComponentByName("s"+i);
 								String selected = (String) ((JComboBox)c).getSelectedItem();
 								correct = isCorrect(i, selected);
@@ -297,7 +301,7 @@ public class Applet extends JApplet {
 					new VTLabel("result", "leider ist etwas falsch", 10, 0),
 					new VTButton("hilf mir", 10, 0, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
-							for(int i = 1; i <= 2; i++) {
+							for(int i = 1; i <= 3; i++) {
 								JComboBox combo = (JComboBox) getComponentByName("s"+i);
 								String selected = (String) combo.getSelectedItem();
 								boolean correct = isCorrect(i, selected);
@@ -314,9 +318,11 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "0";
+			return selected == "1";
 		case 2:
-			return selected == "∞";
+			return selected == "1";
+		case 3:
+			return selected == "0";
 		}
 		return false;
 	}
