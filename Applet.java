@@ -1,4 +1,4 @@
-package applets.E_06;
+package applets.E_07;
 
 import javax.swing.JPanel;
 import javax.swing.JApplet;
@@ -32,7 +32,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(390, 120);
+		this.setSize(390, 150);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -261,7 +261,7 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
-			String[] choices = new String[] {"x", "sin x", "cos x", "exp x", "ln x", "-x"};
+			String[] choices = new String[] {"0", "1", "∞", "-∞", "π"};
 			ItemListener updater = new ItemListener() {
 				public void itemStateChanged(ItemEvent e) {
 					resetSelectorColors();
@@ -269,14 +269,12 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("exp(", 10, 10),
+					new VTLabel("lim  e^x =", 10, 10),
 					new VTSelector("s1", choices, 10, 0, updater),
-					new VTLabel(") = x", 10, 0),
-					new VTLabel(", für alle x > 0", 10, 0),
-					new VTLabel("ln(", 10, 30),
+					new VTLabel("x→-∞", 10, 15),
+					new VTLabel("lim  e^x =", 10, 30),
 					new VTSelector("s2", choices, 10, 0, updater),
-					new VTLabel(") = x", 10, 0),
-					new VTLabel(", für alle x ∈ ℝ", 10, 0),
+					new VTLabel("x→∞", 10, 15),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
@@ -316,9 +314,9 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "ln x";
+			return selected == "0";
 		case 2:
-			return selected == "exp x";
+			return selected == "∞";
 		}
 		return false;
 	}
