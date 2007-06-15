@@ -1,4 +1,4 @@
-package applets.E_11_b;
+package applets.E_12;
 
 import javax.swing.JPanel;
 import javax.swing.JApplet;
@@ -32,7 +32,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(390, 150);
+		this.setSize(390, 80);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -269,23 +269,19 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("cos( 2x ) =", 10, 10),
+					new VTLabel("sin²( x ) =", 10, 10),
 					new VTSelector("s1", choices, 10, 0, updater),
 					new VTLabel("∙ (", 10, 0),
 					new VTSelector("s2", choices, 10, 0, updater),
-					new VTLabel(")² - 1", 10, 0),
-					new VTLabel("also:", 5, 30),
-					new VTLabel("cos²( x ) =", 10, 20),
+					new VTLabel("-", 10, 0),
 					new VTSelector("s3", choices, 10, 0, updater),
-					new VTLabel("∙ ( 1 +", 10, 0),
-					new VTSelector("s4", choices, 10, 0, updater),
 					new VTLabel(")", 10, 0),
 					
 					// Bedienung
-					new VTButton("überprüfen", 10, 50, new ActionListener() {
+					new VTButton("überprüfen", 10, 35, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							boolean correct = true;
-							for(int i = 1; i <= 4; i++) {
+							for(int i = 1; i <= 3; i++) {
 								Component c = getComponentByName("s"+i);
 								String selected = (String) ((JComboBox)c).getSelectedItem();
 								correct = isCorrect(i, selected);
@@ -302,7 +298,7 @@ public class Applet extends JApplet {
 					new VTLabel("result", "leider ist etwas falsch", 10, 0),
 					new VTButton("hilf mir", 10, 0, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
-							for(int i = 1; i <= 4; i++) {
+							for(int i = 1; i <= 3; i++) {
 								JComboBox combo = (JComboBox) getComponentByName("s"+i);
 								String selected = (String) combo.getSelectedItem();
 								boolean correct = isCorrect(i, selected);
@@ -319,12 +315,10 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "2";
-		case 2:
-			return selected == "cos x";
-		case 3:
 			return selected == "½";
-		case 4:
+		case 2:
+			return selected == "1";
+		case 3:
 			return selected == "cos 2x";
 		}
 		return false;
