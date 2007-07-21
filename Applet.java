@@ -1,4 +1,4 @@
-package applets.B2;
+package applets.Bruch_Basis_2;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -341,7 +341,7 @@ public class Applet extends JApplet {
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
 						public void actionPerformed(ActionEvent e) {
 							boolean correct = true;
-							for(int i = 1; i <= 6; i++) {
+							for(int i = 1; ; i++) {
 								JComponent comp = (JComponent) getComponentByName("s"+i);
 								if(comp == null) break;
 								String selected = comp instanceof JComboBox
@@ -376,6 +376,14 @@ public class Applet extends JApplet {
 		return jContentPane;
 	}
 
+	public static int parseNum(String txt) {
+		try {
+			return Integer.parseInt(txt);
+		} catch(NumberFormatException e) {
+			return -666;
+		}
+	}
+	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
