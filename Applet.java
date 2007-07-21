@@ -228,7 +228,7 @@ public class Applet extends JApplet {
 				curX = ((Integer) (xs_old.get(-things[i].getStepX() - 1))).intValue();
 			} else
 				curX += things[i].getStepX();
-			xs.add(Integer.valueOf(curX));
+			xs.add(new Integer(curX));
 			
 			Component c = things[i].getComponent();
 			c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
