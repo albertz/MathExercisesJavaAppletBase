@@ -1,11 +1,10 @@
-package applets.Bruch_Basis_3;
+package applets.Bruch_Basis_4;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
-
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Rectangle;
@@ -326,23 +325,23 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("3/4 ∙ 4/5 =", 10, 10),
+					new VTLabel("3/4  :  4/5 =", 10, 10),
 					new VTText("s1", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s2", 5, 0, updater),
-					new VTLabel("2/3 ∙ 9/10", -1, 30),
+					new VTLabel("2/3  :  9/10 =", -1, 30),
 					new VTText("s3", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s4", 5, 0, updater),
-					new VTLabel("1/6 ∙ 20/11", -1, 30),
+					new VTLabel("1/6  :  20/11 =", -1, 30),
 					new VTText("s5", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s6", 5, 0, updater),
-					new VTLabel("5/7 ∙ 21", -1, 30),
+					new VTLabel("6  :  2/7 =", -1, 30),
 					new VTText("s7", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s8", 5, 0, updater),
-					new VTLabel("3/10 ∙ 5/2 ∙ 4", -1, 30),
+					new VTLabel("3/10  :  2/5  :  4 =", -1, 30),
 					new VTText("s9", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s10", 5, 0, updater),
@@ -378,7 +377,6 @@ public class Applet extends JApplet {
 								if(comp == null) break;
 								String selected = comp instanceof JComboBox
 									? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
-								System.out.println(i + ": " + selected);
 								boolean correct = isCorrect(i, selected);
 								comp.setForeground(correct ? Color.MAGENTA : Color.RED);
 							}
@@ -401,25 +399,25 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return parseNum(selected) == 3;
-		case 2:
-			return parseNum(selected) == 5;
-		case 3:
-			return parseNum(selected) == 3;
-		case 4:
-			return parseNum(selected) == 5;
-		case 5:
-			return parseNum(selected) == 10;
-		case 6:
-			return parseNum(selected) == 33;
-		case 7:
 			return parseNum(selected) == 15;
+		case 2:
+			return parseNum(selected) == 16;
+		case 3:
+			return parseNum(selected) == 20;
+		case 4:
+			return parseNum(selected) == 27;
+		case 5:
+			return parseNum(selected) == 11;
+		case 6:
+			return parseNum(selected) == 60;
+		case 7:
+			return parseNum(selected) == 21;
 		case 8:
 			return parseNum(selected) == 1;
 		case 9:
 			return parseNum(selected) == 3;
 		case 10:
-			return parseNum(selected) == 1;
+			return parseNum(selected) == 16;
 		}
 		return false;
 	}
