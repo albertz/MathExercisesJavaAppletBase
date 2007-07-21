@@ -1,4 +1,4 @@
-package applets.Bruch_Basis_6;
+package applets.Bruch_Basis_7;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -19,6 +19,9 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
+import applets.Bruch_Basis_3.Applet.VTLabel;
+import applets.Bruch_Basis_3.Applet.VTText;
+
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
@@ -36,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(370, 190);
+		this.setSize(370, 280);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -293,6 +296,8 @@ public class Applet extends JApplet {
 
 			curX += things[i].getWidth();
 		}
+		
+		resetSelectorColors();
 	}
 	
 	/**
@@ -323,24 +328,35 @@ public class Applet extends JApplet {
 					resetSelectorColors();
 					resetResultLabel();
 				}};
-			String[] selectItems = new String[] {"<", "=", ">"};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("3/5", 10, 10),
-					new VTSelector("s1", selectItems, 10, 0, updater),
-					new VTLabel("5/6", 10, 0),
+					new VTLabel("3/4 + 4/5 =", 10, 10),
+					new VTText("s1", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s2", 5, 0, updater),
 					
-					new VTLabel("8/9", -1, 30),
-					new VTSelector("s2", selectItems, 10, 0, updater),
-					new VTLabel("4/5", 10, 0),
+					new VTLabel("2/3 - 9/10 =", -1, 30),
+					new VTText("s3", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s4", 5, 0, updater),
 					
-					new VTLabel("13/5", -1, 30),
-					new VTSelector("s3", selectItems, 10, 0, updater),
-					new VTLabel("17/7", 10, 0),
+					new VTLabel("1/6 + 2/3 =", -1, 30),
+					new VTText("s5", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s6", 5, 0, updater),
 					
-					new VTLabel("7/3", -1, 30),
-					new VTSelector("s4", selectItems, 10, 0, updater),
-					new VTLabel("21/9", 10, 0),
+					new VTLabel("-5/6 + 6 =", -1, 30),
+					new VTText("s7", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s8", 5, 0, updater),
+					
+					new VTLabel("3/10 + 5/2 - 4 =", -1, 30),
+					new VTText("s9", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s10", 5, 0, updater),
+					
+					new VTLabel("(Bitte Brüche in gekürzter Form angeben.)", 5, 40),
+					new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
@@ -371,7 +387,8 @@ public class Applet extends JApplet {
 								String selected = comp instanceof JComboBox
 									? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
 								boolean correct = isCorrect(i, selected);
-								comp.setForeground(correct ? Color.MAGENTA : Color.RED);
+								Color col = correct ? Color.MAGENTA : Color.RED;
+								comp.setBackground(correct ? Color.MAGENTA : Color.RED);
 							}
 						}}),
 			});
@@ -392,13 +409,25 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "<";
+			return parseNum(selected) == 31;
 		case 2:
-			return selected == ">";
+			return parseNum(selected) == 20;
 		case 3:
-			return selected == ">";
+			return parseNum(selected) == -7;
 		case 4:
-			return selected == "=";
+			return parseNum(selected) == 30;
+		case 5:
+			return parseNum(selected) == 5;
+		case 6:
+			return parseNum(selected) == 6;
+		case 7:
+			return parseNum(selected) == 31;
+		case 8:
+			return parseNum(selected) == 6;
+		case 9:
+			return parseNum(selected) == -6;
+		case 10:
+			return parseNum(selected) == 5;
 		}
 		return false;
 	}
@@ -412,7 +441,7 @@ public class Applet extends JApplet {
 		for(int i = 0; i < getJContentPane().getComponents().length; i++) {
 			if(getJContentPane().getComponents()[i] instanceof JComboBox
 			|| getJContentPane().getComponents()[i] instanceof JTextField) {
-				getJContentPane().getComponents()[i].setForeground(Color.BLACK);
+				getJContentPane().getComponents()[i].setBackground(Color.WHITE);
 			}
 		}
 	}
