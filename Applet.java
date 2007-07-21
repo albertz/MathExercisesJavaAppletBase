@@ -1,4 +1,4 @@
-package applets.Bruch_Basis_2;
+package applets.Bruch_Basis_3;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -15,8 +15,6 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
@@ -39,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(370, 180);
+		this.setSize(370, 280);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -321,8 +319,6 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
-			String[] choicesOp = new String[] {"+", "-", "∙", "/"};
-			String[] choicesItem = new String[] {"1", "-1", "a", "-a", "√a", "∛a", "a²", "a³"};
 			Runnable updater = new Runnable() {
 				public void run() {
 					resetSelectorColors();
@@ -330,14 +326,29 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("a / √a =", 10, 10),
-					new VTSelector("s1", choicesItem, 10, 0, updater),
-					new VTLabel("a³ / a² =", -1, 30),
-					new VTSelector("s2", choicesItem, 10, 0, updater),
-					new VTLabel("(a / ∛a) / ∛a =", -1, 30),
-					new VTSelector("s3", choicesItem, 10, 0, updater),
-					new VTLabel("(a / √a) / √a =", -1, 30),
-					new VTSelector("s4", choicesItem, 10, 0, updater),
+					new VTLabel("3/4 ∙ 4/5 =", 10, 10),
+					new VTText("s1", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s2", 5, 0, updater),
+					new VTLabel("2/3 ∙ 9/10", -1, 30),
+					new VTText("s3", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s4", 5, 0, updater),
+					new VTLabel("1/6 ∙ 20/11", -1, 30),
+					new VTText("s5", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s6", 5, 0, updater),
+					new VTLabel("5/7 ∙ 21", -1, 30),
+					new VTText("s7", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s8", 5, 0, updater),
+					new VTLabel("3/10 ∙ 5/2 ∙ 4", -1, 30),
+					new VTText("s9", 10, 0, updater),
+					new VTLabel("/", 5, 0),
+					new VTText("s10", 5, 0, updater),
+
+					new VTLabel("(Bitte Brüche in gekürzter Form angeben.)", 5, 40),
+					new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
@@ -367,6 +378,7 @@ public class Applet extends JApplet {
 								if(comp == null) break;
 								String selected = comp instanceof JComboBox
 									? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
+								System.out.println(i + ": " + selected);
 								boolean correct = isCorrect(i, selected);
 								comp.setForeground(correct ? Color.MAGENTA : Color.RED);
 							}
@@ -389,13 +401,25 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "√a";
+			return parseNum(selected) == 3;
 		case 2:
-			return selected == "a";
+			return parseNum(selected) == 5;
 		case 3:
-			return selected == "∛a";
+			return parseNum(selected) == 3;
 		case 4:
-			return selected == "1";
+			return parseNum(selected) == 5;
+		case 5:
+			return parseNum(selected) == 10;
+		case 6:
+			return parseNum(selected) == 33;
+		case 7:
+			return parseNum(selected) == 15;
+		case 8:
+			return parseNum(selected) == 1;
+		case 9:
+			return parseNum(selected) == 3;
+		case 10:
+			return parseNum(selected) == 1;
 		}
 		return false;
 	}
