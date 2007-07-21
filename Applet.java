@@ -39,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(540, 125);
+		this.setSize(370, 180);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -322,7 +322,7 @@ public class Applet extends JApplet {
 			jContentPane.setLayout(null);
 			
 			String[] choicesOp = new String[] {"+", "-", "∙", "/"};
-			String[] choicesItem = new String[] {"0", "1", "i", "x", "y"};
+			String[] choicesItem = new String[] {"1", "-1", "a", "-a", "√a", "∛a", "a²", "a³"};
 			Runnable updater = new Runnable() {
 				public void run() {
 					resetSelectorColors();
@@ -330,12 +330,14 @@ public class Applet extends JApplet {
 				}};
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld
-					new VTLabel("exp(z')", 10, 10),
-					new VTLabel("= exp( x", 10, 0),
-					new VTSelector("s1", choicesOp, 10, 0, updater),
+					new VTLabel("a / √a =", 10, 10),
+					new VTSelector("s1", choicesItem, 10, 0, updater),
+					new VTLabel("a³ / a² =", -1, 30),
 					new VTSelector("s2", choicesItem, 10, 0, updater),
-					new VTLabel("∙y )", 5, 0),
-					new VTText("bu", -2, 30, updater),
+					new VTLabel("(a / ∛a) / ∛a =", -1, 30),
+					new VTSelector("s3", choicesItem, 10, 0, updater),
+					new VTLabel("(a / √a) / √a =", -1, 30),
+					new VTSelector("s4", choicesItem, 10, 0, updater),
 					
 					// Bedienung
 					new VTButton("überprüfen", 10, 50, new ActionListener() {
@@ -387,17 +389,13 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return selected == "-";
+			return selected == "√a";
 		case 2:
-			return selected == "i";
+			return selected == "a";
 		case 3:
-			return selected == "x";
+			return selected == "∛a";
 		case 4:
-			return selected == "y";
-		case 5:
-			return selected == "-";
-		case 6:
-			return selected == "y";
+			return selected == "1";
 		}
 		return false;
 	}
