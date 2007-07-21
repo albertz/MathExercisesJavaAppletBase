@@ -1,4 +1,4 @@
-package applets.Bruch_Basis_4;
+package applets.Bruch_Basis_5;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -329,7 +329,7 @@ public class Applet extends JApplet {
 					new VTText("s1", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s2", 5, 0, updater),
-					new VTLabel("2/3  :  9/10 =", -1, 30),
+					new VTLabel("2/3  :  -9/10 =", -1, 30),
 					new VTText("s3", 10, 0, updater),
 					new VTLabel("/", 5, 0),
 					new VTText("s4", 5, 0, updater),
@@ -403,7 +403,7 @@ public class Applet extends JApplet {
 		case 2:
 			return parseNum(selected) == 16;
 		case 3:
-			return parseNum(selected) == 20;
+			return parseNum(selected) == -20;
 		case 4:
 			return parseNum(selected) == 27;
 		case 5:
