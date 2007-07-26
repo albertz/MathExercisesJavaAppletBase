@@ -1,4 +1,4 @@
-package applets.Bruch_Anwendung_Dreisatz;
+package applets.Bruch_Anwendung_Prozentrechnung;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
@@ -40,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(370, 220);
+		this.setSize(370, 200);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -317,15 +316,13 @@ public class Applet extends JApplet {
 	
 	private int Z1;
 	private int Z2;
-	private int Z3;
 	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 		
 		Random rnd = new Random();
-		Z1 = rnd.nextInt(20) + 2;
-		Z2 = rnd.nextInt(20) + 1;
-		Z3 = rnd.nextInt(20) + 2;
+		Z1 = rnd.nextInt(500);
+		Z2 = rnd.nextInt(25) + 1;
 		
 		Runnable updater = new Runnable() {
 			public void run() {
@@ -344,12 +341,11 @@ public class Applet extends JApplet {
 				}),
 				
 				// Input-Feld
-				new VTLabel(Z1 + " Hosen kosten " + Z2 + " Euro.", 10, 30),
-				new VTLabel("Wie viel kosten " + Z3 + " Hosen?", -1, 20),
+				new VTLabel(Z1 + "% von " + Z2 + "l Grapefruitsaft sind?", 10, 30),
 				new VTText("s1", -1, 30, updater),
 				new VTLabel("/", 5, 0),
 				new VTText("s2", 5, 0, updater),
-				new VTLabel("Euro", 10, 0),
+				new VTLabel("l Grapefruitsaft", 10, 0),
 				
 				new VTLabel("(Bitte Bruch in gekürzter Form angeben.)", 5, 40),
 				new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
@@ -444,9 +440,9 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return parseNum(selected) == getBruchZaehler(Z2 * Z3, Z1);
+			return parseNum(selected) == getBruchZaehler(Z1 * Z2, 100);
 		case 2:
-			return parseNum(selected) == getBruchNenner(Z2 * Z3, Z1);
+			return parseNum(selected) == getBruchNenner(Z1 * Z2, 100);
 		}
 		return false;
 	}
