@@ -16,6 +16,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
@@ -36,7 +40,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(370, 280);
+		this.setSize(370, 220);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -293,8 +297,10 @@ public class Applet extends JApplet {
 
 			curX += things[i].getWidth();
 		}
-		
-		resetSelectorColors();
+	}
+	
+	public void removeAllVisualThings(JPanel panel) {
+		panel.removeAll();
 	}
 	
 	/**
@@ -309,6 +315,85 @@ public class Applet extends JApplet {
 		return null;
 	}
 	
+	private int Z1;
+	private int Z2;
+	private int Z3;
+	
+	private void updateDefaultVisualThings() {
+		removeAllVisualThings(jContentPane);
+		
+		Random rnd = new Random();
+		Z1 = rnd.nextInt(20) + 2;
+		Z2 = rnd.nextInt(20) + 1;
+		Z3 = rnd.nextInt(20) + 2;
+		
+		Runnable updater = new Runnable() {
+			public void run() {
+				resetSelectorColors();
+				resetResultLabel();
+			}};
+		addVisualThings(jContentPane, new VisualThing[] {
+				new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
+					public void actionPerformed(ActionEvent arg0) {
+						new Timer().schedule(new TimerTask() {
+							public void run() {
+								updateDefaultVisualThings();
+							}
+						}, 100);
+					}
+				}),
+				
+				// Input-Feld
+				new VTLabel(Z1 + " Hosen kosten " + Z2 + " Euro.", 10, 30),
+				new VTLabel("Wie viel kosten " + Z3 + " Hosen?", -1, 20),
+				new VTText("s1", -1, 30, updater),
+				new VTLabel("/", 5, 0),
+				new VTText("s2", 5, 0, updater),
+				new VTLabel("Euro", 10, 0),
+				
+				new VTLabel("(Bitte Bruch in gekürzter Form angeben.)", 5, 40),
+				new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
+				
+				// Bedienung
+				new VTButton("überprüfen", 10, 40, new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						boolean correct = true;
+						for(int i = 1; ; i++) {
+							JComponent comp = (JComponent) getComponentByName("s"+i);
+							if(comp == null) break;
+							String selected = comp instanceof JComboBox
+								? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
+							correct = isCorrect(i, selected);
+							if(!correct) break;
+						}
+						if(correct) {
+							((JLabel)getComponentByName("result")).setForeground(Color.MAGENTA);
+							((JLabel)getComponentByName("result")).setText("alles ist richtig!");
+						} else {
+							((JLabel)getComponentByName("result")).setForeground(Color.RED);
+							((JLabel)getComponentByName("result")).setText("leider ist etwas falsch");
+						}
+					}}),
+				new VTLabel("result", "leider ist etwas falsch", 10, 0),
+				new VTButton("hilf mir", 10, 0, new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						for(int i = 1; ; i++) {
+							JComponent comp = (JComponent) getComponentByName("s"+i);
+							if(comp == null) break;
+							String selected = comp instanceof JComboBox
+								? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
+							boolean correct = isCorrect(i, selected);
+							Color col = correct ? Color.MAGENTA : Color.RED;
+							comp.setBackground(correct ? Color.MAGENTA : Color.RED);
+						}
+					}}),
+		});
+
+		resetResultLabel();
+		resetSelectorColors();
+		
+		jContentPane.repaint();
+	}
 	
 	/**
 	 * This method initializes jContentPane
@@ -319,82 +404,35 @@ public class Applet extends JApplet {
 		if (jContentPane == null) {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
-			
-			Runnable updater = new Runnable() {
-				public void run() {
-					resetSelectorColors();
-					resetResultLabel();
-				}};
-			addVisualThings(jContentPane, new VisualThing[] {
-					// Input-Feld
-					new VTLabel("3/4 + 4/5 =", 10, 10),
-					new VTText("s1", 10, 0, updater),
-					new VTLabel("/", 5, 0),
-					new VTText("s2", 5, 0, updater),
-					
-					new VTLabel("2/3 - 9/10 =", -1, 30),
-					new VTText("s3", 10, 0, updater),
-					new VTLabel("/", 5, 0),
-					new VTText("s4", 5, 0, updater),
-					
-					new VTLabel("1/6 + 2/3 =", -1, 30),
-					new VTText("s5", 10, 0, updater),
-					new VTLabel("/", 5, 0),
-					new VTText("s6", 5, 0, updater),
-					
-					new VTLabel("-5/6 + 6 =", -1, 30),
-					new VTText("s7", 10, 0, updater),
-					new VTLabel("/", 5, 0),
-					new VTText("s8", 5, 0, updater),
-					
-					new VTLabel("3/10 + 5/2 - 4 =", -1, 30),
-					new VTText("s9", 10, 0, updater),
-					new VTLabel("/", 5, 0),
-					new VTText("s10", 5, 0, updater),
-					
-					new VTLabel("(Bitte Brüche in gekürzter Form angeben.)", 5, 40),
-					new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
-					
-					// Bedienung
-					new VTButton("überprüfen", 10, 50, new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							boolean correct = true;
-							for(int i = 1; ; i++) {
-								JComponent comp = (JComponent) getComponentByName("s"+i);
-								if(comp == null) break;
-								String selected = comp instanceof JComboBox
-									? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
-								correct = isCorrect(i, selected);
-								if(!correct) break;
-							}
-							if(correct) {
-								((JLabel)getComponentByName("result")).setForeground(Color.MAGENTA);
-								((JLabel)getComponentByName("result")).setText("alles ist richtig!");
-							} else {
-								((JLabel)getComponentByName("result")).setForeground(Color.RED);
-								((JLabel)getComponentByName("result")).setText("leider ist etwas falsch");
-							}
-						}}),
-					new VTLabel("result", "leider ist etwas falsch", 10, 0),
-					new VTButton("hilf mir", 10, 0, new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							for(int i = 1; ; i++) {
-								JComponent comp = (JComponent) getComponentByName("s"+i);
-								if(comp == null) break;
-								String selected = comp instanceof JComboBox
-									? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
-								boolean correct = isCorrect(i, selected);
-								Color col = correct ? Color.MAGENTA : Color.RED;
-								comp.setBackground(correct ? Color.MAGENTA : Color.RED);
-							}
-						}}),
-			});
-			resetResultLabel();
-			
+			updateDefaultVisualThings();
 		}
 		return jContentPane;
 	}
 
+	public static int GGT(int n1, int n2) {
+		if(n1 < 0) return GGT(-n1, n2);
+		if(n2 < 0) return GGT(n1, -n2);
+		if(n1 == 0) return n2;
+		if(n2 == 0) return n1;
+		if(n1 == n2) return n1;
+		if(n1 > n2) return GGT(n1 % n2, n2);
+		else return GGT(n1, n2 % n1);
+	}
+	
+	public static int Signum(int n) {
+		if(n < 0) return -1;
+		if(n > 0) return 1;
+		return 0;
+	}
+	
+	public static int getBruchNenner(int z, int n) {
+		return Math.abs(n) / GGT(z, n);
+	}
+	
+	public static int getBruchZaehler(int z, int n) {
+		return Signum(n * z) * Math.abs(z) / GGT(z, n);
+	}
+	
 	public static int parseNum(String txt) {
 		try {
 			return Integer.parseInt(txt);
@@ -406,25 +444,9 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return parseNum(selected) == 31;
+			return parseNum(selected) == getBruchZaehler(Z2 * Z3, Z1);
 		case 2:
-			return parseNum(selected) == 20;
-		case 3:
-			return parseNum(selected) == -7;
-		case 4:
-			return parseNum(selected) == 30;
-		case 5:
-			return parseNum(selected) == 5;
-		case 6:
-			return parseNum(selected) == 6;
-		case 7:
-			return parseNum(selected) == 31;
-		case 8:
-			return parseNum(selected) == 6;
-		case 9:
-			return parseNum(selected) == -6;
-		case 10:
-			return parseNum(selected) == 5;
+			return parseNum(selected) == getBruchNenner(Z2 * Z3, Z1);
 		}
 		return false;
 	}
