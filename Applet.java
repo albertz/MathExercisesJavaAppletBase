@@ -1,4 +1,4 @@
-package applets.Bruch_Anwendung_Prozentrechnung;
+package applets.Bruch_Anwendung_Wahrschein;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -39,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(370, 200);
+		this.setSize(370, 240);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -321,8 +321,8 @@ public class Applet extends JApplet {
 		removeAllVisualThings(jContentPane);
 		
 		Random rnd = new Random();
-		Z1 = rnd.nextInt(500);
-		Z2 = rnd.nextInt(25) + 1;
+		Z2 = rnd.nextInt(99) + 1;
+		Z1 = rnd.nextInt(Z2);
 		
 		Runnable updater = new Runnable() {
 			public void run() {
@@ -341,11 +341,13 @@ public class Applet extends JApplet {
 				}),
 				
 				// Input-Feld
-				new VTLabel(Z1 + "% von " + Z2 + "l Grapefruitsaft sind?", 10, 30),
-				new VTText("s1", -1, 30, updater),
+				new VTLabel("Anzahl günstiger Ergebnisse: " + Z1, 10, 30),
+				new VTLabel("Anzahl aller Ergebnisse: " + Z2, -1, 30),
+				new VTLabel("Wahrscheinlichkeit: ", -1, 30),
+				new VTText("s1", 10, 0, updater),
 				new VTLabel("/", 5, 0),
 				new VTText("s2", 5, 0, updater),
-				new VTLabel("l Grapefruitsaft", 10, 0),
+				new VTLabel("%", 10, 0),
 				
 				new VTLabel("(Bitte Bruch in gekürzter Form angeben.)", 5, 40),
 				new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
@@ -408,6 +410,7 @@ public class Applet extends JApplet {
 	public static int GGT(int n1, int n2) {
 		if(n1 < 0) return GGT(-n1, n2);
 		if(n2 < 0) return GGT(n1, -n2);
+		if(n1 == 0 && n2 == 0) return 1;
 		if(n1 == 0) return n2;
 		if(n2 == 0) return n1;
 		if(n1 == n2) return n1;
@@ -440,9 +443,9 @@ public class Applet extends JApplet {
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
 		case 1:
-			return parseNum(selected) == getBruchZaehler(Z1 * Z2, 100);
+			return parseNum(selected) == getBruchZaehler(Z1 * 100, Z2);
 		case 2:
-			return parseNum(selected) == getBruchNenner(Z1 * Z2, 100);
+			return parseNum(selected) == getBruchNenner(Z1 * 100, Z2);
 		}
 		return false;
 	}
