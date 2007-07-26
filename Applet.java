@@ -1,4 +1,4 @@
-package applets.Bruch_Basis_7;
+package applets.Bruch_Anwendung_Dreisatz;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -18,9 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-
-import applets.Bruch_Basis_3.Applet.VTLabel;
-import applets.Bruch_Basis_3.Applet.VTText;
 
 public class Applet extends JApplet {
 
