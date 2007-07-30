@@ -1,4 +1,4 @@
-package applets.M04_01_11;
+package applets.M04_01_12;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -7,6 +7,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,6 +19,8 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+
+import applets.Bruch_Basis_7.Applet.VTButton;
 
 public class Applet extends JApplet {
 
@@ -36,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 240);
+		this.setSize(380, 320);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -164,7 +167,12 @@ public class Applet extends JApplet {
 		}
 
 		public int getWidth() {
-			return 58;
+			getComponent();
+			int max = 0;
+			for(int i = 0; i < items.length; i++)
+				max = Math.max(max, selector.getFontMetrics(selector.getFont()).stringWidth(items[i]));
+			
+			return max + 40;
 		}
 
 		public int getHeight() {
@@ -176,6 +184,16 @@ public class Applet extends JApplet {
 	public static class VTButton extends VisualThing {
 
 		public VTButton(
+				String name, String text, int stepX, int stepY,
+				ActionListener actionListener) {
+			this.name = name;
+			this.text = text;
+			this.stepX = stepX;
+			this.stepY = stepY;
+			this.actionListener = actionListener;
+		}
+
+		public VTButton(
 				String text, int stepX, int stepY,
 				ActionListener actionListener) {
 			this.text = text;
@@ -185,6 +203,7 @@ public class Applet extends JApplet {
 		}
 		
 		private int stepX, stepY;
+		private String name = null;
 		private String text;
 		private JButton button = null;
 		private ActionListener actionListener;
@@ -193,6 +212,7 @@ public class Applet extends JApplet {
 			if(button == null) {
 				button = new JButton();
 				button.setText(text);
+				if(name != null) button.setName(name);
 				button.addActionListener(actionListener);
 			}
 			return button;
@@ -265,18 +285,64 @@ public class Applet extends JApplet {
 		
 	}
 	
+	public static class VTContainer extends VisualThing {
+
+		public VTContainer(String name, int stepX, int stepY, VisualThing[] things) {
+			this.name = name;
+			this.stepX = stepX;
+			this.stepY = stepY;
+			this.things = things;
+		}
+		
+		private int stepX, stepY;
+		private String name;
+		private JPanel panel = null;
+		private VisualThing[] things;
+		private Point size;
+		
+		public Component getComponent() {
+			if(panel == null) {
+				panel = new JPanel();
+				panel.setLayout(null);
+				panel.setName(name);
+				size = addVisualThings(panel, things);
+			}
+			return panel;
+		}
+
+		public int getStepY() {
+			return stepY;
+		}
+
+		public int getStepX() {
+			return stepX;
+		}
+
+		public int getWidth() {
+			getComponent();
+			return size.x;
+		}
+
+		public int getHeight() {
+			getComponent();
+			return size.y;
+		}
+		
+	}
+	
 	/**
 	 * fügt alle Dinge zum panel hinzu;
 	 * siehe VisualThing für weitere Details
 	 */
-	public void addVisualThings(JPanel panel, VisualThing[] things) {
+	public static Point addVisualThings(JPanel panel, VisualThing[] things) {
 		int curX = 0, curY = 0;
 		List xs_old = null;
 		List xs = new LinkedList();
+		Point max = new Point(0, 0);
 		
 		for(int i = 0; i < things.length; i++) {
 			if(things[i].getStepY() > 0) {
-				curY += things[i].getStepY();
+				curY = max.y + things[i].getStepY();
 				xs_old = xs;
 				xs = new LinkedList();
 				curX = 0;
@@ -289,26 +355,107 @@ public class Applet extends JApplet {
 			
 			Component c = things[i].getComponent();
 			c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
+			max.x = Math.max(max.x, curX + things[i].getWidth());
+			max.y = Math.max(max.y, curY + things[i].getHeight());
 			panel.add(c);
 
 			curX += things[i].getWidth();
 		}
 		
-		resetSelectorColors();
+		return max;
+	}
+	
+	public static interface ComponentWalker {
+		// false is a signal to break
+		public boolean meet(Component comp);
+	}
+
+	public static boolean ForEachComponent(JPanel panel, ComponentWalker walker) {
+		for(int i = 0; i < panel.getComponents().length; i++) {
+			walker.meet(panel.getComponents()[i]);
+			if(panel.getComponents()[i] instanceof JPanel)
+				if(!ForEachComponent((JPanel) panel.getComponents()[i], walker))
+					return false;
+		}
+		return true;
+	}
+	
+	public boolean ForEachComponent(ComponentWalker walker) {
+		return ForEachComponent(getJContentPane(), walker);
 	}
 	
 	/**
 	 * durchsucht alle Komponenten und gibt die erste zurück, deren Namen passt; ansonsten null
 	 */
-	public Component getComponentByName(String name) {
-		for(int i = 0; i < getJContentPane().getComponents().length; i++) {
-			String cname = getJContentPane().getComponents()[i].getName();
-			if(cname != null && cname.compareTo(name) == 0)
-				return getJContentPane().getComponents()[i];
+	public Component getComponentByName(final String name) {
+		class CWalker implements ComponentWalker {
+			public Component comp;
+			
+			public boolean meet(Component comp) {
+				String cname = comp.getName();
+				if(cname != null && cname.compareTo(name) == 0) {
+					this.comp = comp;
+					return false;
+				}
+				return true;
+			}
 		}
-		return null;
+		CWalker walker = new CWalker();
+		ForEachComponent(walker);
+		return walker.comp;
 	}
 	
+	private ActionListener createCheckButtonListener(final int startIndex, final Runnable correctAction, final Runnable wrongAction) {
+		return new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean correct = true;
+				for(int i = startIndex; ; i++) {
+					JComponent comp = (JComponent) getComponentByName("s" + i);
+					if(comp == null) break;
+					String selected = comp instanceof JComboBox
+						? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
+					correct = isCorrect(i, selected);
+					if(!correct) break;
+				}
+				if(correct) {
+					((JLabel)getComponentByName("res" + startIndex)).setForeground(Color.MAGENTA);
+					((JLabel)getComponentByName("res" + startIndex)).setText("alles ist richtig!");
+					if(correctAction != null) correctAction.run();
+				} else {
+					((JLabel)getComponentByName("res" + startIndex)).setForeground(Color.RED);
+					((JLabel)getComponentByName("res" + startIndex)).setText("leider ist etwas falsch");
+					if(wrongAction != null) wrongAction.run();
+				}
+			}};		
+	}
+	
+	private ActionListener createCheckButtonListener(int startIndex) {
+		return createCheckButtonListener(startIndex, null, null);
+	}
+	
+	private ActionListener createHelpButtonListener(final int startIndex) {
+		return new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				for(int i = startIndex; ; i++) {
+					JComponent comp = (JComponent) getComponentByName("s" + i);
+					if(comp == null) break;
+					String selected = comp instanceof JComboBox
+						? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
+					boolean correct = isCorrect(i, selected);
+					comp.setBackground(correct ? Color.MAGENTA : Color.RED);
+				}
+			}};
+	}
+	
+	private Runnable createVisibler(final String name) {
+		return new Runnable() {
+			public void run() {
+				JComponent comp = (JComponent) getComponentByName(name);
+				if(comp == null) return;
+				comp.setVisible(true);
+			}
+		};
+	}
 	
 	/**
 	 * This method initializes jContentPane
@@ -323,55 +470,72 @@ public class Applet extends JApplet {
 			Runnable updater = new Runnable() {
 				public void run() {
 					resetSelectorColors();
-					resetResultLabel();
+					resetResultLabels();
 				}};
-			String[] choices = new String[] { "ja", "nein" };
+			String[] choices1 = new String[] {
+					"n+m = 3p  und  m+k = 3q",
+					"n-m = 3p  und  m-k = 3q",
+					"n∙m = 3p  und  m∙k = 3q" };
+			String[] choices2 = new String[] {
+					"1", "-1", "3", "-3", "6", "-6"
+			};
+			String[] choices3 = new String[] {
+					"0", "p", "q"
+			};
+			String[] choices4 = new String[] {
+					"p + q", "p - q", "p ∙ q"
+			};
 			addVisualThings(jContentPane, new VisualThing[] {
-					// Input-Feld
-					new VTLabel("Wenn (x,y) ∈ R und (y,z) ∈ R ist, gilt dann auch (x,z) ∈ R ?", 10, 10),
-					new VTSelector("s1", choices, 30, 25, updater),
+					// Input-Feld 1
+					new VTLabel("Es sei (n,m) ∈ R und (m,k) ∈ R, dann gibt es p,q ∈ ℤ mit", 10, 10),
+					new VTSelector("s1", choices1, 30, 5, updater),
 					
-					new VTLabel("a1", "Per Definition bedeutet (x,y) ∈ R ja gerade x ≤ y.", 10, 40),
-					new VTLabel("a2", "Ebenso bedeutet (y,z) ∈ R dann y ≤ z.", 10, 20),
-					new VTLabel("a3", "Wir haben also x ≤ y und y ≤ z. Dann gilt aber auch", 10, 20),
-					new VTLabel("a4", "(nach den Rechenregeln für Ungleichungen), dass x ≤ z,", 10, 20),
-					new VTLabel("a5", "also (x,z) ∈ R.", 10, 20),
-					
-					// Bedienung
-					new VTButton("überprüfen", 10, 50, new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							boolean correct = true;
-							for(int i = 1; ; i++) {
-								JComponent comp = (JComponent) getComponentByName("s"+i);
-								if(comp == null) break;
-								String selected = comp instanceof JComboBox
-									? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
-								correct = isCorrect(i, selected);
-								if(!correct) break;
-							}
-							if(correct) {
-								((JLabel)getComponentByName("result")).setForeground(Color.MAGENTA);
-								((JLabel)getComponentByName("result")).setText("alles ist richtig!");
-							} else {
-								((JLabel)getComponentByName("result")).setForeground(Color.RED);
-								((JLabel)getComponentByName("result")).setText("leider ist etwas falsch");
+					// Bedienung 1
+					new VTButton("überprüfen", 10, 20,
+							createCheckButtonListener(1, createVisibler("c1"), null)),
+					new VTLabel("res1", "leider ist etwas falsch", 10, 0),
+					new VTButton("hilf mir", 10, 0, createHelpButtonListener(1)),
 
-								for(int i = 1; ; i++) {
-									JComponent comp = (JComponent) getComponentByName("a" + i);
-									if(comp == null) break;
-									comp.setVisible(true);
-								}
-							}
-						}}),
-					new VTLabel("result", "leider ist etwas falsch", 10, 0),
+					new VTContainer("c1", 0, 10, new VisualThing[] {
+							// Input-Feld 2
+							new VTLabel("⇒", 10, 10),
+							new VTLabel(" ", 10, 0),
+							new VTLabel("n-k = n - (m - m) - k", 10, 0),
+
+							new VTLabel("=", -2, 5),
+							new VTLabel("(n - m) + (m - k)", -3, 0),
+
+							new VTLabel("=", -1, 5),
+							new VTSelector("s3", choices2, -2, 0, updater),
+							new VTLabel("∙", 5, 0),
+							new VTSelector("s4", choices3, 5, 0, updater),
+							new VTLabel("+", 10, 0),
+							new VTSelector("s5", choices2, 10, 0, updater),
+							new VTLabel("∙", 5, 0),
+							new VTSelector("s6", choices3, 5, 0, updater),
+							
+							new VTLabel("=", -1, 5),
+							new VTLabel("3 ∙", -2, 0),
+							new VTSelector("s7", choices4, 10, 0, updater),
+
+							// Bedienung 2
+							new VTButton("überprüfen", 10, 20,
+									createCheckButtonListener(3, createVisibler("c2"), null)),
+							new VTLabel("res3", "leider ist etwas falsch", 10, 0),
+							new VTButton("hilf mir", 10, 0, createHelpButtonListener(3)),
+					}),
+
+					new VTContainer("c2", 0, 10, new VisualThing[] {
+							// Input-Feld 2
+							new VTLabel("⇒", 10, 10),
+							new VTLabel(" (n,k) ∈ R", 10, 0),
+					}),
 			});
-			resetResultLabel();
+			resetResultLabels();
+			resetSelectorColors();
+			getComponentByName("c1").setVisible(false);
+			getComponentByName("c2").setVisible(false);
 			
-			for(int i = 1; ; i++) {
-				JComponent comp = (JComponent) getComponentByName("a" + i);
-				if(comp == null) break;
-				comp.setVisible(false);
-			}
 		}
 		return jContentPane;
 	}
@@ -386,24 +550,38 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1:
-			return selected == "ja";
+		case 1: return selected == "n-m = 3p  und  m-k = 3q";
+		case 3: return selected == "3";
+		case 4: return selected == "p";
+		case 5: return selected == "3";
+		case 6: return selected == "q";
+		case 7: return selected == "p + q";
 		}
 		return false;
 	}
 	
-	public void resetResultLabel() {
-		if(getComponentByName("result") != null)
-			((JLabel)getComponentByName("result")).setText("");
+	public void resetResultLabels() {
+		ForEachComponent(new ComponentWalker() {
+			public boolean meet(Component comp) {
+				if(comp.getName() != null
+				&& comp.getName().startsWith("res")) {
+					((JLabel)comp).setText("");
+				}
+				return true;
+			}
+		});
 	}
 	
 	public void resetSelectorColors() {
-		for(int i = 0; i < getJContentPane().getComponents().length; i++) {
-			if(getJContentPane().getComponents()[i] instanceof JComboBox
-			|| getJContentPane().getComponents()[i] instanceof JTextField) {
-				getJContentPane().getComponents()[i].setBackground(Color.WHITE);
+		ForEachComponent(new ComponentWalker() {
+			public boolean meet(Component comp) {
+				if(comp instanceof JComboBox
+				|| comp instanceof JTextField) {
+					comp.setBackground(Color.WHITE);
+				}
+				return true;
 			}
-		}
+		});
 	}
 
 
