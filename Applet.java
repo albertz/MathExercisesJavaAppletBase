@@ -1,4 +1,4 @@
-package applets.M04_01_17;
+package applets.M04_01_18;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -37,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 308);
+		this.setSize(380, 400);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -467,7 +467,7 @@ public class Applet extends JApplet {
 			
 			/* Copy&Paste Bereich für häufig genutzte Zeichen:
 			 * → ∞ ∈ ℝ π ℤ
-			 * ≤ ⇒ ∉ ∅ ⊆ 
+			 * ≤ ⇒ ∉ ∅ ⊆ √
 			 */
 			Runnable updater = new Runnable() {
 				public void run() {
@@ -475,46 +475,53 @@ public class Applet extends JApplet {
 					resetResultLabels();
 				}};
 			String[] choices1 = new String[] { "0", "-x", "x", "z", "-z", "π" };
-			String[] choices2 = new String[] { "Reflexivität", "Symmetrie", "Transitivität" };
+			String[] choices2 = new String[] { "reflexiv", "symmetrisch", "transitiv" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("Es sei z ∈ [x]", 10, 10),
-					new VTLabel("⇒", 10, 5),
-					new VTLabel("(", 10, 0),
-					new VTSelector("s1", choices1, 5, 0, updater),
-					new VTLabel(",", 5, 0),
-					new VTSelector("s2", choices1, 5, 0, updater),
-					new VTLabel(") ∈ R", 5, 0),
-					new VTLabel("(aufgrund der Definition)", 10, 0),
+					new VTLabel("R ist", 10, 10),
+					new VTSelector("s1", choices2, 5, 0, updater),
+					new VTLabel("weil x den selben führenden Term besitzt, wie x.", 10, 1),
 
-					new VTLabel("⇒", 10, 5),
-					new VTLabel("(z,x) ∈ R", 10, 0),
-					new VTLabel("(aufgrund der", 10, 0),
+					new VTLabel("R ist", 10, 10),
+					new VTSelector("s2", choices2, 5, 0, updater),
+					new VTLabel("denn wenn x und y den selben führenden Term besitzen,", 10, 1),
+					new VTLabel("dann besitzen auch y und x den selben führenden Term.", 10, 1),
+
+					new VTLabel("R ist auch", 10, 10),
 					new VTSelector("s3", choices2, 5, 0, updater),
-					new VTLabel(")", 5, 0),
+					new VTLabel("denn (x,y)∈R und (y,z)∈R implizieren, dass", 10, 1),
+					new VTLabel("x,y und z alle drei den selben führenden Term besitzen.", 10, 1),
 
-					new VTLabel("Wir haben also (z,x)∈R und (x,w)∈R", 10, 10),
-					new VTLabel("⇒", 10, 5),
-					new VTLabel("(z,w) ∈ R", 10, 0),
-					new VTLabel("(aufgrund der", 10, 0),
-					new VTSelector("s4", choices2, 5, 0, updater),
-					new VTLabel(")", 5, 0),
-					
-					new VTLabel("Wir wissen nun (z,w)∈R und (w,y)∈R", 10, 10),
-					new VTLabel("⇒", 10, 5),
-					new VTLabel("(z,y) ∈ R", 10, 0),
-					new VTLabel("(aufgrund der", 10, 0),
-					new VTSelector("s5", choices2, 5, 0, updater),
-					new VTLabel(")", 5, 0),
+					new VTLabel("Berechne die Äquivalenzklassen:", 10, 10),
 
-					new VTLabel("⇒", 10, 5),
-					new VTLabel("(y,z) ∈ R", 10, 0),
-					new VTLabel("(aufgrund der", 10, 0),
-					new VTSelector("s6", choices2, 5, 0, updater),
-					new VTLabel(")", 5, 0),
+					new VTLabel("[0]", 10, 5),
+					new VTLabel("= { w∈ℝ;", 15, 0),
+					new VTText("s4", 10, 0, updater),
+					new VTLabel("≤ w <", 5, 0),
+					new VTText("s5", 5, 0, updater),
+					new VTLabel("}", 10, 0),
 					
-					new VTLabel("⇒", 10, 5),
-					new VTLabel("z ∈ [y]", 10, 0),
+					new VTLabel("[7.6]", -1, 5),
+					new VTLabel("= { w∈ℝ;", -2, 0),
+					new VTText("s6", 10, 0, updater),
+					new VTLabel("≤ w <", 5, 0),
+					new VTText("s7", 5, 0, updater),
+					new VTLabel("}", 10, 0),
+
+					new VTLabel("[√2]", -1, 5),
+					new VTLabel("= { w∈ℝ;", -2, 0),
+					new VTText("s8", 10, 0, updater),
+					new VTLabel("≤ w <", 5, 0),
+					new VTText("s9", 5, 0, updater),
+					new VTLabel("}", 10, 0),
+					
+					new VTLabel("[π]", -1, 5),
+					new VTLabel("= { w∈ℝ;", -2, 0),
+					new VTText("s10", 10, 0, updater),
+					new VTLabel("≤ w <", 5, 0),
+					new VTText("s11", 5, 0, updater),
+					new VTLabel("}", 10, 0),
+
 					
 					// Bedienung 1
 					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
@@ -528,9 +535,9 @@ public class Applet extends JApplet {
 		return jContentPane;
 	}
 
-	public static int parseNum(String txt) {
+	public static double parseNum(String txt) {
 		try {
-			return Integer.parseInt(txt);
+			return Double.parseDouble(txt);
 		} catch(NumberFormatException e) {
 			return -666;
 		}
@@ -538,12 +545,17 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "x";
-		case 2: return selected == "z";
-		case 3: return selected == "Symmetrie";
-		case 4: return selected == "Transitivität";
-		case 5: return selected == "Transitivität";
-		case 6: return selected == "Symmetrie";
+		case 1: return selected == "reflexiv";
+		case 2: return selected == "symmetrisch";
+		case 3: return selected == "transitiv";
+		case 4: return parseNum(selected) == 0;
+		case 5: return parseNum(selected) == 1;
+		case 6: return parseNum(selected) == 7;
+		case 7: return parseNum(selected) == 8;
+		case 8: return parseNum(selected) == 1;
+		case 9: return parseNum(selected) == 2;
+		case 10: return parseNum(selected) == 3;
+		case 11: return parseNum(selected) == 4;
 		}
 		return false;
 	}
