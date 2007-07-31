@@ -1,4 +1,4 @@
-package applets.M04_01_13;
+package applets.M04_01_14;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -20,6 +20,8 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
+import applets.Bruch_Basis_7.Applet.VTText;
+
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
@@ -37,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 116);
+		this.setSize(380, 464);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -465,21 +467,96 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
 			
+			/* Copy&Paste Bereich für häufig genutzte Zeichen:
+			 * → ∞ ∈ ℝ π ℤ
+			 * ≤ ⇒ ∉
+			 */
 			Runnable updater = new Runnable() {
 				public void run() {
 					resetSelectorColors();
 					resetResultLabels();
 				}};
-			String[] choices1 = new String[] { "1", "-1", "0", "n", "n²" };
+			String[] choices1 = new String[] { "∈", "∉" };
+			String[] choices2 = new String[] { "ja", "nein" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("(n,n) ∈ R, denn", 10, 10),
-					new VTSelector("s1", choices1, 10, 5, updater),
-					new VTLabel("-", 10, 0),
-					new VTSelector("s2", choices1, 10, 0, updater),
-					new VTLabel("=", 10, 0),
-					new VTSelector("s3", choices1, 10, 0, updater),
-					new VTLabel("ist durch 3 teilbar", 10, 0),
+					new VTLabel("Wegen der Reflexivität gilt:", 10, 10),
+					
+					new VTLabel("(0,0)", 10, 5),
+					new VTSelector("s1", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(0,1)", 20, 0),
+					new VTSelector("s2", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					
+					new VTLabel("(1,1)", 10, 5),
+					new VTSelector("s3", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(2,1)", 20, 0),
+					new VTSelector("s4", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					
+					new VTLabel("(1,2)", 10, 5),
+					new VTSelector("s5", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(2,2)", 20, 0),
+					new VTSelector("s6", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					
+					new VTLabel("(2,5)", 10, 5),
+					new VTSelector("s7", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(5,5)", 20, 0),
+					new VTSelector("s8", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+
+					new VTLabel("(4,2)", 10, 5),
+					new VTSelector("s9", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(4,4)", 20, 0),
+					new VTSelector("s10", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+
+					new VTLabel("(3,3)", 10, 5),
+					new VTSelector("s11", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(1,3)", 20, 0),
+					new VTSelector("s12", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					
+					new VTLabel("Wegen der Symmetrieeigenschaft und (1,2), (1,3), (4,5) ∈ R", 10, 10),
+					new VTLabel("haben wir auf jeden Fall auch:", 10, 1),
+					 
+					new VTLabel("(3,5)", 10, 5),
+					new VTSelector("s13", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(5,4)", 20, 0),
+					new VTSelector("s14", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+
+					new VTLabel("(2,3)", 10, 5),
+					new VTSelector("s15", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(3,1)", 20, 0),
+					new VTSelector("s16", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+
+					new VTLabel("(2,1)", 10, 5),
+					new VTSelector("s17", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+					new VTLabel("(2,2)", 20, 0),
+					new VTSelector("s18", choices1, 5, 0, updater),
+					new VTLabel("R ,", 5, 0),
+
+					new VTLabel("Ist die Relation jetzt symetrisch?", 10, 10),
+					new VTSelector("s19", choices2, 10, 0, updater),
+					
+					new VTLabel("Wir wissen (2,1) ∈ R und (1,3) ∈ R, also gilt auch:", 10, 10),
+					new VTLabel("(", 10, 5),
+					new VTText("s20", 5, 0, updater),
+					new VTLabel(",", 5, 0),
+					new VTText("s21", 5, 0, updater),
+					new VTLabel(") ∈ R", 5, 0),
 					
 					// Bedienung 1
 					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
@@ -503,9 +580,27 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "n";
-		case 2: return selected == "n";
-		case 3: return selected == "0";
+		case 1: return selected == "∉";
+		case 2: return selected == "∉";
+		case 3: return selected == "∈";
+		case 4: return selected == "∉";
+		case 5: return selected == "∉";
+		case 6: return selected == "∈";
+		case 7: return selected == "∉";
+		case 8: return selected == "∈";
+		case 9: return selected == "∉";
+		case 10: return selected == "∈";
+		case 11: return selected == "∈";
+		case 12: return selected == "∉";
+		case 13: return selected == "∉";
+		case 14: return selected == "∈";
+		case 15: return selected == "∉";
+		case 16: return selected == "∈";
+		case 17: return selected == "∈";
+		case 18: return selected == "∉";
+		case 19: return selected == "ja";
+		case 20: return parseNum(selected) == 2;
+		case 21: return parseNum(selected) == 3;
 		}
 		return false;
 	}
