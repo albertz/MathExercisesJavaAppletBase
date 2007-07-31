@@ -1,4 +1,4 @@
-package applets.M04_01_09a;
+package applets.M04_01_09b;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -37,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 117);
+		this.setSize(380, 90);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -474,18 +474,14 @@ public class Applet extends JApplet {
 					resetSelectorColors();
 					resetResultLabels();
 				}};
-			String[] choices1 = new String[] { "= π", "= 0", "gerade", "ungerade" };
-			String[] choices2 = new String[] { "π", "0", "n", "m" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("⇒ m-n ist", 10, 10),
-					new VTSelector("s1", choices1, 10, 0, updater),
-
-					new VTLabel("⇒ (", 10, 10),
-					new VTSelector("s2", choices2, 5, 0, updater),
+					new VTLabel("(x,y) = (", 10, 10),
+					new VTText("s1", 5, 0, updater),
 					new VTLabel(",", 5, 0),
-					new VTSelector("s3", choices2, 5, 0, updater),
-					new VTLabel(") ∈ R", 5, 0),
+					new VTText("s2", 5, 0, updater),
+					new VTLabel(") ∈ R ,", 5, 0),
+					new VTLabel("aber (y,x) ∉ R", 10, 0),
 					
 					// Bedienung 1
 					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
@@ -499,9 +495,9 @@ public class Applet extends JApplet {
 		return jContentPane;
 	}
 
-	public static int parseNum(String txt) {
+	public static double parseNum(String txt) {
 		try {
-			return Integer.parseInt(txt);
+			return Double.parseDouble(txt);
 		} catch(NumberFormatException e) {
 			return -666;
 		}
@@ -509,9 +505,8 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "gerade";
-		case 2: return selected == "m";
-		case 3: return selected == "n";
+		case 1: return parseNum(selected) < parseNum(((JTextField) getComponentByName("s2")).getText());
+		case 2: return parseNum(selected) > parseNum(((JTextField) getComponentByName("s1")).getText());
 		}
 		return false;
 	}
@@ -542,3 +537,4 @@ public class Applet extends JApplet {
 
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"
+
