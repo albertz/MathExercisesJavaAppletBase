@@ -1,4 +1,4 @@
-package applets.M04_01_12;
+package applets.M04_01_13;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -20,8 +20,6 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
-import applets.Bruch_Basis_7.Applet.VTButton;
-
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
@@ -39,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 320);
+		this.setSize(380, 116);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -472,69 +470,24 @@ public class Applet extends JApplet {
 					resetSelectorColors();
 					resetResultLabels();
 				}};
-			String[] choices1 = new String[] {
-					"n+m = 3p  und  m+k = 3q",
-					"n-m = 3p  und  m-k = 3q",
-					"n∙m = 3p  und  m∙k = 3q" };
-			String[] choices2 = new String[] {
-					"1", "-1", "3", "-3", "6", "-6"
-			};
-			String[] choices3 = new String[] {
-					"0", "p", "q"
-			};
-			String[] choices4 = new String[] {
-					"p + q", "p - q", "p ∙ q"
-			};
+			String[] choices1 = new String[] { "1", "-1", "0", "n", "n²" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("Es sei (n,m) ∈ R und (m,k) ∈ R, dann gibt es p,q ∈ ℤ mit", 10, 10),
-					new VTSelector("s1", choices1, 30, 5, updater),
+					new VTLabel("(n,n) ∈ R, denn", 10, 10),
+					new VTSelector("s1", choices1, 10, 5, updater),
+					new VTLabel("-", 10, 0),
+					new VTSelector("s2", choices1, 10, 0, updater),
+					new VTLabel("=", 10, 0),
+					new VTSelector("s3", choices1, 10, 0, updater),
+					new VTLabel("ist durch 3 teilbar", 10, 0),
 					
 					// Bedienung 1
-					new VTButton("überprüfen", 10, 20,
-							createCheckButtonListener(1, createVisibler("c1"), null)),
+					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
 					new VTLabel("res1", "leider ist etwas falsch", 10, 0),
 					new VTButton("hilf mir", 10, 0, createHelpButtonListener(1)),
-
-					new VTContainer("c1", 0, 10, new VisualThing[] {
-							// Input-Feld 2
-							new VTLabel("⇒", 10, 10),
-							new VTLabel(" ", 10, 0),
-							new VTLabel("n-k = n - (m - m) - k", 10, 0),
-
-							new VTLabel("=", -2, 5),
-							new VTLabel("(n - m) + (m - k)", -3, 0),
-
-							new VTLabel("=", -1, 5),
-							new VTSelector("s3", choices2, -2, 0, updater),
-							new VTLabel("∙", 5, 0),
-							new VTSelector("s4", choices3, 5, 0, updater),
-							new VTLabel("+", 10, 0),
-							new VTSelector("s5", choices2, 10, 0, updater),
-							new VTLabel("∙", 5, 0),
-							new VTSelector("s6", choices3, 5, 0, updater),
-							
-							new VTLabel("=", -1, 5),
-							new VTLabel("3 ∙", -2, 0),
-							new VTSelector("s7", choices4, 10, 0, updater),
-
-							// Bedienung 2
-							new VTButton("überprüfen", 10, 20,
-									createCheckButtonListener(3, createVisibler("c2"), null)),
-							new VTLabel("res3", "leider ist etwas falsch", 10, 0),
-							new VTButton("hilf mir", 10, 0, createHelpButtonListener(3)),
-					}),
-
-					new VTContainer("c2", 0, 10, new VisualThing[] {
-							// Input-Feld 2
-							new VTLabel("⇒", 10, 10),
-							new VTLabel(" (n,k) ∈ R", 10, 0),
-					}),
 			});
 			resetResultLabels();
 			resetSelectorColors();
-			getComponentByName("c1").setVisible(false);
-			getComponentByName("c2").setVisible(false);
 			
 		}
 		return jContentPane;
@@ -550,12 +503,9 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "n-m = 3p  und  m-k = 3q";
-		case 3: return selected == "3";
-		case 4: return selected == "p";
-		case 5: return selected == "3";
-		case 6: return selected == "q";
-		case 7: return selected == "p + q";
+		case 1: return selected == "n";
+		case 2: return selected == "n";
+		case 3: return selected == "0";
 		}
 		return false;
 	}
