@@ -1,4 +1,4 @@
-package applets.M04_01_19;
+package applets.M04_01_09a;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -37,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 148);
+		this.setSize(380, 117);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -474,18 +474,18 @@ public class Applet extends JApplet {
 					resetSelectorColors();
 					resetResultLabels();
 				}};
-			String[] choices2 = new String[] { "Reflexivität", "Symmetrie", "Transitivität" };
+			String[] choices1 = new String[] { "= π", "= 0", "gerade", "ungerade" };
+			String[] choices2 = new String[] { "π", "0", "n", "m" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("x~x   entspricht", 10, 10),
-					new VTSelector("s1", choices2, 10, 0, updater),
+					new VTLabel("⇒ m-n ist", 10, 10),
+					new VTSelector("s1", choices1, 10, 0, updater),
 
-					new VTLabel("x~y ⇒ y~x   entspricht", 10, 10),
-					new VTSelector("s2", choices2, 10, 0, updater),
-
-					new VTLabel("x~y, y~z ⇒ x~z   entspricht", 10, 10),
-					new VTSelector("s3", choices2, 10, 0, updater),
-
+					new VTLabel("⇒ (", 10, 10),
+					new VTSelector("s2", choices2, 5, 0, updater),
+					new VTLabel(",", 5, 0),
+					new VTSelector("s3", choices2, 5, 0, updater),
+					new VTLabel(") ∈ R", 5, 0),
 					
 					// Bedienung 1
 					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
@@ -509,9 +509,9 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "Reflexivität";
-		case 2: return selected == "Symmetrie";
-		case 3: return selected == "Transitivität";
+		case 1: return selected == "gerade";
+		case 2: return selected == "m";
+		case 3: return selected == "n";
 		}
 		return false;
 	}
