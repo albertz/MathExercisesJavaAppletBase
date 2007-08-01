@@ -1,4 +1,4 @@
-package applets.M04_01_09b;
+package applets.M04_01_06;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -37,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 90);
+		this.setSize(380, 148);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -474,14 +474,18 @@ public class Applet extends JApplet {
 					resetSelectorColors();
 					resetResultLabels();
 				}};
+			String[] choices2 = new String[] { "Reflexivität", "Symmetrie", "Transitivität" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("(x,y) = (", 10, 10),
-					new VTText("s1", 5, 0, updater),
-					new VTLabel(",", 5, 0),
-					new VTText("s2", 5, 0, updater),
-					new VTLabel(") ∈ R ,", 5, 0),
-					new VTLabel("aber (y,x) ∉ R", 10, 0),
+					new VTLabel("x~x   entspricht", 10, 10),
+					new VTSelector("s1", choices2, 10, 0, updater),
+
+					new VTLabel("x~y ⇒ y~x   entspricht", 10, 10),
+					new VTSelector("s2", choices2, 10, 0, updater),
+
+					new VTLabel("x~y, y~z ⇒ x~z   entspricht", 10, 10),
+					new VTSelector("s3", choices2, 10, 0, updater),
+
 					
 					// Bedienung 1
 					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
@@ -495,9 +499,9 @@ public class Applet extends JApplet {
 		return jContentPane;
 	}
 
-	public static double parseNum(String txt) {
+	public static int parseNum(String txt) {
 		try {
-			return Double.parseDouble(txt);
+			return Integer.parseInt(txt);
 		} catch(NumberFormatException e) {
 			return -666;
 		}
@@ -505,8 +509,9 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return parseNum(selected) < parseNum(((JTextField) getComponentByName("s2")).getText());
-		case 2: return parseNum(selected) > parseNum(((JTextField) getComponentByName("s1")).getText());
+		case 1: return selected == "Reflexivität";
+		case 2: return selected == "Symmetrie";
+		case 3: return selected == "Transitivität";
 		}
 		return false;
 	}
@@ -537,4 +542,3 @@ public class Applet extends JApplet {
 
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"
-
