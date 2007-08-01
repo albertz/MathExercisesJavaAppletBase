@@ -1,12 +1,14 @@
 package applets.M04_01_06;
 
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -15,10 +17,14 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+
+import sun.java2d.loops.DrawLine;
 
 public class Applet extends JApplet {
 
@@ -327,6 +333,64 @@ public class Applet extends JApplet {
 		}
 		
 	}
+
+	public static class VTImage extends VisualThing {
+
+		public static interface Painter {
+			public void paint(Graphics g);
+		}
+
+		public static interface PainterAndListener extends Painter, MouseListener {}
+		
+		public VTImage(
+				String name, int stepX, int stepY, int width, int height,
+				PainterAndListener painter) {
+			this.name = name;
+			this.stepX = stepX;
+			this.stepY = stepY;
+			this.width = width;
+			this.height = height;
+			this.painter = painter;
+		}
+		
+		private int stepX, stepY;
+		private int width, height;
+		private String name;
+		private Component panel = null;
+		private PainterAndListener painter;
+		
+		public Component getComponent() {
+			if(panel == null) {
+				panel = new Component() {
+					public void paint(Graphics g) {
+						painter.paint(g);
+					}
+				};
+				panel.setName(name);
+				panel.setSize(width, height);
+				panel.addMouseListener(painter);
+			}
+			return panel;
+		}
+
+		public int getStepY() {
+			return stepY;
+		}
+
+		public int getStepX() {
+			return stepX;
+		}
+
+		public int getWidth() {
+			return width;
+		}
+
+		public int getHeight() {
+			return height;
+		}
+		
+	}
+	
 	
 	/**
 	 * fügt alle Dinge zum panel hinzu;
@@ -477,15 +541,39 @@ public class Applet extends JApplet {
 			String[] choices2 = new String[] { "Reflexivität", "Symmetrie", "Transitivität" };
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTLabel("x~x   entspricht", 10, 10),
-					new VTSelector("s1", choices2, 10, 0, updater),
+					new VTImage("bla", 10, 10, 100, 100,
+							new VTImage.PainterAndListener() {
+						
+								public void paint(Graphics g) {
+									g.setColor(Color.BLACK);
+									g.drawRect(5, 5, 20, 20);
+								}
 
-					new VTLabel("x~y ⇒ y~x   entspricht", 10, 10),
-					new VTSelector("s2", choices2, 10, 0, updater),
+								public void mouseClicked(MouseEvent e) {
+									// TODO Auto-generated method stub
+									
+								}
 
-					new VTLabel("x~y, y~z ⇒ x~z   entspricht", 10, 10),
-					new VTSelector("s3", choices2, 10, 0, updater),
+								public void mouseEntered(MouseEvent e) {
+									// TODO Auto-generated method stub
+									
+								}
 
+								public void mouseExited(MouseEvent e) {
+									// TODO Auto-generated method stub
+									
+								}
+
+								public void mousePressed(MouseEvent e) {
+									// TODO Auto-generated method stub
+									
+								}
+
+								public void mouseReleased(MouseEvent e) {
+									// TODO Auto-generated method stub
+									
+								}
+							}),
 					
 					// Bedienung 1
 					new VTButton("überprüfen", 10, 20, createCheckButtonListener(1)),
