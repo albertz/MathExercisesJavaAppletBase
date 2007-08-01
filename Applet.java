@@ -8,6 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -19,6 +20,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JButton;
@@ -43,7 +45,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(380, 148);
+		this.setSize(412, 465);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -340,7 +342,7 @@ public class Applet extends JApplet {
 			public void paint(Graphics g);
 		}
 
-		public static interface PainterAndListener extends Painter, MouseListener {}
+		public static interface PainterAndListener extends Painter, MouseListener, MouseMotionListener {}
 		
 		public VTImage(
 				String name, int stepX, int stepY, int width, int height,
@@ -369,6 +371,7 @@ public class Applet extends JApplet {
 				panel.setName(name);
 				panel.setSize(width, height);
 				panel.addMouseListener(painter);
+				panel.addMouseMotionListener(painter);
 			}
 			return panel;
 		}
@@ -539,40 +542,95 @@ public class Applet extends JApplet {
 					resetResultLabels();
 				}};
 			String[] choices2 = new String[] { "Reflexivität", "Symmetrie", "Transitivität" };
+			final int W = 400, H = 400; 
 			addVisualThings(jContentPane, new VisualThing[] {
 					// Input-Feld 1
-					new VTImage("bla", 10, 10, 100, 100,
+					new VTImage("bla", 10, 10, 400, 400,
 							new VTImage.PainterAndListener() {
-						
+								
+								private int a1 = 50, a2 = 100, b1 = H - 200, b2 = H - 150;
+								private int u1 = 150, u2 = 200, v1 = H - 100, v2 = H - 50;
+								private int state = 0;
+								
 								public void paint(Graphics g) {
+									// Rechtecke
+									g.setColor(new Color(255, 0, 0, 100));
+									g.fillRect(a1, b1, a2 - a1, b2 - b1);
+									g.setColor(new Color(0, 255, 0, 100));
+									g.fillRect(u1, v1, u2 - u1, v2 - v1);
+
+									// Koordinaten-system
+									g.setColor(Color.GRAY);
+									g.drawLine(20, 5, 20, H);
+									g.drawLine(0, H - 20, W - 5, H - 20);
+									
+									// Linien
 									g.setColor(Color.BLACK);
-									g.drawRect(5, 5, 20, 20);
+									g.drawLine(a1, 15, a1, H - 10);
+									g.drawLine(a2, 15, a2, H - 10);
+									g.drawLine(u1, 15, u1, H - 10);
+									g.drawLine(u2, 15, u2, H - 10);
+									g.drawLine(10, b1, W - 15, b1);
+									g.drawLine(10, b2, W - 15, b2);
+									g.drawLine(10, v1, W - 15, v1);
+									g.drawLine(10, v2, W - 15, v2);
+									
+									// Text
+									String txt;
+									switch(state) {
+									case 0: txt = "Wählen Sie a1 aus."; break;
+									case 1: txt = "Wählen Sie a2 aus."; break;
+									case 2: txt = "Wählen Sie b1 aus."; break;
+									case 3: txt = "Wählen Sie b2 aus."; break;
+									case 4: txt = "Wählen Sie u1 aus."; break;
+									case 5: txt = "Wählen Sie u2 aus."; break;
+									case 6: txt = "Wählen Sie v1 aus."; break;
+									case 7: txt = "Wählen Sie v2 aus."; break;
+									default: txt = "";
+									}
+									g.setColor(Color.BLUE);
+									g.setFont(new Font("Sans", 0, 18));
+									g.drawString(txt, 20, 20);
+
+									// Beschriftungen
+									g.setColor(Color.BLUE);
+									g.setFont(new Font("Sans", 0, 12));
+									g.drawString("a1", a1, H);
+									g.drawString("a2", a2, H);
+									g.drawString("u1", u1, H);
+									g.drawString("u2", u2, H);
+									g.drawString("b1", 0, b1);
+									g.drawString("b2", 0, b2);
+									g.drawString("v1", 0, v1);
+									g.drawString("v2", 0, v2);
+
 								}
 
 								public void mouseClicked(MouseEvent e) {
-									// TODO Auto-generated method stub
-									
+									state++;
+									state %= 9;
 								}
 
-								public void mouseEntered(MouseEvent e) {
-									// TODO Auto-generated method stub
-									
+								public void mouseMoved(MouseEvent e) {
+									switch(state) {
+									case 0: a1 = e.getX(); break;
+									case 1: a2 = Math.max(a1, e.getX()); break;
+									case 2: b1 = e.getY(); break;
+									case 3: b2 = Math.max(b1, e.getY()); break;
+									case 4: u1 = e.getX(); break;
+									case 5: u2 = Math.max(u1, e.getX()); break;
+									case 6: v1 = e.getY(); break;
+									case 7: v2 = Math.max(v1, e.getY()); break;
+									}
+									e.getComponent().repaint();
 								}
 
-								public void mouseExited(MouseEvent e) {
-									// TODO Auto-generated method stub
-									
-								}
+								public void mouseEntered(MouseEvent e) {}
+								public void mouseExited(MouseEvent e) {}
+								public void mousePressed(MouseEvent e) {}
+								public void mouseReleased(MouseEvent e) {}
+								public void mouseDragged(MouseEvent e) {}
 
-								public void mousePressed(MouseEvent e) {
-									// TODO Auto-generated method stub
-									
-								}
-
-								public void mouseReleased(MouseEvent e) {
-									// TODO Auto-generated method stub
-									
-								}
 							}),
 					
 					// Bedienung 1
