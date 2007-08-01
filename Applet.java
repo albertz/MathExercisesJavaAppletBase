@@ -621,16 +621,16 @@ public class Applet extends JApplet {
 					// Text
 					String txt;
 					switch(state) {
-					case 0: txt = "Wählen Sie a1 aus."; break;
-					case 1: txt = "Wählen Sie a2 aus."; break;
-					case 2: txt = "Wählen Sie b1 aus."; break;
-					case 3: txt = "Wählen Sie b2 aus."; break;
-					case 4: txt = "Wählen Sie u1 aus."; break;
-					case 5: txt = "Wählen Sie u2 aus."; break;
-					case 6: txt = "Wählen Sie v1 aus."; break;
-					case 7: txt = "Wählen Sie v2 aus."; break;
-					case 10: txt = "Wählen Sie (A×B) ∩ (U×V) aus."; break;
-					case 20: txt = "Wählen Sie (A×B) ∪ (U×V) aus."; break;
+					case 0: txt = "Wähle a1 aus."; break;
+					case 1: txt = "Wähle a2 aus."; break;
+					case 2: txt = "Wähle b1 aus."; break;
+					case 3: txt = "Wähle b2 aus."; break;
+					case 4: txt = "Wähle u1 aus."; break;
+					case 5: txt = "Wähle u2 aus."; break;
+					case 6: txt = "Wähle v1 aus."; break;
+					case 7: txt = "Wähle v2 aus."; break;
+					case 10: txt = "Wähle (A×B) ∩ (U×V) aus."; break;
+					case 20: txt = "Wähle (A×B) ∪ (U×V) aus."; break;
 					default: txt = "";
 					}
 					g.setColor(Color.BLUE);
