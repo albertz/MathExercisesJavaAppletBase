@@ -23,6 +23,7 @@ import java.awt.event.MouseMotionListener;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JButton;
@@ -45,7 +46,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(412, 653);
+		this.setSize(412, 457);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -553,267 +554,88 @@ public class Applet extends JApplet {
 			final int W = 400, H = 400;
 			class Painter implements VTImage.PainterAndListener {
 				
-				private int a1 = 50, a2 = 100, b1 = H - 150, b2 = H - 200;
-				private int u1 = 150, u2 = 200, v1 = H - 50, v2 = H - 100;
+				private double alpha = 0;
+				private int n = 2 + (new Random()).nextInt(4);
 				private int state = 0;
-				private boolean selected[][] = new boolean[3][3];
-				private Point hover = new Point(-1, -1);
-				
-				private int getRectX(int i) {
-					List l = new LinkedList();
-					l.add(new Integer(a1));
-					l.add(new Integer(a2));
-					l.add(new Integer(u1));
-					l.add(new Integer(u2));
-					Collections.sort(l);
-					return ((Integer)l.get(i)).intValue();
-				}
-
-				private int getRectY(int i) {
-					List l = new LinkedList();
-					l.add(new Integer(b1));
-					l.add(new Integer(b2));
-					l.add(new Integer(v1));
-					l.add(new Integer(v2));
-					Collections.sort(l);
-					return ((Integer)l.get(i)).intValue();
-				}
+				private int m = 0;
 				
 				public void paint(Graphics g) {
-					// Rechtecke
-					if(state <= 8 || state == 21) {
-						g.setColor(new Color(255, 0, 0, 100));
-						g.fillRect(a1, b2, a2 - a1, b1 - b2);
-						g.setColor(new Color(0, 255, 0, 100));
-						g.fillRect(u1, v2, u2 - u1, v1 - v2);
-					}
-					else if(state >= 10 || state <= 11) {
-						for(int i = 0; i < 3; i++)
-							for(int j = 0; j < 3; j++) {
-								if(hover.x == i && hover.y == j)
-									g.setColor(Color.LIGHT_GRAY);							
-								else if(selected[i][j])
-									g.setColor(Color.GRAY);
-								else
-									g.setColor(Color.WHITE);
-								g.fillRect(getRectX(i), getRectY(j),
-										getRectX(i + 1) - getRectX(i),
-										getRectY(j + 1) - getRectY(j));
-							}
-					}
-					
-					// Koordinaten-system
+					// Kreis
+					g.setColor(Color.LIGHT_GRAY);
+					g.fillOval(W / 4, W / 4, W / 2, W / 2);
 					g.setColor(Color.GRAY);
-					g.drawLine(20, 5, 20, H);
-					g.drawLine(0, H - 20, W - 5, H - 20);
-					
-					// Linien
+					g.drawOval(W / 4, W / 4, W / 2, W / 2);
+
+					// Koord.
 					g.setColor(Color.BLACK);
-					g.drawLine(a1, 25, a1, H - 10);
-					g.drawLine(a2, 25, a2, H - 10);
-					g.drawLine(u1, 25, u1, H - 10);
-					g.drawLine(u2, 25, u2, H - 10);
-					g.drawLine(10, b1, W - 15, b1);
-					g.drawLine(10, b2, W - 15, b2);
-					g.drawLine(10, v1, W - 15, v1);
-					g.drawLine(10, v2, W - 15, v2);
+					g.drawLine(W / 2, 30, W / 2, W - 30);
+					g.drawLine(30, W / 2, W - 30, W / 2);
+					
+					// Auswahl
+					g.setColor(Color.BLUE);
+					g.fillOval(
+							(int)(W / 2 + Math.cos(alpha) * W / 4) - 10,
+							(int)(W / 2 + Math.sin(alpha) * W / 4) - 10, 20, 20);
+
 					
 					// Text
-					String txt;
-					switch(state) {
-					case 0: txt = "Wähle a1 aus."; break;
-					case 1: txt = "Wähle a2 aus."; break;
-					case 2: txt = "Wähle b1 aus."; break;
-					case 3: txt = "Wähle b2 aus."; break;
-					case 4: txt = "Wähle u1 aus."; break;
-					case 5: txt = "Wähle u2 aus."; break;
-					case 6: txt = "Wähle v1 aus."; break;
-					case 7: txt = "Wähle v2 aus."; break;
-					case 10: txt = "Wähle (A×B) ∩ (U×V) aus."; break;
-					case 20: txt = "Wähle (A×B) ∪ (U×V) aus."; break;
-					default: txt = "";
-					}
 					g.setColor(Color.BLUE);
 					g.setFont(new Font("Sans", 0, 18));
-					g.drawString(txt, 30, 20);
+					g.drawString("Wähle e^(2πi * " + m + "/" + n + ") aus.", 30, 20);
 
 					// Beschriftungen
 					g.setColor(Color.BLUE);
 					g.setFont(new Font("Sans", 0, 12));
-					g.drawString("a1", a1, H);
-					g.drawString("a2", a2, H);
-					g.drawString("u1", u1, H);
-					g.drawString("u2", u2, H);
-					g.drawString("b1", 0, b1);
-					g.drawString("b2", 0, b2);
-					g.drawString("v1", 0, v1);
-					g.drawString("v2", 0, v2);
-
+					g.drawString((int)(-alpha * 180 / Math.PI) + "°", W * 3/4, W * 3/4);
 				}
 
-				public void resetSelection() {
-					for(int i = 0; i < 3; i++)
-						for(int j = 0; j < 3; j++)
-							selected[i][j] = false;
-					repaint();
-				}
-				
 				public void reset() {
+					alpha = 0;
 					state = 0;
-					resetSelection();
+					m = 0;
+					n = 2 + (new Random()).nextInt(4);
 					repaint();
 				}
 				
 				public boolean gotoNextStage() {
-					boolean ret = true;
-					if(state <= 8) {
-						state = 10;
-					}
-					else if(state >= 10 && state <= 11) {
-						ret = isSelectionCorrect();
-						setResultLabel(1, ret);
-						if(ret) {
-							// korrekt
-							state = 11;
-							getComponentByName("next").setVisible(false);
-							new Timer().schedule(new TimerTask() {
-								public void run() {
-									state = 20;
-									repaint();
-									resetSelection();
-									resetResultLabels();
-									getComponentByName("next").setVisible(true);
-									cancel();
-								}
-							}, 1000);
-						} else {
-							// nicht korrekt
-							getComponentByName("next").setVisible(false);
-							new Timer().schedule(new TimerTask() {
-								public void run() {
-									resetResultLabels();
-									getComponentByName("next").setVisible(true);
-									cancel();
-								}
-							}, 1000);
-						}
-					}
-					else if(state == 20) {
-						ret = isSelectionCorrect();
-						setResultLabel(1, ret);
-						if(ret) {
-							// korrekt
-							state = 21;
-							getComponentByName("next").setVisible(false);
-							new Timer().schedule(new TimerTask() {
-								public void run() {
-									resetResultLabels();
-									getComponentByName("c1").setVisible(true);
-									cancel();
-								}
-							}, 1000);
-						} else {
-							// nicht korrekt
-							getComponentByName("next").setVisible(false);
-							new Timer().schedule(new TimerTask() {
-								public void run() {
-									resetResultLabels();
-									getComponentByName("next").setVisible(true);
-									cancel();
-								}
-							}, 1000);
-						}
+					setResultLabel(1, isSelectionCorrect());
+					
+					if(!isSelectionCorrect()) {
+						state = 0;
+						return false;
 					}
 					
+					m += 1 + (new Random()).nextInt(2 * n - 1);
+					m %= 2 * n;
+					state = 0;
+					getComponentByName("next").setVisible(false);
 					repaint();
-					return ret;
+					return true;
 				}
 				
-				private int getIndexX(int x) {
-					for(int i = 0; i < 4; i++)
-						if(x == getRectX(i))
-							return i;
-					return -1;
-				}
-				
-				private int getIndexY(int y) {
-					for(int i = 0; i < 4; i++)
-						if(y == getRectY(i))
-							return i;
-					return -1;
-				}
-
 				public boolean isSelectionCorrect() {
-					boolean checked1[][] = new boolean[3][3];
-					boolean checked2[][] = new boolean[3][3];
-
-					for(int i = getIndexX(a1); i < getIndexX(a2); i++)
-						for(int j = getIndexY(b2); j < getIndexY(b1); j++) {
-							checked1[i][j] = true;
-						}
-							
-					for(int i = getIndexX(u1); i < getIndexX(u2); i++)
-						for(int j = getIndexY(v2); j < getIndexY(v1); j++) {
-							checked2[i][j] = true;
-						}
-
-					boolean ret = true;
-					if(state == 10) { // AB ∩ UV
-						for(int i = 0; i < 3; i++)
-							for(int j = 0; j < 3; j++) {
-								ret &= (checked1[i][j] && checked2[i][j]) == selected[i][j];
-								if(!ret) break;
-							}
-					}
-					else if(state == 20) { // AB ∪ UV
-						for(int i = 0; i < 3; i++)
-							for(int j = 0; j < 3; j++) {
-								ret &= (checked1[i][j] || checked2[i][j]) == selected[i][j];
-								if(!ret) break;
-							}
-					}
-					return ret;
+					long sel_state_d = - Math.round(2 * n * alpha / (2 * Math.PI));
+					if(sel_state_d < 0) sel_state_d += 2 * n;
+					return 2 * (m % n) == sel_state_d; 
 				}
 				
 				public void mouseClicked(MouseEvent e) {
 					mouseMoved(e); // just a HACK to get sure that vars are correct
-					if(state <= 7) {
-						state++;
-						if(state == 8)
-							getComponentByName("next").setVisible(true);
-					}
-					else if(state == 10 || state == 20) {
-						for(int i = 0; i < 3; i++)
-							for(int j = 0; j < 3; j++)
-								if(
-										e.getX() > getRectX(i) && e.getX() < getRectX(i + 1)
-										&& e.getY() > getRectY(j) && e.getY() < getRectY(j + 1))
-									selected[i][j] ^= true;
-					}
+					state++; state %= 2;
+					if(state == 1)
+						getComponentByName("next").setVisible(true);
 					repaint();
 				}
 
 				public void mouseMoved(MouseEvent e) {
-					switch(state) {
-					case 0: a1 = Math.max(25, e.getX()); break;
-					case 1: a2 = Math.max(a1, e.getX()); break;
-					case 2: b1 = Math.min(H - 25, e.getY()); break;
-					case 3: b2 = Math.min(b1, e.getY()); break;
-					case 4: u1 = Math.max(25, e.getX()); break;
-					case 5: u2 = Math.max(u1, e.getX()); break;
-					case 6: v1 = Math.min(H - 25, e.getY()); break;
-					case 7: v2 = Math.min(v1, e.getY()); break;
+					if(state == 1) return;
 					
-					case 10:
-					case 20:
-						hover.setLocation(-1, -1);
-						for(int i = 0; i < 3; i++)
-							for(int j = 0; j < 3; j++)
-								if(
-										e.getX() > getRectX(i) && e.getX() < getRectX(i + 1)
-										&& e.getY() > getRectY(j) && e.getY() < getRectY(j + 1))
-									hover.setLocation(i, j);
-					}
+					alpha = Math.atan2(e.getY() - W / 2, e.getX() - W / 2);
+					
+					// fix alpha a bit
+					long m_doubled = Math.round(2 * n * alpha / (2 * Math.PI));
+					alpha = ((double)m_doubled / (2 * n)) * 2 * Math.PI;
+					
 					e.getComponent().repaint();
 				}
 
@@ -840,32 +662,13 @@ public class Applet extends JApplet {
 						public void actionPerformed(ActionEvent e) {
 							resetResultLabels();
 							painter.reset();
-							getComponentByName("next").setVisible(true);
+							getComponentByName("next").setVisible(false);
 						}
-					}),
-							
-					new VTContainer("c1", 0, 10, new VisualThing[] {
-							// Input-Feld 2
-							new VTLabel("Im Allgemeinen gilt:", 10, 10),
-
-							new VTLabel("Der Durchschnitt von (A×B) und (U×V) ist?", 10, 10),
-							new VTSelector("s5", choices2, 10, 5, updater),
-							new VTLabel("Rechteck", 5, 0),
-							
-							new VTLabel("Die Vereinigung von (A×B) und (U×V) ist?", 10, 10),
-							new VTSelector("s6", choices2, 10, 5, updater),
-							new VTLabel("Rechteck", 5, 0),
-
-							// Bedienung 2
-							new VTButton("überprüfen", 10, 20,
-									createCheckButtonListener(5)),
-							new VTLabel("res5", "leider ist etwas falsch", 10, 0),
-							new VTButton("hilf mir", 10, 0, createHelpButtonListener(5)),
 					}),
 			});
 			resetResultLabels();
 			resetSelectorColors();
-			getComponentByName("c1").setVisible(false);
+			getComponentByName("next").setVisible(false);
 			
 		}
 		return jContentPane;
