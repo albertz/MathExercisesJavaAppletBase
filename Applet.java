@@ -1,4 +1,4 @@
-package applets.M04_01_06u07;
+package applets.E_31;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
