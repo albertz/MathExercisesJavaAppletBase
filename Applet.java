@@ -39,7 +39,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(370, 240);
+		this.setSize(717, 130);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -167,7 +167,12 @@ public class Applet extends JApplet {
 		}
 
 		public int getWidth() {
-			return 58;
+			getComponent();
+			int max = 0;
+			for(int i = 0; i < items.length; i++)
+				max = Math.max(max, selector.getFontMetrics(selector.getFont()).stringWidth(items[i]));
+			
+			return max + 40;
 		}
 
 		public int getHeight() {
@@ -314,43 +319,106 @@ public class Applet extends JApplet {
 		return null;
 	}
 	
-	private int Z1;
-	private int Z2;
+	private String[] answers = new String[] { "Grundwert", "Prozentsatz", "Prozentwert" };
+	
+	private void makeRandomText() {
+		Random rnd = new Random();
+		
+		int grundwert = rnd.nextInt(201);
+		String tGrundwert = "" + grundwert;
+		String tEinheit = "";
+		int r = rnd.nextInt(5);
+		switch(r) {
+		case 0: tEinheit = "€"; break;
+		case 1: tEinheit = "$"; break;
+		case 2: tEinheit = " Bananen"; break;
+		case 3: tEinheit = " Grapefruits"; break;
+		case 4: tEinheit = grundwert == 1 ? " Mensch" : " Menschen"; break;
+		}
+		tGrundwert += tEinheit;
+		
+		int prozentsatz = rnd.nextInt(201);
+		String tProzentsatz = prozentsatz + "%";
+		
+		float prozentwert = (float)grundwert * prozentsatz / 100;
+		String tProzentwert = "";
+		if(Math.round(prozentwert * 10) != prozentwert * 10) {
+			tProzentwert = "ungefähr ";
+		}
+		tProzentwert += (float)Math.round(prozentwert * 10) / 10;
+		tProzentwert += tEinheit;
+		
+		r = rnd.nextInt(6);
+		switch(r) {
+		case 0: // G Ps Pw
+			setText(2, "Nimmt man von " + tGrundwert);
+			setText(3, tProzentsatz + ",");
+			setText(4, "erhält man " + tProzentwert + ".");
+			answers = new String[] { "Grundwert", "Prozentsatz", "Prozentwert" };
+			break;
+		case 1: // G Pw Ps
+			setText(2, "Nimmt man von " + tGrundwert + ",");
+			setText(3, "so dass man " + tProzentwert + " erhält,");
+			setText(4, "dann sind das " + tProzentsatz + ".");
+			answers = new String[] { "Grundwert", "Prozentwert", "Prozentsatz" };
+			break;
+		case 2: // Ps G Pw
+			setText(2, tProzentsatz);
+			setText(3, "von " + tGrundwert);
+			setText(4, "sind " + tProzentwert);
+			answers = new String[] { "Prozentsatz", "Grundwert", "Prozentwert" };
+			break;
+		case 3: // Ps Pw G
+			setText(2, "Hat man bei " + tProzentsatz);
+			setText(3, tProzentwert + ",");
+			setText(4, "so hat man insg. " + tGrundwert + ".");
+			answers = new String[] { "Prozentsatz", "Prozentwert", "Grundwert" };
+			break;
+		case 4: // Pw G Ps
+			setText(2, tProzentwert);
+			setText(3, "sind von " + tGrundwert);
+			setText(4, tProzentsatz + ".");
+			answers = new String[] { "Prozentwert", "Grundwert", "Prozentsatz" };
+			break;
+		case 5: // Pw Ps G
+			setText(2, tProzentwert);
+			setText(3, "sind " + tProzentsatz);
+			setText(4, "von " + tGrundwert + ".");
+			answers = new String[] { "Prozentwert", "Prozentsatz", "Grundwert" };
+			break;
+		}
+		
+		resetResultLabel();
+		resetSelectorColors();
+	}
+	
+	private void setText(int selId, String txt) {
+		((JLabel) getComponentByName("t" + selId)).setText(txt);
+	}
 	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
-		
-		Random rnd = new Random();
-		Z2 = rnd.nextInt(99) + 1;
-		Z1 = rnd.nextInt(Z2);
 		
 		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
 				resetResultLabel();
 			}};
-		addVisualThings(jContentPane, new VisualThing[] {
+			String[] choices = new String[] { "Grundwert", "Prozentsatz", "Prozentwert" };
+			addVisualThings(jContentPane, new VisualThing[] {
 				new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						new Timer().schedule(new TimerTask() {
-							public void run() {
-								updateDefaultVisualThings();
-							}
-						}, 100);
+						makeRandomText();
 					}
 				}),
 				
 				// Input-Feld
-				new VTLabel("Anzahl günstiger Ergebnisse: " + Z1, 10, 30),
-				new VTLabel("Anzahl aller Ergebnisse: " + Z2, -1, 30),
-				new VTLabel("Wahrscheinlichkeit: ", -1, 30),
-				new VTText("s1", 10, 0, updater),
-				new VTLabel("/", 5, 0),
-				new VTText("s2", 5, 0, updater),
-				new VTLabel("%", 10, 0),
-				
-				new VTLabel("(Bitte Bruch in gekürzter Form angeben.)", 5, 40),
-				new VTLabel("(Der Nenner muss immer positiv sein.)", -1, 20),
+				new VTLabel("t2", "-----------------------------", 10, 30),
+				new VTLabel("t3", "-----------------------------", 10, 0),
+				new VTLabel("t4", "-----------------------------", 10, 0),
+				new VTSelector("s1", choices, -1, 20, updater),
+				new VTSelector("s2", choices, -2, 0, updater),
+				new VTSelector("s3", choices, -3, 0, updater),
 				
 				// Bedienung
 				new VTButton("überprüfen", 10, 40, new ActionListener() {
@@ -389,6 +457,7 @@ public class Applet extends JApplet {
 
 		resetResultLabel();
 		resetSelectorColors();
+		makeRandomText();
 		
 		jContentPane.repaint();
 	}
@@ -441,13 +510,7 @@ public class Applet extends JApplet {
 	}
 	
 	public boolean isCorrect(int selId, String selected) {
-		switch(selId) {
-		case 1:
-			return parseNum(selected) == getBruchZaehler(Z1 * 100, Z2);
-		case 2:
-			return parseNum(selected) == getBruchNenner(Z1 * 100, Z2);
-		}
-		return false;
+		return selected == answers[selId - 1];
 	}
 	
 	public void resetResultLabel() {
