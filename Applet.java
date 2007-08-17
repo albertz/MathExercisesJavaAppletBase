@@ -20,6 +20,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.lang.reflect.Array;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(617, 293);
+		this.setSize(654, 190);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -590,71 +592,58 @@ public class Applet extends JApplet {
 	}
 
 	private int aufgabeNr = 0;
-	private String[] solutionsDef = new String[] {};
-	private String solutionSet = "∅";
+	private String[] solutionOver = new String[] {};
+	private String[] solutionUnder = new String[] {};
 	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 
-		String tTerm1Over = "", tTerm1Under = "", tTerm2Over = "", tTerm2Under = "";
+		String tTerm_Over = "", tTerm__Mid = "", tTermUnder = "";
 		switch(aufgabeNr) {
 		case 0:
-			tTerm1Over = "-3";
-			tTerm1Under = "x";
-			tTerm2Over = "2";
-			tTerm2Under = "x²";
-			solutionsDef = new String[] {"{0}"};
-			solutionSet = "{-2/3}";
+			tTerm_Over = "  a     b ";
+			tTerm__Mid = " ___ + ___";
+			tTermUnder = "  b     a ";
+			solutionOver = new String[] {"a+b"};
+			solutionUnder = new String[] {"a", "b"};
 			break;
 		case 1:
-			tTerm1Over = "x";
-			tTerm1Under = "sin(π∙x) ∙ x";
-			tTerm2Over = "1";
-			tTerm2Under = "1";
-			solutionsDef = new String[] {"{0}", "∅", "∅", "∅", "2ℤ"};
-			solutionSet = "2ℤ + 1";
+			tTerm_Over = "  sin a     sin b ";
+			tTerm__Mid = " _______ ∙ _______";
+			tTermUnder = "  sin b       2a  ";
+			solutionOver = new String[] {"sin a"};
+			solutionUnder = new String[] {"2", "a"};
 			break;
 		case 2:
-			tTerm1Over = "4";
-			tTerm1Under = "x - 3";
-			tTerm2Over = "5";
-			tTerm2Under = "x + 1";
-			solutionsDef = new String[] {"∅", "{-1}", "∅", "{3}"};
-			solutionSet = "{19}";
+			tTerm_Over = "  a        ";
+			tTerm__Mid = " ___ : b³a²";
+			tTermUnder = "  b        ";
+			solutionOver = new String[] {};
+			solutionUnder = new String[] {"a", "b", "b", "b", "b"};
 			break;
 		case 3:
-			tTerm1Over = "2";
-			tTerm1Under = "x² - 1";
-			tTerm2Over = "2";
-			tTerm2Under = "x² + 4";
-			solutionsDef = new String[] {"∅", "{1, -1}"};
-			solutionSet = "∅";
+			tTerm_Over = "  a ∙ sin a ∙ sin b ";
+			tTerm__Mid = " ___________________";
+			tTermUnder = "   sin² b ∙ a³ ∙ b  ";
+			solutionOver = new String[] {"sin a"};
+			solutionUnder = new String[] {"sin b", "a", "a", "b"};
 			break;
 		case 4:
-			tTerm1Over = "0.5";
-			tTerm1Under = "x ∙ exp(x)";
-			tTerm2Over = "exp(x)";
-			tTerm2Under = "2x";
-			solutionsDef = new String[] {"{0}"};
-			solutionSet = "∅";
-			break;
-		case 5:
-			tTerm1Over = "5";
-			tTerm1Under = "(x - 2) ∙ (x - 3)";
-			tTerm2Over = "1";
-			tTerm2Under = "(x - 2) ∙ x";
-			solutionsDef = new String[] {"{0}", "∅", "{2}", "{3}"};
-			solutionSet = "{-3/4}";
+			tTerm_Over = "  sin a     cos a ";
+			tTerm__Mid = " _______ + _______";
+			tTermUnder = "  cos a     sin a ";
+			solutionOver = new String[] {};
+			solutionUnder = new String[] {"cos a", "sin a"};
 			break;
 		}
-		int term1size = Math.max(tTerm1Over.length(), tTerm1Under.length());
-		int term2size = Math.max(tTerm2Over.length(), tTerm2Under.length());
 		
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
 		 * ∙ × ÷ ±
 		 */
+		String[] choices1 = new String[] { "1", "2", "3", "a", "a-1", "a+1", "sin a", "cos a", "b", "b-1", "b+1", "sin b", "cos b", "a+b"};
+		String[] choices2 = choices1;
 		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
@@ -664,7 +653,7 @@ public class Applet extends JApplet {
 			new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					aufgabeNr++;
-					aufgabeNr %= 6;
+					aufgabeNr %= 5;
 					new Timer().schedule(new TimerTask() {
 						public void run() {
 							updateDefaultVisualThings();
@@ -674,40 +663,30 @@ public class Applet extends JApplet {
 			}),
 			
 			// Input-Feld
-			new VTLabel("Gib die Definitionsmenge folgendes Terms an:", 10, 10),
-			new VTLabel(
-					"  " + tTerm1Over
-					+ getMultipliedString(" ", term1size - tTerm1Over.length() + 9)
-					+ tTerm2Over,
-					30, 5, "Courier"),
-			new VTLabel(
-					getMultipliedString("_", term1size + 4)
-					+ "  =  "
-					+ getMultipliedString("_", term2size + 4),
-					-1, -13, "Courier"),
-			new VTLabel(
-					"  " + tTerm1Under
-					+ getMultipliedString(" ", term1size - tTerm1Under.length() + 9)
-					+ tTerm2Under,
-					-1, -5, "Courier"),
+			new VTLabel("Kürze soweit wie möglich:", 10, 10),
+			new VTLabel(tTerm_Over, 30, 5, "Courier"),
+			new VTSelector("s1", choices1, 30, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s2", choices1, 5, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s3", choices1, 5, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s4", choices1, 5, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s5", choices1, 5, 0, updater),
+			new VTLabel(tTerm__Mid, -1, -13, "Courier"),
+			new VTLabel("= _________________________________________________________________", 5, 0, "Courier"),
+			new VTLabel(tTermUnder, -1, -3, "Courier"),
+			new VTSelector("s6", choices2, 30, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s7", choices2, 5, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s8", choices2, 5, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s9", choices2, 5, 0, updater),
+			new VTLabel("∙", 5, 0),
+			new VTSelector("s10", choices2, 5, 0, updater),
 			
-			new VTLabel("Defintionsmenge:", 10, 10),
-			new VTLabel("ℝ \\ (", 30, 5),
-			new VTSelector("s1", new String[] {"∅", "{0}"}, 5, 0, updater),
-			new VTLabel("∪", 5, 0),
-			new VTSelector("s2", new String[] {"∅", "{1}", "{-1}", "{1, -1}"}, 5, 0, updater),
-			new VTLabel("∪", 5, 0),
-			new VTSelector("s3", new String[] {"∅", "{2}", "{-2}", "{2, -2}"}, 5, 0, updater),
-			new VTLabel("∪", 5, 0),
-			new VTSelector("s4", new String[] {"∅", "{3}", "{-3}", "{3, -3}"}, 5, 0, updater),
-			new VTLabel("∪", 5, 0),
-			new VTSelector("s5", new String[] {"∅", "ℕ", "2ℕ", "ℤ", "2ℤ", "2ℤ + 1"}, 5, 0, updater),
-			new VTLabel("∪", 5, 0),
-			new VTSelector("s6", new String[] {"∅", "ℝ"}, 5, 0, updater),
-			new VTLabel(")", 5, 0),
-
-			new VTLabel("Lösungsmenge:", 10, 10),
-			new VTSelector("s7", new String[] {"∅", "ℝ", "ℕ", "2ℕ", "ℤ", "2ℤ", "2ℤ + 1", "{0}", "{1}", "{1/3}", "{-2/3}", "{4/3}", "{-3/4}", "{13}", "{19}", "{27}", "{31}"}, 30, 5, updater),
 			
 			// Bedienung
 			new VTButton("überprüfen", 10, 40, new ActionListener() {
@@ -771,15 +750,41 @@ public class Applet extends JApplet {
 			return -666;
 		}
 	}
-
-	public boolean isCorrect(int selId, String selected) {
-		if(selId == 7)
-			return selected == solutionSet;
-		
-		if(selId > solutionsDef.length)
-			return selected == "∅";
+	
+	public String getSelected(int selId) {
+		JComboBox combo = (JComboBox) getComponentByName("s" + selId);
+		if(combo == null) return null;
+		String selected = (String) combo.getSelectedItem();
+		return selected;
+	}	
+	
+	public List getPartialSolution(int p, int n) {
+		List res;
+		if(p == 1) 
+			res = Arrays.asList(solutionOver);
 		else
-			return selected == solutionsDef[selId - 1];
+			res = Arrays.asList(solutionUnder);
+		res = new LinkedList(res);
+		// fill up to 5 slots with ones
+		for(int i = 5 - res.size(); i > 0; i--)
+			res.add("1");
+			
+		for(int i = 0; i < n; i++) {
+			if(res.contains(getSelected(i + p)))
+				res.remove(getSelected(i + p));
+		}
+		
+		return res;
+	}
+	
+	public boolean isCorrect(int selId, String selected) {
+		if(selId <= 5) {
+			List res = getPartialSolution(1, selId - 1);
+			return res.contains(selected);
+		} else {
+			List res = getPartialSolution(6, selId - 6);
+			return res.contains(selected);
+		}
 	}
 
 	public void resetResultLabels() {
