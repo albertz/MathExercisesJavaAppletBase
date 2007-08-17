@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(654, 190);
+		this.setSize(666, 190);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -601,39 +601,32 @@ public class Applet extends JApplet {
 		String tTerm_Over = "", tTerm__Mid = "", tTermUnder = "";
 		switch(aufgabeNr) {
 		case 0:
-			tTerm_Over = "  a     b ";
-			tTerm__Mid = " ___ + ___";
-			tTermUnder = "  b     a ";
+			tTerm_Over = "  a² - b² ";
+			tTerm__Mid = " _________";
+			tTermUnder = "   a - b  ";
 			solutionOver = new String[] {"a+b"};
-			solutionUnder = new String[] {"a", "b"};
+			solutionUnder = new String[] {};
 			break;
 		case 1:
-			tTerm_Over = "  sin a     sin b ";
-			tTerm__Mid = " _______ ∙ _______";
-			tTermUnder = "  sin b       2a  ";
-			solutionOver = new String[] {"sin a"};
-			solutionUnder = new String[] {"2", "a"};
+			tTerm_Over = "  a² - 2ab + b² ";
+			tTerm__Mid = " _______________";
+			tTermUnder = "      a - b     ";
+			solutionOver = new String[] {"a-b"};
+			solutionUnder = new String[] {};
 			break;
 		case 2:
-			tTerm_Over = "  a        ";
-			tTerm__Mid = " ___ : b³a²";
-			tTermUnder = "  b        ";
-			solutionOver = new String[] {};
-			solutionUnder = new String[] {"a", "b", "b", "b", "b"};
+			tTerm_Over = "                a-2 ";
+			tTerm__Mid = "(a² + 4a + 2) ∙ ___ ";
+			tTermUnder = "                a+2 ";
+			solutionOver = new String[] {"a-2", "a+2"};
+			solutionUnder = new String[] {};
 			break;
 		case 3:
-			tTerm_Over = "  a ∙ sin a ∙ sin b ";
-			tTerm__Mid = " ___________________";
-			tTermUnder = "   sin² b ∙ a³ ∙ b  ";
-			solutionOver = new String[] {"sin a"};
-			solutionUnder = new String[] {"sin b", "a", "a", "b"};
-			break;
-		case 4:
-			tTerm_Over = "  sin a     cos a ";
-			tTerm__Mid = " _______ + _______";
-			tTermUnder = "  cos a     sin a ";
-			solutionOver = new String[] {};
-			solutionUnder = new String[] {"cos a", "sin a"};
+			tTerm_Over = "  a³ + 6a² + 36a    2 ";
+			tTerm__Mid = " ________________ + __";
+			tTermUnder = "      a³ + 3a²      a ";
+			solutionOver = new String[] {"a-1"};
+			solutionUnder = new String[] {"a"};
 			break;
 		}
 		
@@ -642,7 +635,7 @@ public class Applet extends JApplet {
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
 		 * ∙ × ÷ ±
 		 */
-		String[] choices1 = new String[] { "1", "2", "3", "a", "a-1", "a+1", "sin a", "cos a", "b", "b-1", "b+1", "sin b", "cos b", "a+b"};
+		String[] choices1 = new String[] { "1", "2", "3", "a", "a-1", "a+1", "a-2", "a+2", "sin a", "cos a", "b", "b-1", "b+1", "b-2", "b+2", "sin b", "cos b", "a+b", "a-b"};
 		String[] choices2 = choices1;
 		Runnable updater = new Runnable() {
 			public void run() {
@@ -653,7 +646,7 @@ public class Applet extends JApplet {
 			new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					aufgabeNr++;
-					aufgabeNr %= 5;
+					aufgabeNr %= 4;
 					new Timer().schedule(new TimerTask() {
 						public void run() {
 							updateDefaultVisualThings();
