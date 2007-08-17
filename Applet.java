@@ -1,4 +1,4 @@
-package applets.Bruch_Bruchterme_Gleichung;
+package applets.Bruch_Bruchterme_KuerzenBinom;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
