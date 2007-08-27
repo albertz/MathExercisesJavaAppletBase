@@ -44,7 +44,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(666, 190);
+		this.setSize(363, 477);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -152,13 +152,9 @@ public class Applet extends JApplet {
 		}
 
 		private int stepX, stepY;
-
 		private String name;
-
 		private String[] items;
-
 		private JComboBox selector = null;
-
 		private Runnable changeListener = null;
 
 		public Component getComponent() {
@@ -186,13 +182,14 @@ public class Applet extends JApplet {
 		}
 
 		public int getWidth() {
-			getComponent();
+/*			getComponent();
 			int max = 0;
 			for (int i = 0; i < items.length; i++)
 				max = Math.max(max, selector.getFontMetrics(selector.getFont())
 						.stringWidth(items[i]));
 
-			return max + 40;
+			return max + 40; */
+			return 80;
 		}
 
 		public int getHeight() {
@@ -221,13 +218,9 @@ public class Applet extends JApplet {
 		}
 
 		private int stepX, stepY;
-
 		private String name = null;
-
 		private String text;
-
 		private JButton button = null;
-
 		private ActionListener actionListener;
 
 		public Component getComponent() {
@@ -270,11 +263,8 @@ public class Applet extends JApplet {
 		}
 
 		private int stepX, stepY;
-
 		private String name = null;
-
 		private JTextField text = null;
-
 		private Runnable changeListener = null;
 
 		public Component getComponent() {
@@ -323,13 +313,9 @@ public class Applet extends JApplet {
 		}
 
 		private int stepX, stepY;
-
 		private String name;
-
 		private JPanel panel = null;
-
 		private VisualThing[] things;
-
 		private Point size;
 
 		public Component getComponent() {
@@ -383,13 +369,9 @@ public class Applet extends JApplet {
 		}
 
 		private int stepX, stepY;
-
 		private int width, height;
-
 		private String name;
-
 		private Component panel = null;
-
 		private PainterAndListener painter;
 
 		public Component getComponent() {
@@ -588,58 +570,26 @@ public class Applet extends JApplet {
 	}
 
 	private int aufgabeNr = 0;
-	private String[] solutionOver = new String[] {};
-	private String[] solutionUnder = new String[] {};
 	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
-
-		String tTerm_Over = "", tTerm__Mid = "", tTermUnder = "";
-		switch(aufgabeNr) {
-		case 0:
-			tTerm_Over = "  a² - b² ";
-			tTerm__Mid = " _________";
-			tTermUnder = "   a - b  ";
-			solutionOver = new String[] {"a+b"};
-			solutionUnder = new String[] {};
-			break;
-		case 1:
-			tTerm_Over = "  a² - 2ab + b² ";
-			tTerm__Mid = " _______________";
-			tTermUnder = "      a - b     ";
-			solutionOver = new String[] {"a-b"};
-			solutionUnder = new String[] {};
-			break;
-		case 2:
-			tTerm_Over = "                a-2 ";
-			tTerm__Mid = "(a² + 4a + 2) ∙ ___ ";
-			tTermUnder = "                a+2 ";
-			solutionOver = new String[] {"a-2", "a+2"};
-			solutionUnder = new String[] {};
-			break;
-		case 3:
-			tTerm_Over = "  a³ + 6a² + 36a    2 ";
-			tTerm__Mid = " ________________ + __";
-			tTermUnder = "      a³ + 3a²      a ";
-			solutionOver = new String[] {"a-1"};
-			solutionUnder = new String[] {"a"};
-			break;
-		}
 		
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
-		 * ∙ × ÷ ±
+		 * ∙ × ÷ ± —
 		 */
-		String[] choices1 = new String[] { "1", "2", "3", "a", "a-1", "a+1", "a-2", "a+2", "sin a", "cos a", "b", "b-1", "b+1", "b-2", "b+2", "sin b", "cos b", "a+b", "a-b"};
-		String[] choices2 = choices1;
+		String[] choices1 = new String[] {
+				"(x+h)²", "x²+2x", "x²", "x²+h",
+				"1/h", "h", "-2xh-h²", "-2xh-h",
+				"-2x-h", "-2h-x", "-2/x³", "2/x³" };
 		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
 				resetResultLabels();
 			}};
 		addVisualThings(jContentPane, new VisualThing[] {
-			new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
+/*			new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					aufgabeNr++;
 					aufgabeNr %= 4;
@@ -649,32 +599,45 @@ public class Applet extends JApplet {
 						}
 					}, 100);
 				}
-			}),
-			
+			}), */
+
 			// Input-Feld
-			new VTLabel("Kürze soweit wie möglich:", 10, 10),
-			new VTLabel(tTerm_Over, 30, 5, "Courier"),
-			new VTSelector("s1", choices1, 30, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s2", choices1, 5, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s3", choices1, 5, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s4", choices1, 5, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s5", choices1, 5, 0, updater),
-			new VTLabel(tTerm__Mid, -1, -13, "Courier"),
-			new VTLabel("= _________________________________________________________________", 5, 0, "Courier"),
-			new VTLabel(tTermUnder, -1, -3, "Courier"),
-			new VTSelector("s6", choices2, 30, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s7", choices2, 5, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s8", choices2, 5, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s9", choices2, 5, 0, updater),
-			new VTLabel("∙", 5, 0),
-			new VTSelector("s10", choices2, 5, 0, updater),
+			new VTLabel("         1", 230, 10, "Courier"),
+			new VTLabel("Bestimme die Ableitungsfunktion von", 10, -6),
+			new VTLabel("f(x) = —————", -1, 0, "Courier"),
+			new VTLabel(".", 10, 0),
+			new VTLabel("         x²", -2, -6, "Courier"),
+			
+			new VTLabel("                      1                1", 10, 10, "Courier"),
+			new VTLabel("                 ————————————  -  ————————————", -1, -6, "Courier"),
+			new VTLabel("         lim", -1, -6, "Courier"),
+			new VTSelector("s1", choices1, 37, 0, updater),
+			new VTSelector("s2", choices1, 39, 0, updater),
+			new VTLabel("f'(x) =  h → 0  ———————————————————————————————", -1, -6, "Courier"),
+			new VTLabel("                               h", -1, -6, "Courier"),
+
+			new VTLabel("    1         1  ", 200, 10, "Courier"),
+			new VTLabel("      =  lim", 10, -6, "Courier"),
+			new VTSelector("s3", choices1, 20, 0, updater),
+			new VTLabel("( —————  -  ————— )", -1, 0, "Courier"),
+			new VTLabel("         h → 0", -1, -6, "Courier"),
+			new VTLabel("  (x+h)²      x²", -3, 0, "Courier"),
+
+			new VTLabel("                     ", -1, 10, "Courier"),
+			new VTSelector("s4", choices1, 10, 0, updater),
+			new VTLabel("      =  lim    ————————————————————————", -1, -6, "Courier"),
+			new VTLabel("         h → 0    h x² (x² + 2xh + h²)", -1, -6, "Courier"),
+
+			new VTLabel("                    ", -1, 10, "Courier"),
+			new VTSelector("s5", choices1, 10, 0, updater),
+			new VTLabel("      =  lim    ——————————————————————", -1, -6, "Courier"),
+			new VTLabel("         h → 0    x² (x² + 2xh + h²)", -1, -6, "Courier"),
+			
+			new VTLabel("", -1, 10, "Courier"),
+			new VTLabel("      = ", -1, -6, "Courier"),
+			new VTSelector("s6", choices1, 10, 0, updater),
+			new VTLabel("", -1, -6, "Courier"),
+
 			
 			
 			// Bedienung
@@ -682,7 +645,7 @@ public class Applet extends JApplet {
 				public void actionPerformed(ActionEvent e) {
 					boolean correct = true;
 					for(int i = 1; ; i++) {
-						JComponent comp = (JComponent) getComponentByName("s"+i);
+						JComponent comp = (JComponent) getComponentByName("s" + i);
 						if(comp == null) break;
 						String selected = comp instanceof JComboBox
 							? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
@@ -701,12 +664,11 @@ public class Applet extends JApplet {
 			new VTButton("hilf mir", 10, 0, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					for(int i = 1; ; i++) {
-						JComponent comp = (JComponent) getComponentByName("s"+i);
+						JComponent comp = (JComponent) getComponentByName("s" + i);
 						if(comp == null) break;
 						String selected = comp instanceof JComboBox
 							? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
 						boolean correct = isCorrect(i, selected);
-						Color col = correct ? Color.MAGENTA : Color.RED;
 						comp.setBackground(correct ? Color.MAGENTA : Color.RED);
 					}
 				}}),
@@ -741,38 +703,24 @@ public class Applet extends JApplet {
 	}
 	
 	public String getSelected(int selId) {
-		JComboBox combo = (JComboBox) getComponentByName("s" + selId);
-		if(combo == null) return null;
-		String selected = (String) combo.getSelectedItem();
-		return selected;
+		Component comp = getComponentByName("s" + selId);
+		if(comp == null) return null;
+		if(comp instanceof JComboBox)
+			return (String) ((JComboBox)comp).getSelectedItem();
+		if(comp instanceof JTextField)
+			return ((JTextField)comp).getText();
+		return null;
 	}	
 	
-	public List getPartialSolution(int p, int n) {
-		List res;
-		if(p == 1) 
-			res = Arrays.asList(solutionOver);
-		else
-			res = Arrays.asList(solutionUnder);
-		res = new LinkedList(res);
-		// fill up to 5 slots with ones
-		for(int i = 5 - res.size(); i > 0; i--)
-			res.add("1");
-			
-		for(int i = 0; i < n; i++) {
-			if(res.contains(getSelected(i + p)))
-				res.remove(getSelected(i + p));
-		}
-		
-		return res;
-	}
-	
 	public boolean isCorrect(int selId, String selected) {
-		if(selId <= 5) {
-			List res = getPartialSolution(1, selId - 1);
-			return res.contains(selected);
-		} else {
-			List res = getPartialSolution(6, selId - 6);
-			return res.contains(selected);
+		switch(selId) {
+		case 1: return selected == "(x+h)²";
+		case 2: return selected == "x²";
+		case 3: return selected == "1/h";
+		case 4: return selected == "-2xh-h²";
+		case 5: return selected == "-2x-h";
+		case 6: return selected == "-2/x³";
+		default: return false;
 		}
 	}
 
