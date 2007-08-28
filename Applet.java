@@ -44,7 +44,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(363, 477);
+		this.setSize(547, 223);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -56,7 +56,7 @@ public class Applet extends JApplet {
 		 * Breite vom Ding
 		 */
 		public abstract int getWidth();
-
+		
 		/**
 		 * Höhe vom Ding
 		 */
@@ -69,12 +69,14 @@ public class Applet extends JApplet {
 		 * Items in der vorherigen Reihe
 		 */
 		public abstract int getStepX();
+		public abstract void setStepX(int v);
 
 		/**
 		 * wie getStepX, nur für Y; wenn >0, wird außerdem wieder ganz links
 		 * begonnen
 		 */
 		public abstract int getStepY();
+		public abstract void setStepY(int v);
 
 		/**
 		 * und die eigentliche Komponente
@@ -110,6 +112,18 @@ public class Applet extends JApplet {
 		private String fontName = "";
 		private JLabel label = null;
 
+		public void setText(String text) {
+			this.text = text;
+			if(label == null)
+				getComponent();
+			else
+				label.setText(text);
+		}
+		
+		public String getText() {
+			return text;
+		}
+		
 		public Component getComponent() {
 			if (label == null) {
 				label = new JLabel();
@@ -125,17 +139,25 @@ public class Applet extends JApplet {
 			return 21;
 		}
 
+		public int getWidth() {
+			getComponent();
+			return label.getFontMetrics(label.getFont()).stringWidth(text);
+		}
+		
+		public int getStepX() {
+			return stepX;
+		}
+		
 		public int getStepY() {
 			return stepY;
 		}
 
-		public int getStepX() {
-			return stepX;
+		public void setStepX(int v) {
+			stepX = v;
 		}
 
-		public int getWidth() {
-			getComponent();
-			return label.getFontMetrics(label.getFont()).stringWidth(text);
+		public void setStepY(int v) {
+			stepY = v;
 		}
 
 	}
@@ -181,15 +203,22 @@ public class Applet extends JApplet {
 			return stepX;
 		}
 
+		public void setStepX(int v) {
+			stepX = v;
+		}
+
+		public void setStepY(int v) {
+			stepY = v;
+		}
+
 		public int getWidth() {
-/*			getComponent();
+			getComponent();
 			int max = 0;
 			for (int i = 0; i < items.length; i++)
 				max = Math.max(max, selector.getFontMetrics(selector.getFont())
 						.stringWidth(items[i]));
 
-			return max + 40; */
-			return 80;
+			return max + 40;
 		}
 
 		public int getHeight() {
@@ -242,6 +271,14 @@ public class Applet extends JApplet {
 			return stepX;
 		}
 
+		public void setStepX(int v) {
+			stepX = v;
+		}
+
+		public void setStepY(int v) {
+			stepY = v;
+		}
+
 		public int getWidth() {
 			getComponent();
 			return button.getFontMetrics(button.getFont()).stringWidth(text) + 40;
@@ -292,6 +329,14 @@ public class Applet extends JApplet {
 			return stepX;
 		}
 
+		public void setStepX(int v) {
+			stepX = v;
+		}
+
+		public void setStepY(int v) {
+			stepY = v;
+		}
+		
 		public int getWidth() {
 			return 40;
 		}
@@ -304,6 +349,11 @@ public class Applet extends JApplet {
 
 	public static class VTContainer extends VisualThing {
 
+		public VTContainer(int stepX, int stepY,
+				VisualThing[] things) {
+			this(null, stepX, stepY, things);
+		}
+
 		public VTContainer(String name, int stepX, int stepY,
 				VisualThing[] things) {
 			this.name = name;
@@ -314,9 +364,9 @@ public class Applet extends JApplet {
 
 		private int stepX, stepY;
 		private String name;
-		private JPanel panel = null;
-		private VisualThing[] things;
-		private Point size;
+		protected JPanel panel = null;
+		protected VisualThing[] things;
+		protected Point size;
 
 		public Component getComponent() {
 			if (panel == null) {
@@ -336,6 +386,14 @@ public class Applet extends JApplet {
 			return stepX;
 		}
 
+		public void setStepX(int v) {
+			stepX = v;
+		}
+
+		public void setStepY(int v) {
+			stepY = v;
+		}
+
 		public int getWidth() {
 			getComponent();
 			return size.x;
@@ -348,6 +406,150 @@ public class Applet extends JApplet {
 
 	}
 
+	public static class VTEmptySpace extends VisualThing {
+
+		public VTEmptySpace(int stepX, int stepY, int width, int height) {
+			this.stepX = stepX;
+			this.stepY = stepY;
+			this.width = width;
+			this.height = height;
+		}
+
+		private int stepX, stepY;
+		private int width, height;
+
+		public Component getComponent() {
+			return null;
+		}
+
+		public int getStepY() {
+			return stepY;
+		}
+
+		public int getStepX() {
+			return stepX;
+		}
+
+		public void setStepX(int v) {
+			stepX = v;
+		}
+
+		public void setStepY(int v) {
+			stepY = v;
+		}
+
+		public int getWidth() {
+			return width;
+		}
+
+		public int getHeight() {
+			return height;
+		}
+
+	}
+
+	public static class VTLine extends VTLabel {
+
+		public VTLine(int stepX, int stepY, int width) {
+			super("", stepX, stepY, "Courier");
+			while(getWidth() < width) {
+				this.setText(getText() + "—");
+			}
+		}
+		
+	}
+	
+	public static class VTFrac extends VTContainer {
+
+		public VTFrac(int stepX, int stepY, String top, String down) {
+			this(stepX, stepY, top, down, true);
+		}
+		
+		public VTFrac(int stepX, int stepY, String top, String down, boolean withLine) {
+			this(stepX, stepY,
+					new VTLabel(top, 0, 0, "Courier"),
+					new VTLabel(down, 0, 0, "Courier"),
+					withLine);
+		}
+		
+		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down, boolean withLine) {
+			super(null, stepX, stepY, null);
+			
+			int width = Math.max(top.getWidth(), down.getWidth());
+			if(withLine) width += 20;
+			
+			if(withLine)
+				this.things = new VisualThing[] {
+					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
+					top,
+					new VTLine(0, -6, width),
+					new VTEmptySpace(0, -6, (width - down.getWidth()) / 2, 5),
+					down,
+				};
+			else
+				this.things = new VisualThing[] {
+					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
+					top,
+					new VTEmptySpace(0, -6, (width - down.getWidth()) / 2, 5),
+					down,
+				};
+		}
+
+		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down) {
+			this(stepX, stepY, top, down, true);
+		}
+
+	}
+	
+	public static VisualThing newVTLimes(int stepX, int stepY, String var, String c) {
+		return new VTFrac(stepX, stepY,
+				new VTLabel("lim", 0, 0, "Courier"),
+				new VTLabel(var + " → " + c, 0, 0, "Courier"),
+				false);
+	}
+	
+	public static class VTLineCombiner extends VTContainer {
+
+		public VTLineCombiner(int stepX, int stepY, VisualThing[] things) {
+			super(null, stepX, stepY, things);
+			
+			size = new Point(0, 5);
+			for(int i = 0; i < things.length; i++) {
+				size.y = Math.max(size.y, things[i].getHeight());
+				size.x += things[i].getWidth() + things[i].getStepX();
+			}
+			
+			for(int i = 0; i < things.length; i++) {
+				things[i].setStepY((size.y - things[i].getHeight()) / 2);
+			}
+		}
+		
+		public Component getComponent() {
+			if (panel == null) {
+				panel = new JPanel();
+				panel.setLayout(null);
+				addThings();
+			}
+			return panel;
+		}
+
+		private void addThings() {
+			int curX = 0, curY = 0;
+
+			for (int i = 0; i < things.length; i++) {
+				Component c = things[i].getComponent();
+				curY = things[i].getStepY();
+				curX += things[i].getStepX();
+				if(c != null) {
+					c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
+					panel.add(c);
+				}
+				curX += things[i].getWidth();
+			}
+		}
+		
+	}
+	
 	public static class VTImage extends VisualThing {
 
 		public static interface Painter {
@@ -397,6 +599,14 @@ public class Applet extends JApplet {
 			return stepX;
 		}
 
+		public void setStepX(int v) {
+			stepX = v;
+		}
+
+		public void setStepY(int v) {
+			stepY = v;
+		}
+
 		public int getWidth() {
 			return width;
 		}
@@ -431,11 +641,13 @@ public class Applet extends JApplet {
 			xs.add(new Integer(curX));
 
 			Component c = things[i].getComponent();
-			c.setBounds(new Rectangle(curX, curY, things[i].getWidth(),
-					things[i].getHeight()));
+			if(c != null) {
+				c.setBounds(new Rectangle(curX, curY, things[i].getWidth(),
+						things[i].getHeight()));
+				panel.add(c);
+			}
 			max.x = Math.max(max.x, curX + things[i].getWidth());
 			max.y = Math.max(max.y, curY + things[i].getHeight());
-			panel.add(c);
 
 			curX += things[i].getWidth();
 		}
@@ -573,16 +785,16 @@ public class Applet extends JApplet {
 	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
-		
+
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
 		 * ∙ × ÷ ± —
 		 */
 		String[] choices1 = new String[] {
-				"(x+h)²", "x²+2x", "x²", "x²+h",
-				"1/h", "h", "-2xh-h²", "-2xh-h",
-				"-2x-h", "-2h-x", "-2/x³", "2/x³" };
+				"f(x)", "g(x)", "f(x)+g(x)", "f(x)-g(x)",
+				"f(x+h)-g(x+h)", "f(x+h)+g(x+h)", "f(x+h)-f(x)",
+				"g(x+h)-g(x)", "f'(x)", "g'(x)" };
 		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
@@ -601,43 +813,41 @@ public class Applet extends JApplet {
 				}
 			}), */
 
+	
 			// Input-Feld
-			new VTLabel("         1", 230, 10, "Courier"),
-			new VTLabel("Bestimme die Ableitungsfunktion von", 10, -6),
-			new VTLabel("f(x) = —————", -1, 0, "Courier"),
-			new VTLabel(".", 10, 0),
-			new VTLabel("         x²", -2, -6, "Courier"),
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("(f + g)'(x) =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTSelector("s1", choices1, 0, 0, updater),
+										new VTLabel("-", 10, 0, "Courier"),
+										new VTSelector("s2", choices1, 10, 0, updater),
+								}),
+								new VTLabel("h", 0, 0, "Courier")),
+			}),
+
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("            =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0,
+								new VTSelector("s3", choices1, 0, 0, updater),
+								new VTLabel("h", 0, 0, "Courier")
+						),
+						new VTLabel("-", 10, 0, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0,
+								new VTSelector("s4", choices1, 0, 0, updater),
+								new VTLabel("h", 0, 0, "Courier")
+						),
+			}),
 			
-			new VTLabel("                      1                1", 10, 10, "Courier"),
-			new VTLabel("                 ————————————  -  ————————————", -1, -6, "Courier"),
-			new VTLabel("         lim", -1, -6, "Courier"),
-			new VTSelector("s1", choices1, 37, 0, updater),
-			new VTSelector("s2", choices1, 39, 0, updater),
-			new VTLabel("f'(x) =  h → 0  ———————————————————————————————", -1, -6, "Courier"),
-			new VTLabel("                               h", -1, -6, "Courier"),
-
-			new VTLabel("    1         1  ", 200, 10, "Courier"),
-			new VTLabel("      =  lim", 10, -6, "Courier"),
-			new VTSelector("s3", choices1, 20, 0, updater),
-			new VTLabel("( —————  -  ————— )", -1, 0, "Courier"),
-			new VTLabel("         h → 0", -1, -6, "Courier"),
-			new VTLabel("  (x+h)²      x²", -3, 0, "Courier"),
-
-			new VTLabel("                     ", -1, 10, "Courier"),
-			new VTSelector("s4", choices1, 10, 0, updater),
-			new VTLabel("      =  lim    ————————————————————————", -1, -6, "Courier"),
-			new VTLabel("         h → 0    h x² (x² + 2xh + h²)", -1, -6, "Courier"),
-
-			new VTLabel("                    ", -1, 10, "Courier"),
+			new VTLabel("            =", 10, 10, "Courier"),
 			new VTSelector("s5", choices1, 10, 0, updater),
-			new VTLabel("      =  lim    ——————————————————————", -1, -6, "Courier"),
-			new VTLabel("         h → 0    x² (x² + 2xh + h²)", -1, -6, "Courier"),
-			
-			new VTLabel("", -1, 10, "Courier"),
-			new VTLabel("      = ", -1, -6, "Courier"),
+			new VTLabel("+", 10, 0, "Courier"),
 			new VTSelector("s6", choices1, 10, 0, updater),
-			new VTLabel("", -1, -6, "Courier"),
-
 			
 			
 			// Bedienung
@@ -714,12 +924,16 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "(x+h)²";
-		case 2: return selected == "x²";
-		case 3: return selected == "1/h";
-		case 4: return selected == "-2xh-h²";
-		case 5: return selected == "-2x-h";
-		case 6: return selected == "-2/x³";
+		case 1: return selected == "f(x+h)+g(x+h)";
+		case 2: return selected == "f(x)+g(x)";
+		case 3: return selected == "f(x+h)-f(x)" || selected == "g(x+h)-g(x)";
+		case 4: return
+			(selected == "f(x+h)-f(x)" && getSelected(3) == "g(x+h)-g(x)") ||
+			(selected == "g(x+h)-g(x)" && getSelected(3) == "f(x+h)-f(x)");
+		case 5: return selected == "f'(x)" || selected == "g'(x)";
+		case 6: return
+			(selected == "f'(x)" && getSelected(5) == "g'(x)") ||
+			(selected == "g'(x)" && getSelected(5) == "f'(x)");
 		default: return false;
 		}
 	}
