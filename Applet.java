@@ -44,7 +44,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(547, 223);
+		this.setSize(863, 622);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -792,9 +792,10 @@ public class Applet extends JApplet {
 		 * ∙ × ÷ ± —
 		 */
 		String[] choices1 = new String[] {
-				"f(x)", "g(x)", "f(x)+g(x)", "f(x)-g(x)",
-				"f(x+h)-g(x+h)", "f(x+h)+g(x+h)", "f(x+h)-f(x)",
-				"g(x+h)-g(x)", "f'(x)", "g'(x)" };
+				"f(x)/g(x)", "f(x+h)/g(x+h)", "g(x)g(x+h)", "f(x+h)g(x+h)",
+				"f(x)g(x+h)", "f(x+h)g(x)", "f(x)", 
+				"g(x+h)", "f(x+h)", "g²(x)", "f'(x)g(x)", "f(x)g'(x)",
+				"g(x+h)-g(x)", "-g(x+h)+g(x)", "1/h" };
 		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
@@ -813,11 +814,13 @@ public class Applet extends JApplet {
 				}
 			}), */
 
-	
+
 			// Input-Feld
 			new VTLineCombiner(10, 10,
 					new VisualThing[] {
-						new VTLabel("(f + g)'(x) =", 0, 10, "Courier"),
+						new VTLabel("(", 0, 0, "Courier"),
+						new VTFrac(0, 0, "f", "g"),
+						new VTLabel(")'(x) =", 0, 0, "Courier"),
 						newVTLimes(10, 0, "h", "0"),
 						new VTFrac(10, 0,
 								new VTContainer(0, 0, new VisualThing[] {
@@ -830,26 +833,134 @@ public class Applet extends JApplet {
 
 			new VTLineCombiner(10, 10,
 					new VisualThing[] {
-						new VTLabel("            =", 0, 10, "Courier"),
+						new VTLabel("           =", 0, 10, "Courier"),
 						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0,
-								new VTSelector("s3", choices1, 0, 0, updater),
-								new VTLabel("h", 0, 0, "Courier")
-						),
+						new VTSelector("s3", choices1, 10, 0, updater),
+						new VTLabel("(", 10, 0, "Courier"),
+						new VTFrac(10, 0, "f(x+h)", "g(x+h)"),
 						new VTLabel("-", 10, 0, "Courier"),
+						new VTFrac(10, 0, "f(x)", "g(x)"),
+						new VTLabel(")", 10, 0, "Courier"),
+			}),
+			
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0, "1", "h"),
+						new VTLabel("(", 10, 0, "Courier"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTSelector("s4", choices1, 0, 0, updater),
+										new VTLabel("-", 10, 0, "Courier"),
+										new VTSelector("s5", choices1, 10, 0, updater),
+								}),
+								new VTLabel("g(x)g(x+h)", 0, 0, "Courier")
+						),
+						new VTLabel(")", 10, 0, "Courier"),
+			}),
+			
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
 						newVTLimes(10, 0, "h", "0"),
 						new VTFrac(10, 0,
-								new VTSelector("s4", choices1, 0, 0, updater),
+								new VTLabel("1", 0, 0, "Courier"),
+								new VTSelector("s6", choices1, 0, 0, updater)
+						),
+						new VTFrac(10, 0, "f(x+h)g(x) - f(x)g(x+h)", "h"),
+			}),
+
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTLabel("f(x+h)g(x) - f(x+h)g(x+h) +", 0, 0, "Courier"),
+										new VTSelector("s7", choices1, 10, 0, updater),
+										new VTLabel("- f(x)g(x+h)", 10, 0, "Courier"),
+								}),
 								new VTLabel("h", 0, 0, "Courier")
 						),
 			}),
+
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
+						new VTLabel("(", 10, 0, "Courier"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTLabel("(g(x) - g(x+h))", 0, 0, "Courier"),
+										new VTSelector("s8", choices1, 10, 0, updater),
+								}),
+								new VTLabel("h", 0, 0, "Courier")
+						),
+						new VTLabel("+", 10, 0, "Courier"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTSelector("s9", choices1, 0, 0, updater),
+										new VTLabel("(f(x+h) - f(x))", 10, 0, "Courier"),
+								}),
+								new VTLabel("h", 0, 0, "Courier")
+						),
+						new VTLabel(")", 10, 0, "Courier"),
+			}),
 			
-			new VTLabel("            =", 10, 10, "Courier"),
-			new VTSelector("s5", choices1, 10, 0, updater),
-			new VTLabel("+", 10, 0, "Courier"),
-			new VTSelector("s6", choices1, 10, 0, updater),
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
+						new VTLabel("( -", 10, 0, "Courier"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTSelector("s10", choices1, 0, 0, updater),
+										new VTLabel("f(x+h)", 10, 0, "Courier"),
+								}),
+								new VTLabel("h", 0, 0, "Courier")
+						),
+						new VTLabel("+", 10, 0, "Courier"),
+						new VTFrac(10, 0,
+								new VTContainer(0, 0, new VisualThing[] {
+										new VTSelector("s11", choices1, 0, 0, updater),
+										new VTLabel("(f(x+h) - f(x))", 10, 0, "Courier"),
+								}),
+								new VTLabel("h", 0, 0, "Courier")
+						),
+						new VTLabel(")", 10, 0, "Courier"),
+			}),
+
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
+						newVTLimes(10, 0, "h", "0"),
+						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
+						new VTFrac(10, 0, "f(x+h) - f(x)", "h"),
+						new VTSelector("s12", choices1, 10, 0, updater),
+						new VTLabel("-", 10, 0, "Courier"),
+						new VTSelector("s13", choices1, 10, 0, updater),
+						new VTFrac(10, 0, "g(x+h) - g(x)", "h"),
+			}),
+
+			new VTLineCombiner(10, 10,
+					new VisualThing[] {
+						new VTLabel("           =", 0, 10, "Courier"),
+						new VTFrac(10, 0,
+								new VTLabel("1", 0, 0, "Courier"),
+								new VTSelector("s14", choices1, 0, 0, updater)
+						),
+						new VTLabel("(", 10, 0, "Courier"),
+						new VTSelector("s15", choices1, 10, 0, updater),
+						new VTLabel("-", 10, 0, "Courier"),
+						new VTSelector("s16", choices1, 10, 0, updater),
+						new VTLabel(")", 10, 0, "Courier"),
+			}),
 			
-			
+
 			// Bedienung
 			new VTButton("überprüfen", 10, 40, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
@@ -924,16 +1035,22 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "f(x+h)+g(x+h)";
-		case 2: return selected == "f(x)+g(x)";
-		case 3: return selected == "f(x+h)-f(x)" || selected == "g(x+h)-g(x)";
-		case 4: return
-			(selected == "f(x+h)-f(x)" && getSelected(3) == "g(x+h)-g(x)") ||
-			(selected == "g(x+h)-g(x)" && getSelected(3) == "f(x+h)-f(x)");
-		case 5: return selected == "f'(x)" || selected == "g'(x)";
-		case 6: return
-			(selected == "f'(x)" && getSelected(5) == "g'(x)") ||
-			(selected == "g'(x)" && getSelected(5) == "f'(x)");
+		case 1: return selected == "f(x+h)/g(x+h)";
+		case 2: return selected == "f(x)/g(x)";
+		case 3: return selected == "1/h";
+		case 4: return selected == "f(x+h)g(x)";
+		case 5: return selected == "f(x)g(x+h)";
+		case 6: return selected == "g(x)g(x+h)";
+		case 7: return selected == "f(x+h)g(x+h)";
+		case 8: return selected == "f(x+h)";
+		case 9: return selected == "g(x+h)";
+		case 10: return selected == "g(x+h)-g(x)";
+		case 11: return selected == "g(x+h)";
+		case 12: return selected == "g(x+h)";
+		case 13: return selected == "f(x)";
+		case 14: return selected == "g²(x)";
+		case 15: return selected == "f'(x)g(x)";
+		case 16: return selected == "f(x)g'(x)";
 		default: return false;
 		}
 	}
