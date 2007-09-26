@@ -1,6 +1,6 @@
 package applets.Abbildungen_Surjektiv_WarumNicht;
 
-//S.11 in Vorlage
+// S.11 in Vorlage
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -19,15 +19,23 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+
+import applets.E_31.Applet.VTImage;
+import applets.M04_01_06u07.Applet.VTButton;
+import applets.M04_01_06u07.Applet.VTLabel;
 
 public class Applet extends JApplet {
 
@@ -46,7 +54,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(863, 622);
+		this.setSize(523, 448);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -512,8 +520,8 @@ public class Applet extends JApplet {
 	
 	public static class VTLineCombiner extends VTContainer {
 
-		public VTLineCombiner(int stepX, int stepY, VisualThing[] things) {
-			super(null, stepX, stepY, things);
+		public VTLineCombiner(String name, int stepX, int stepY, VisualThing[] things) {
+			super(name, stepX, stepY, things);
 			
 			size = new Point(0, 5);
 			for(int i = 0; i < things.length; i++) {
@@ -524,6 +532,10 @@ public class Applet extends JApplet {
 			for(int i = 0; i < things.length; i++) {
 				things[i].setStepY((size.y - things[i].getHeight()) / 2);
 			}
+		}
+		
+		public VTLineCombiner(int stepX, int stepY, VisualThing[] things) {
+			this(null, stepX, stepY, things);
 		}
 		
 		public Component getComponent() {
@@ -788,217 +800,341 @@ public class Applet extends JApplet {
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 
-		/* Copy&Paste Bereich für häufig genutzte Zeichen:
-		 * → ∞ ∈ ℝ π ℤ ℕ
-		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
-		 * ∙ × ÷ ± —
-		 */
-		String[] choices1 = new String[] {
-				"f(x)/g(x)", "f(x+h)/g(x+h)", "g(x)g(x+h)", "f(x+h)g(x+h)",
-				"f(x)g(x+h)", "f(x+h)g(x)", "f(x)", 
-				"g(x+h)", "f(x+h)", "g²(x)", "f'(x)g(x)", "f(x)g'(x)",
-				"g(x+h)-g(x)", "-g(x+h)+g(x)", "1/h" };
 		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
 				resetResultLabels();
-			}};
-		addVisualThings(jContentPane, new VisualThing[] {
-/*			new VTButton("neue Aufgabe", 10, 5, new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					aufgabeNr++;
-					aufgabeNr %= 4;
-					new Timer().schedule(new TimerTask() {
-						public void run() {
-							updateDefaultVisualThings();
-						}
-					}, 100);
+			}
+		};
+		final int W = 500, H = 180;
+		class Painter implements VTImage.PainterAndListener {
+			
+			class Oval {
+				public Oval(Point p, int w, int h, Color c, String label) {
+					this.p = p;
+					this.w = w;
+					this.h = h;
+					this.c = c;
+					this.label = label;
 				}
-			}), */
-
-
-			// Input-Feld
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("(", 0, 0, "Courier"),
-						new VTFrac(0, 0, "f", "g"),
-						new VTLabel(")'(x) =", 0, 0, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTSelector("s1", choices1, 0, 0, updater),
-										new VTLabel("-", 10, 0, "Courier"),
-										new VTSelector("s2", choices1, 10, 0, updater),
-								}),
-								new VTLabel("h", 0, 0, "Courier")),
-			}),
-
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTSelector("s3", choices1, 10, 0, updater),
-						new VTLabel("(", 10, 0, "Courier"),
-						new VTFrac(10, 0, "f(x+h)", "g(x+h)"),
-						new VTLabel("-", 10, 0, "Courier"),
-						new VTFrac(10, 0, "f(x)", "g(x)"),
-						new VTLabel(")", 10, 0, "Courier"),
-			}),
+				
+				Point p;
+				int w, h;
+				Color c;
+				String label;
+				
+				public void paint(Graphics g) {
+					g.setColor(c);
+					g.fillOval(p.x, p.y, w, h);
+					g.drawString(label, p.x, p.y);
+				}
+				
+				public Point getRandomPoint(Collection keepDistance, float d) {
+					Point res = null;
+					Random rnd = new Random();
+					
+					boolean distance = false;
+					while(!distance) {
+						double r = Math.sqrt(rnd.nextDouble()); // sqrt damit groessere r etwas wahrscheinlicher werden
+						double a = rnd.nextDouble() * 2 * Math.PI;
+						double x = Math.cos(a) * w * 0.5 * r; 
+						double y = Math.sin(a) * h * 0.5 * r;
+						x *= 0.8; y *= 0.8; // damit es auch echt drin ist
+						res = new Point((int)x + p.x + w / 2, (int)y + p.y + h / 2);
+						
+						distance = true;
+						for(Iterator i = keepDistance.iterator(); i.hasNext(); ) {
+							Point p = (Point) i.next();
+							if(p.distance(res) < d) {
+								distance = false;
+								break;
+							}
+						}
+					}
+					
+					return res;
+				}
+			}
 			
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0, "1", "h"),
-						new VTLabel("(", 10, 0, "Courier"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTSelector("s4", choices1, 0, 0, updater),
-										new VTLabel("-", 10, 0, "Courier"),
-										new VTSelector("s5", choices1, 10, 0, updater),
-								}),
-								new VTLabel("g(x)g(x+h)", 0, 0, "Courier")
-						),
-						new VTLabel(")", 10, 0, "Courier"),
-			}),
+			class Connection {
+				public Point src;
+				public Point dst;
+				
+				public void paint(Graphics g) {
+					g.drawLine(src.x, src.y, dst.x, dst.y);
+					
+					Point p1 = turn(new Point(src.x - dst.x, src.y - dst.y), 0.25 * Math.PI); 
+					Point p2 = turn(new Point(src.x - dst.x, src.y - dst.y), -0.25 * Math.PI); 
+					double r = Math.sqrt(p1.x * p1.x + p1.y * p1.y);
+					double R = 10;
+					p1.x *= R / r; p1.y *= R / r; p2.x *= R / r; p2.y *= R / r;
+					g.drawLine(dst.x, dst.y, dst.x + p1.x, dst.y + p1.y);
+					g.drawLine(dst.x, dst.y, dst.x + p2.x, dst.y + p2.y);
+
+				}
+			}
 			
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0,
-								new VTLabel("1", 0, 0, "Courier"),
-								new VTSelector("s6", choices1, 0, 0, updater)
-						),
-						new VTFrac(10, 0, "f(x+h)g(x) - f(x)g(x+h)", "h"),
-			}),
-
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTLabel("f(x+h)g(x) - f(x+h)g(x+h) +", 0, 0, "Courier"),
-										new VTSelector("s7", choices1, 10, 0, updater),
-										new VTLabel("- f(x)g(x+h)", 10, 0, "Courier"),
-								}),
-								new VTLabel("h", 0, 0, "Courier")
-						),
-			}),
-
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
-						new VTLabel("(", 10, 0, "Courier"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTLabel("(g(x) - g(x+h))", 0, 0, "Courier"),
-										new VTSelector("s8", choices1, 10, 0, updater),
-								}),
-								new VTLabel("h", 0, 0, "Courier")
-						),
-						new VTLabel("+", 10, 0, "Courier"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTSelector("s9", choices1, 0, 0, updater),
-										new VTLabel("(f(x+h) - f(x))", 10, 0, "Courier"),
-								}),
-								new VTLabel("h", 0, 0, "Courier")
-						),
-						new VTLabel(")", 10, 0, "Courier"),
-			}),
+			Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "A");
+			Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "B");
+			private Collection dotsA = new LinkedList(), dotsB = new LinkedList();
+			private int dotsCountA = 5, dotsCountB = 6;
+			private Collection connections = new LinkedList();
+			private Point selectedDotA = null; 
+			private Point overDotA = null, overDotB = null;
 			
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
-						new VTLabel("( -", 10, 0, "Courier"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTSelector("s10", choices1, 0, 0, updater),
-										new VTLabel("f(x+h)", 10, 0, "Courier"),
-								}),
-								new VTLabel("h", 0, 0, "Courier")
-						),
-						new VTLabel("+", 10, 0, "Courier"),
-						new VTFrac(10, 0,
-								new VTContainer(0, 0, new VisualThing[] {
-										new VTSelector("s11", choices1, 0, 0, updater),
-										new VTLabel("(f(x+h) - f(x))", 10, 0, "Courier"),
-								}),
-								new VTLabel("h", 0, 0, "Courier")
-						),
-						new VTLabel(")", 10, 0, "Courier"),
-			}),
+			public void paint(Graphics g) {
+				oval1.paint(g);
+				oval2.paint(g);
+				g.setColor(new Color(0, 200, 0));
+				drawDots(g, dotsA);
+				g.setColor(new Color(0, 200, 0));
+				drawDots(g, dotsB);
+				g.setColor(Color.BLACK);
+				drawConnections(g, connections);
+			}
 
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						newVTLimes(10, 0, "h", "0"),
-						new VTFrac(10, 0, "1", "g(x)g(x+h)"),
-						new VTFrac(10, 0, "f(x+h) - f(x)", "h"),
-						new VTSelector("s12", choices1, 10, 0, updater),
-						new VTLabel("-", 10, 0, "Courier"),
-						new VTSelector("s13", choices1, 10, 0, updater),
-						new VTFrac(10, 0, "g(x+h) - g(x)", "h"),
-			}),
-
-			new VTLineCombiner(10, 10,
-					new VisualThing[] {
-						new VTLabel("           =", 0, 10, "Courier"),
-						new VTFrac(10, 0,
-								new VTLabel("1", 0, 0, "Courier"),
-								new VTSelector("s14", choices1, 0, 0, updater)
-						),
-						new VTLabel("(", 10, 0, "Courier"),
-						new VTSelector("s15", choices1, 10, 0, updater),
-						new VTLabel("-", 10, 0, "Courier"),
-						new VTSelector("s16", choices1, 10, 0, updater),
-						new VTLabel(")", 10, 0, "Courier"),
-			}),
+			public Painter() {
+				reset();
+			}
 			
+			private void fillWithDots(Collection col, Oval o, int n) {
+				for(int i = 0; i < n; i++) {
+					col.add(o.getRandomPoint(col, 30));
+				}
+			}
+			
+			private void drawDots(Graphics g, Collection col) {
+				Color c = g.getColor();
+				for(Iterator i = col.iterator(); i.hasNext(); ) {
+					Point p = (Point) i.next();
+					if(p == selectedDotA)
+						g.setColor(Color.BLUE);
+					else if(p == overDotA || p == overDotB)
+						g.setColor(Color.CYAN);
+					else
+						g.setColor(c);
+					g.fillOval(p.x - 4, p.y - 4, 8, 8);
+				}
+			}
+			
+			private void drawConnections(Graphics g, Collection cons) {
+				if(selectedDotA != null && overDotB != null) {
+					Color c = g.getColor();
+					g.setColor(Color.GRAY);
+					Connection tmpCon = new Connection();
+					tmpCon.src = selectedDotA;
+					tmpCon.dst = overDotB;
+					tmpCon.paint(g);
+					g.setColor(c);
+				}
+
+				for(Iterator i = cons.iterator(); i.hasNext(); ) {
+					Connection con = (Connection) i.next();
+					if(selectedDotA != null && overDotB != null
+							&& con.src.distance(selectedDotA) == 0
+							&& con.dst.distance(overDotB) != 0) {
+						// ignore
+					} else
+						con.paint(g);
+				}
+			}
+			
+			public boolean isCorrect() {
+				Collection dotsA_copy = new LinkedList(dotsA);
+				Collection dotsB_copy = new LinkedList(dotsB);
+				for(Iterator i = connections.iterator(); i.hasNext(); ) {
+					Connection p = (Connection) i.next();
+					dotsA_copy.remove(p.src);
+					if(dotsB_copy.contains(p.dst))
+						dotsB_copy.remove(p.dst);
+					else
+						return false;
+				}
+				return dotsA_copy.isEmpty();
+			}
+			
+			public String getResultText() {
+				Collection dotsA_copy = new LinkedList(dotsA);
+				Collection dotsB_copy = new LinkedList(dotsB);
+				for(Iterator i = connections.iterator(); i.hasNext(); ) {
+					Connection p = (Connection) i.next();
+					dotsA_copy.remove(p.src);
+					if(dotsB_copy.contains(p.dst))
+						dotsB_copy.remove(p.dst);
+					else
+						return "leider ist das nicht korrekt";
+				}
+				if(dotsA_copy.isEmpty())
+					return "das ist richtig!";
+				else
+					return "alle Punkte in A müssen zugewiesen werden";
+			}
+			
+			private Point turn(Point p, double a) {
+				double x = Math.cos(a);
+				double y = Math.sin(a);
+				return new Point((int)(x * p.x + y * p.y), (int)(-y * p.x + x * p.y));
+			}
+			
+			public void reset() {
+				dotsA.clear();
+				dotsB.clear();
+				connections.clear();
+				fillWithDots(dotsA, oval1, dotsCountA);
+				fillWithDots(dotsB, oval2, dotsCountB);
+				selectedDotA = null;
+				overDotA = null;
+				overDotB = null;
+				repaint();
+			}
+						
+			private Point getPointByPos(Collection col, Point pos) {
+				for(Iterator i = col.iterator(); i.hasNext(); ) {
+					Point p = (Point) i.next();
+					if(p.distance(pos) < 10) return p;
+				}
+				return null;
+			}
+			
+			private Connection getConnectionBySrc(Point src, Collection cons) {
+				for(Iterator i = cons.iterator(); i.hasNext(); ) {
+					Connection con = (Connection) i.next();
+					if(con.src.distance(src) == 0) return con;
+				}
+				return null;
+			}
+			
+			public void mouseClicked(MouseEvent e) {
+				mouseMoved(e); // just a HACK to get sure that vars are correct
+				Point p = getPointByPos(dotsA, e.getPoint());
+				if(p != null) {
+					selectedDotA = p;
+				} else if(selectedDotA != null) {
+					p = getPointByPos(dotsB, e.getPoint());
+					if(p != null) {
+						Connection con = getConnectionBySrc(selectedDotA, connections);
+						if(con != null) connections.remove(con);
+						con = new Connection();
+						con.src = selectedDotA;
+						con.dst = p;
+						connections.add(con);
+						
+						onChange();
+					}
+				}
+				
+				repaint();
+			}
+
+			private void onChange() {
+				((JLabel)getComponentByName("res1")).setText("");
+			}
+			
+			public void mouseMoved(MouseEvent e) {
+				overDotA = getPointByPos(dotsA, e.getPoint());
+				overDotB = getPointByPos(dotsB, e.getPoint());
+
+				e.getComponent().repaint();
+			}
+
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {}
+
+		};
+		final Painter painter = new Painter();
+			
+		/* Copy&Paste Bereich für häufig genutzte Zeichen:
+		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
+		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
+		 * ∙ × ÷ ± — ≠
+		 */
+			
+		String[] choices1 = new String[] { "ja", "nein" };
+		addVisualThings(jContentPane, new VisualThing[] {
+			new VTLabel("Bitte definieren Sie eine injektive Abbildung.", 10, 10),
+			new VTImage("bild", 10, 10, W, H, painter),
 
 			// Bedienung
-			new VTButton("überprüfen", 10, 40, new ActionListener() {
+			new VTButton("überprüfen", 10, 20, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					boolean correct = true;
-					for(int i = 1; ; i++) {
-						JComponent comp = (JComponent) getComponentByName("s" + i);
-						if(comp == null) break;
-						String selected = comp instanceof JComboBox
-							? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
-						correct = isCorrect(i, selected);
-						if(!correct) break;
-					}
-					if(correct) {
-						((JLabel)getComponentByName("result")).setForeground(Color.MAGENTA);
-						((JLabel)getComponentByName("result")).setText("alles ist richtig!");
+					if(painter.isCorrect()) {
+						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
+						getComponentByName("con1").setVisible(true);
 					} else {
-						((JLabel)getComponentByName("result")).setForeground(Color.RED);
-						((JLabel)getComponentByName("result")).setText("leider ist etwas falsch");
+						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
 					}
+					((JLabel)getComponentByName("res1")).setText(painter.getResultText());
 				}}),
-			new VTLabel("result", "leider ist etwas falsch", 10, 0),
-			new VTButton("hilf mir", 10, 0, new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					for(int i = 1; ; i++) {
-						JComponent comp = (JComponent) getComponentByName("s" + i);
-						if(comp == null) break;
-						String selected = comp instanceof JComboBox
-							? (String) ((JComboBox)comp).getSelectedItem() : ((JTextField)comp).getText();
-						boolean correct = isCorrect(i, selected);
-						comp.setBackground(correct ? Color.MAGENTA : Color.RED);
-					}
-				}}),
+			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+			new VTButton("reset", 10, 0, new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					painter.reset();
+					((JLabel)getComponentByName("res1")).setText("");
+				}
+			}),
+
+			new VTContainer("con1", 0, 10, new VisualThing[] {
+					// Input-Feld
+					new VTLineCombiner(10, 10,
+							new VisualThing[] {
+								new VTLabel("Ist die Abbildung", 0, 0),
+								new VTLabel("f : ℝ → ℝ, x ↦ x²", 10, 0, "Courier"),
+								new VTLabel("injektiv?", 10, 0),
+								new VTSelector("s3", choices1, 15, 0, new Runnable() {
+									public void run() {
+										if(getComponentByName("res3") != null)
+											((JLabel)getComponentByName("res3")).setText("");
+									}
+								})
+					}),
+
+					// Bedienung
+					new VTButton("überprüfen", 10, 10,
+							createCheckButtonListener(3, new Runnable() {
+								public void run() { // correct
+									((JLabel)getComponentByName("res3")).setText("Richtig!");
+									getComponentByName("con2").setVisible(true);
+								}
+							}, new Runnable() {
+								public void run() { // wrong
+									((JLabel)getComponentByName("res3")).setText(
+											"Falsch: Sei etwa x=2 und y=-2, dann gilt x≠y aber f(x)=4=f(y).");
+								}
+							})),
+					new VTLabel("res3", "Falsch: Sei etwa x=2 und y=-2, dann gilt x≠y aber f(x)=4=f(y).", 10, 0),
+			}),
+
+			new VTContainer("con2", 0, 10, new VisualThing[] {
+					// Input-Feld
+					new VTLabel("Geben Sie zwei reelle Zahlen x und y an mit f(x)=f(y).", 10, 0),
+					new VTLabel("x =", 10, 10),
+					new VTText("s5", 10, 0, new Runnable() {
+						public void run() {
+							if(getComponentByName("res5") != null)
+								((JLabel)getComponentByName("res5")).setText("");
+						}
+					}),
+					new VTLabel("y =", 40, 0),
+					new VTText("s6", 10, 0, new Runnable() {
+						public void run() {
+							if(getComponentByName("res5") != null)
+								((JLabel)getComponentByName("res5")).setText("");
+						}
+					}),
+
+					// Bedienung
+					new VTButton("überprüfen", 10, 10, createCheckButtonListener(5)),
+					new VTLabel("res5", "leider ist etwas falsch", 10, 0),
+			}),
 		});
 
 		resetResultLabels();
 		resetSelectorColors();
+		getComponentByName("con1").setVisible(false);
+		getComponentByName("con2").setVisible(false);
 		
 		jContentPane.repaint();
 	}
@@ -1017,9 +1153,9 @@ public class Applet extends JApplet {
 		return jContentPane;
 	}
 
-	public static int parseNum(String txt) {
+	public static double parseNum(String txt) {
 		try {
-			return Integer.parseInt(txt);
+			return Double.parseDouble(txt);
 		} catch (NumberFormatException e) {
 			return -666;
 		}
@@ -1037,22 +1173,9 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "f(x+h)/g(x+h)";
-		case 2: return selected == "f(x)/g(x)";
-		case 3: return selected == "1/h";
-		case 4: return selected == "f(x+h)g(x)";
-		case 5: return selected == "f(x)g(x+h)";
-		case 6: return selected == "g(x)g(x+h)";
-		case 7: return selected == "f(x+h)g(x+h)";
-		case 8: return selected == "f(x+h)";
-		case 9: return selected == "g(x+h)";
-		case 10: return selected == "g(x+h)-g(x)";
-		case 11: return selected == "g(x+h)";
-		case 12: return selected == "g(x+h)";
-		case 13: return selected == "f(x)";
-		case 14: return selected == "g²(x)";
-		case 15: return selected == "f'(x)g(x)";
-		case 16: return selected == "f(x)g'(x)";
+		case 3: return selected == "nein";
+		case 5: return parseNum(selected) != -666;
+		case 6: return Math.pow(parseNum(getSelected(5)), 2) == Math.pow(parseNum(selected), 2);
 		default: return false;
 		}
 	}
