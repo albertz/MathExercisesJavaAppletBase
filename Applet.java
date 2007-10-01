@@ -54,7 +54,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(523, 270);
+		this.setSize(523, 394);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -348,7 +348,7 @@ public class Applet extends JApplet {
 		}
 		
 		public int getWidth() {
-			return 40;
+			return 400;
 		}
 
 		public int getHeight() {
@@ -877,7 +877,7 @@ public class Applet extends JApplet {
 			public Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "X");
 			public Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "Y");
 			public Collection dotsA = new LinkedList(), dotsB = new LinkedList();
-			protected int dotsCountA = 7, dotsCountB = 5;
+			protected int dotsCountA = 5, dotsCountB = 7;
 			public Collection connections = new LinkedList();
 			public Point selectedDotA = null; 
 			public Point overDotA = null, overDotB = null;
@@ -1131,32 +1131,50 @@ public class Applet extends JApplet {
 			
 		String[] choices1 = new String[] { "ja", "nein" };
 		addVisualThings(jContentPane, new VisualThing[] {
-			new VTLabel("Konstruieren Sie eine surjektive Abbildung", 10, 10),
+			new VTLabel("Warum ist es hier nicht möglich eine surjektive Abbildung", 10, 10),
 			new VTLabel("f : X → Y", 10, 0, "Courier"),
+			new VTLabel("zu konstruieren?", 10, -2),
 			new VTImage("bild", 10, 5, W, H, painter),
 
+			new VTLabel("Bitte Antwort als Satz formulieren:", 10, 10),
+			new VTText("s1", 30, 1, updater),
+			
 			// Bedienung
-			new VTButton("überprüfen", 10, 20, new ActionListener() {
+			new VTButton("überprüfen", 10, 10, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					if(painter.isCorrect()) {
+					boolean correct = false;
+					String txt = "";
+					if(getSelected(1).trim().isEmpty())
+						txt = "bitte geben Sie die Antwort ein"; 
+					else if(!getSelected(1).toLowerCase().contains("x"))
+						txt = "Sie erwähnen X gar nicht.";
+					else if(!getSelected(1).toLowerCase().contains("y"))
+						txt = "Sie erwähnen Y gar nicht.";
+					else {
+						txt = "das ist eventuell korrekt";
+						correct = true;
+						getComponentByName("antwort").setVisible(true);
+					}
+					if(correct) {
 						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
 					} else {
 						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
 					}
-					((JLabel)getComponentByName("res1")).setText(painter.getResultText());
+					((JLabel)getComponentByName("res1")).setText(txt);
 				}}),
-			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-			new VTButton("reset", 10, 0, new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					painter.reset();
-					((JLabel)getComponentByName("res1")).setText("");
-				}
+			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwww", 10, 0),
+			
+			new VTContainer("antwort", 0, 10, new VisualThing[] {
+				new VTLabel("Leider lässt sich ihre Antwort nicht automatisch auf die Richtigkeit überprüfen.", 10, 0),
+				new VTLabel("Die richtige Antwort lautet:", 10, 10),
+				new VTLabel("|X| < |Y|", 10, 0)
 			}),
 
 		});
 
 		resetResultLabels();
 		resetSelectorColors();
+		getComponentByName("antwort").setVisible(false);
 		
 		jContentPane.repaint();
 	}
