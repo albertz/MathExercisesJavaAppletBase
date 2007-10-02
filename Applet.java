@@ -50,7 +50,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(523, 448);
+		this.setSize(421, 270);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -1050,87 +1050,33 @@ public class Applet extends JApplet {
 			
 		String[] choices1 = new String[] { "ja", "nein" };
 		addVisualThings(jContentPane, new VisualThing[] {
-			new VTLabel("Bitte definieren Sie eine injektive Abbildung.", 10, 10),
-			new VTImage("bild", 10, 10, W, H, painter),
-
-			// Bedienung
-			new VTButton("überprüfen", 10, 20, new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					if(painter.isCorrect()) {
-						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
-						getComponentByName("con1").setVisible(true);
-					} else {
-						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
-					}
-					((JLabel)getComponentByName("res1")).setText(painter.getResultText());
-				}}),
-			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-			new VTButton("reset", 10, 0, new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					painter.reset();
-					((JLabel)getComponentByName("res1")).setText("");
+			new VTLabel("Ist die Abbildung g : (0,∞) → (1,∞), x ↦ x² + 1 bijektiv?", 10, 10),
+			new VTSelector("s1", choices1, 10, 0, updater),
+			
+			new VTButton("überprüfen", 10, 20, createCheckButtonListener(1, null, new Runnable() {
+				public void run() {
+					getComponentByName("con1").setVisible(true);
 				}
-			}),
-
+			})),
+			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+			
 			new VTContainer("con1", 0, 10, new VisualThing[] {
-					// Input-Feld
-					new VTLineCombiner(10, 10,
-							new VisualThing[] {
-								new VTLabel("Ist die Abbildung", 0, 0),
-								new VTLabel("f : ℝ → ℝ, x ↦ x²", 10, 0, "Courier"),
-								new VTLabel("injektiv?", 10, 0),
-								new VTSelector("s3", choices1, 15, 0, new Runnable() {
-									public void run() {
-										if(getComponentByName("res3") != null)
-											((JLabel)getComponentByName("res3")).setText("");
-									}
-								})
-					}),
-
-					// Bedienung
-					new VTButton("überprüfen", 10, 10,
-							createCheckButtonListener(3, new Runnable() {
-								public void run() { // correct
-									((JLabel)getComponentByName("res3")).setText("Richtig!");
-									getComponentByName("con2").setVisible(true);
-								}
-							}, new Runnable() {
-								public void run() { // wrong
-									((JLabel)getComponentByName("res3")).setText(
-											"Falsch: Sei etwa x=2 und y=-2, dann gilt x≠y aber f(x)=4=f(y).");
-								}
-							})),
-					new VTLabel("res3", "Falsch: Sei etwa x=2 und y=-2, dann gilt x≠y aber f(x)=4=f(y).", 10, 0),
-			}),
-
-			new VTContainer("con2", 0, 10, new VisualThing[] {
-					// Input-Feld
-					new VTLabel("Geben Sie zwei reelle Zahlen x und y an mit f(x)=f(y).", 10, 0),
-					new VTLabel("x =", 10, 10),
-					new VTText("s5", 10, 0, new Runnable() {
-						public void run() {
-							if(getComponentByName("res5") != null)
-								((JLabel)getComponentByName("res5")).setText("");
-						}
-					}),
-					new VTLabel("y =", 40, 0),
-					new VTText("s6", 10, 0, new Runnable() {
-						public void run() {
-							if(getComponentByName("res5") != null)
-								((JLabel)getComponentByName("res5")).setText("");
-						}
-					}),
-
-					// Bedienung
-					new VTButton("überprüfen", 10, 10, createCheckButtonListener(5)),
-					new VTLabel("res5", "leider ist etwas falsch", 10, 0),
+				new VTLabel("Von wenigen Seiten haben wir bereits gezeigt, dass g surjektiv ist.", 10, 0),
+				new VTLabel("Man muss also nur noch zeigen, dass g auch injektiv ist.", 10, -2),
+				new VTLabel("Zu zeigen ist also, dass aus g(x)=g(y) schon x=y folgt.", 10, -2),
+				
+				new VTLabel("Betrachten Sie nun", 10, 5),
+				new VTLabel("0 = g(x) - g(y) = (x² + 1) - (y² + 1) = x² - y²", 20, -2),
+				new VTLabel("also gilt:", 10, -2),
+				new VTLabel("x² = y²", 20, -2),
+				new VTLabel("und weil x und y positiv sind folgt daraus", 10, -2),
+				new VTLabel("x = y", 20, -2),
 			}),
 		});
 
 		resetResultLabels();
 		resetSelectorColors();
 		getComponentByName("con1").setVisible(false);
-		getComponentByName("con2").setVisible(false);
 		
 		jContentPane.repaint();
 	}
@@ -1169,9 +1115,7 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 3: return selected == "nein";
-		case 5: return parseNum(selected) != -666;
-		case 6: return Math.pow(parseNum(getSelected(5)), 2) == Math.pow(parseNum(selected), 2);
+		case 1: return selected == "ja";
 		default: return false;
 		}
 	}
