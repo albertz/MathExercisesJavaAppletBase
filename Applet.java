@@ -33,10 +33,6 @@ import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
-import applets.E_31.Applet.VTImage;
-import applets.M04_01_06u07.Applet.VTButton;
-import applets.M04_01_06u07.Applet.VTLabel;
-
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
