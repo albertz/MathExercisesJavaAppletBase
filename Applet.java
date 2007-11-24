@@ -1,4 +1,4 @@
-package applets.Abbildungen_I30_BijektivUmkehrung;
+package applets.Abbildungen_I34_BijektivUmkehrungKonstruieren;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -20,6 +20,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -30,6 +31,9 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+
+import applets.Abbildungen_Injektiv_Verkettung.Applet.VTButton;
+import applets.Abbildungen_Injektiv_Verkettung.Applet.VTLabel;
 
 public class Applet extends JApplet {
 
@@ -48,7 +52,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(523, 462);
+		this.setSize(523, 520);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -868,21 +872,25 @@ public class Applet extends JApplet {
 				}
 			}
 			
-			public Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "X");
-			public Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "Y");
+			public Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "A");
+			public Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "B");
 			public Collection dotsA = new LinkedList(), dotsB = new LinkedList();
-			protected int dotsCountA = 5, dotsCountB = 5;
+			protected int dotsCountA = 3, dotsCountB = 3;
 			public Collection connections = new LinkedList();
 			public Point selectedDotA = null; 
 			public Point overDotA = null, overDotB = null;
+			public List dotANames = null;
+			public List dotBNames = Arrays.asList(new String[] {"K","U","D"});
+			public boolean dotANames_showalways = true;
+			public boolean dotBNames_showalways = true;
 			
 			public void paint(Graphics g) {
 				oval1.paint(g);
 				oval2.paint(g);
 				g.setColor(new Color(0, 200, 0));
-				drawDots(g, dotsA);
+				drawDots(g, dotsA, dotANames_showalways, dotANames);
 				g.setColor(new Color(0, 200, 0));
-				drawDots(g, dotsB);
+				drawDots(g, dotsB, dotBNames_showalways, dotBNames);
 				g.setColor(Color.BLACK);
 				drawConnections(g, connections);
 			}
@@ -897,9 +905,9 @@ public class Applet extends JApplet {
 				}
 			}
 			
-			protected void drawDots(Graphics g, Collection col) {
+			protected void drawDots(Graphics g, Collection col, boolean showalways, List names) {
 				Color c = g.getColor();
-				int k = 1;
+				int k = 0;
 				for(Iterator i = col.iterator(); i.hasNext(); k++) {
 					Point p = (Point) i.next();
 					if(p == selectedDotA)
@@ -909,11 +917,18 @@ public class Applet extends JApplet {
 					else
 						g.setColor(c);
 					g.fillOval(p.x - 4, p.y - 4, 8, 8);
-					if(p == overDotA || p == overDotB)
-						g.drawString(String.valueOf(k), p.x + 4, p.y - 4);
+					if(p == overDotA || p == overDotB || showalways)
+						g.drawString(getDotName(names, k), p.x + 4, p.y - 4);
 				}
 			}
 			
+			protected String getDotName(List names, int index) {
+				if(names != null)
+					return (String) names.get(index);
+				else
+					return String.valueOf(index + 1);
+			}
+						
 			protected void drawConnections(Graphics g, Collection cons) {
 				if(selectedDotA != null && overDotB != null) {
 					Color c = g.getColor();
@@ -999,11 +1014,11 @@ public class Applet extends JApplet {
 					a.x += oval1.p.x - oval2.p.x;
 					b.x += oval2.p.x - oval1.p.x;
 					if(!copySrc.existsConnection(a, b))
-						return "das ist leider falsch; überprüfen Sie mal y" + (getPointIndex(dotsA, p.src) + 1);
+						return "das ist leider falsch; überprüfen Sie mal " + getDotName(dotANames, getPointIndex(dotsA, p.src));
 					dotsA_copy.remove(p.src);
 				}
 				if(!dotsA_copy.isEmpty())
-					return "alle Punkte in A müssen zugewiesen werden";
+					return "alle Punkte in B müssen zugewiesen werden";
 				else
 					return "das ist richtig!";
 			}
@@ -1031,12 +1046,15 @@ public class Applet extends JApplet {
 				repaint();
 			}
 			
+			// used for isCorrect and getResultText
 			private Painter copySrc = null;
 			
 			public void copyReversedFrom(Painter src, boolean withConn) {
 				copySrc = src;
 				oval1.label = src.oval2.label;
 				oval2.label = src.oval1.label;
+				dotANames = src.dotBNames;
+				dotBNames = src.dotANames;
 				dotsA = new LinkedList(src.dotsB);
 				dotsB = new LinkedList(src.dotsA);
 				makeCopyOfPoints(dotsA);
@@ -1099,7 +1117,7 @@ public class Applet extends JApplet {
 						
 			public void mouseClicked(MouseEvent e) {
 				mouseMoved(e); // just a HACK to get sure that vars are correct
-/*				Point p = getPointByPos(dotsA, e.getPoint());
+				Point p = getPointByPos(dotsA, e.getPoint());
 				if(p != null) {
 					selectedDotA = p;
 				} else if(selectedDotA != null) {
@@ -1116,11 +1134,11 @@ public class Applet extends JApplet {
 					}
 				}
 				
-				repaint(); */
+				repaint();
 			}
 
 			protected void onChange() {
-//				((JLabel)getComponentByName("res1")).setText("");
+				((JLabel)getComponentByName("res1")).setText("");
 			}
 			
 			public void mouseMoved(MouseEvent e) {
@@ -1138,35 +1156,82 @@ public class Applet extends JApplet {
 
 		};
 		final Painter painter = new Painter() {
-			public void mouseClicked(MouseEvent e) {
-				// ignore
+			public boolean isCorrect() {
+				Collection dotsA_copy = new LinkedList(dotsA);
+				Collection dotsB_copy = new LinkedList(dotsB);
+				for(Iterator i = connections.iterator(); i.hasNext(); ) {
+					Connection p = (Connection) i.next();
+					dotsA_copy.remove(p.src);
+					dotsB_copy.remove(p.dst);
+				}
+				return dotsA_copy.isEmpty() && dotsB_copy.isEmpty();
 			}
+			
+			public String getResultText() {
+				Collection dotsA_copy = new LinkedList(dotsA);
+				Collection dotsB_copy = new LinkedList(dotsB);
+				for(Iterator i = connections.iterator(); i.hasNext(); ) {
+					Connection p = (Connection) i.next();
+					dotsA_copy.remove(p.src);
+					dotsB_copy.remove(p.dst);
+				}
+				if(!dotsA_copy.isEmpty())
+					return "alle Punkte in A müssen zugewiesen werden";
+				else if(dotsB_copy.isEmpty())
+					return "das ist richtig!";
+				else
+					return "das ist leider falsch";
+			}
+			
 		};
-		painter.addSurjectivConnections();
+		//painter.addSurjectivConnections();
 		final Painter painter2 = new Painter();
-		painter2.copyReversedFrom(painter, true);
+		painter2.copyReversedFrom(painter, false);
 		
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
-		 * ∙ × ÷ ± — ≠
+		 * ∙ × ÷ ± — ≠ ⁻¹
 		 */
 			
 		String[] choices1 = new String[] { "ja", "nein" };
 		addVisualThings(jContentPane, new VisualThing[] {
-			new VTLabel("Betrachten Sie die Abbildung", 10, 10),
-			new VTLabel("f : X → Y", 10, 0, "Courier"),
+			new VTLabel("Es sei A = {1,2,3} und B = {K,U,D}.", 10, 10),
+			new VTLabel("Geben Sie eine bijektive Abbildung", 10, 1),
+			new VTLabel("f : A → B", 10, 0, "Courier"),
+			new VTLabel("an", 10, 0),
 			new VTImage("bild", 10, 5, W, H, painter),
-			new VTLabel("Dann ist die Umkehrabbildung", 10, 1),
-			new VTLabel("g : Y → X", 10, 0, "Courier"),
+			new VTButton("reset", 10, 1, new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					painter.reset();
+					painter2.copyReversedFrom(painter, false);
+					((JLabel)getComponentByName("res1")).setText("");
+				}
+			}),
+			new VTLabel("Wie lautet in diesem Fall die Umkehrabbildung", 10, 10),
+			new VTLabel("f⁻¹ : B → A", 10, 0, "Courier"),
+			new VTLabel("?", 10, 0),
 			new VTImage("bild2", 10, 5, W, H, painter2),
 
 			// Bedienung
-			new VTButton("reset", 10, 5, new ActionListener() {
+			new VTButton("überprüfen", 10, 1, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if(!painter.isCorrect()) {
+						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
+						((JLabel)getComponentByName("res1")).setText("f: " + painter.getResultText());
+					} else if(!painter2.isCorrect()) {
+						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
+						((JLabel)getComponentByName("res1")).setText("f⁻¹: " + painter2.getResultText());
+					} else {
+						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
+						((JLabel)getComponentByName("res1")).setText(painter2.getResultText());
+					}
+				}}),
+			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+			new VTButton("reset", 10, 0, new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
-					painter.reset();
-					painter.addSurjectivConnections();
-					painter2.copyReversedFrom(painter, true);
+					painter2.resetConnections();
+					((JLabel)getComponentByName("res1")).setText("");
 				}
 			}),
 
