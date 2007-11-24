@@ -1,4 +1,4 @@
-package applets.Abbildungen_I29_BijektivKonstruieren;
+package applets.Abbildungen_I30_BijektivUmkehrung;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(523, 270);
+		this.setSize(523, 462);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -871,7 +871,7 @@ public class Applet extends JApplet {
 			public Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "X");
 			public Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "Y");
 			public Collection dotsA = new LinkedList(), dotsB = new LinkedList();
-			protected int dotsCountA = 6, dotsCountB = 6;
+			protected int dotsCountA = 5, dotsCountB = 5;
 			public Collection connections = new LinkedList();
 			public Point selectedDotA = null; 
 			public Point overDotA = null, overDotB = null;
@@ -937,16 +937,13 @@ public class Applet extends JApplet {
 			}
 			
 			public void addSurjectivConnections() {
-				int k = 0;
 				Iterator j = dotsB.iterator();
-				Point[] bs = new Point[3];
-				bs[0] = (Point) j.next();
-				bs[1] = (Point) j.next();
-				bs[2] = (Point) j.next();
-				for(Iterator i = dotsA.iterator(); i.hasNext(); k++) {
+				for(Iterator i = dotsA.iterator(); i.hasNext(); ) {
 					Connection con = new Connection();
 					con.src = (Point) i.next();
-					con.dst = bs[k % 3];
+					if(!j.hasNext())
+						j = dotsB.iterator();
+					con.dst = (Point) j.next();
 					connections.add(con);
 				}
 			}
@@ -960,6 +957,15 @@ public class Applet extends JApplet {
 				return -1;
 			}
 			
+			protected Point getPointByIndex(Collection col, int index) {
+				int k = 0;
+				for(Iterator i = col.iterator(); i.hasNext(); k++) {
+					Point p = (Point) i.next();
+					if(index == k) return p;
+				}
+				return null;
+			}
+			
 			public boolean existsConnection(Point a, Point b) {
 				for(Iterator i = connections.iterator(); i.hasNext(); ) {
 					Connection p = (Connection) i.next();
@@ -968,32 +974,38 @@ public class Applet extends JApplet {
 				}
 				return false;
 			}
-						
+			
 			public boolean isCorrect() {
 				Collection dotsA_copy = new LinkedList(dotsA);
-				Collection dotsB_copy = new LinkedList(dotsB);
 				for(Iterator i = connections.iterator(); i.hasNext(); ) {
 					Connection p = (Connection) i.next();
+					Point a = (Point) p.dst.clone();
+					Point b = (Point) p.src.clone();
+					a.x += oval1.p.x - oval2.p.x;
+					b.x += oval2.p.x - oval1.p.x;
+					if(!copySrc.existsConnection(a, b))
+						return false;
 					dotsA_copy.remove(p.src);
-					dotsB_copy.remove(p.dst);
 				}
-				return dotsA_copy.isEmpty() && dotsB_copy.isEmpty();
+				return dotsA_copy.isEmpty();
 			}
 			
 			public String getResultText() {
 				Collection dotsA_copy = new LinkedList(dotsA);
-				Collection dotsB_copy = new LinkedList(dotsB);
 				for(Iterator i = connections.iterator(); i.hasNext(); ) {
 					Connection p = (Connection) i.next();
+					Point a = (Point) p.dst.clone();
+					Point b = (Point) p.src.clone();
+					a.x += oval1.p.x - oval2.p.x;
+					b.x += oval2.p.x - oval1.p.x;
+					if(!copySrc.existsConnection(a, b))
+						return "das ist leider falsch; überprüfen Sie mal y" + (getPointIndex(dotsA, p.src) + 1);
 					dotsA_copy.remove(p.src);
-					dotsB_copy.remove(p.dst);
 				}
 				if(!dotsA_copy.isEmpty())
 					return "alle Punkte in A müssen zugewiesen werden";
-				else if(dotsB_copy.isEmpty())
-					return "das ist richtig!";
 				else
-					return "das ist leider falsch";
+					return "das ist richtig!";
 			}
 			
 			protected Point turn(Point p, double a) {
@@ -1006,13 +1018,9 @@ public class Applet extends JApplet {
 				copySrc = null;
 				dotsA.clear();
 				dotsB.clear();
-				connections.clear();
 				fillWithDots(dotsA, oval1, dotsCountA);
 				fillWithDots(dotsB, oval2, dotsCountB);
-				selectedDotA = null;
-				overDotA = null;
-				overDotB = null;
-				repaint();
+				resetConnections();
 			}
 			
 			public void resetConnections() {
@@ -1025,7 +1033,7 @@ public class Applet extends JApplet {
 			
 			private Painter copySrc = null;
 			
-			public void copyReservedFrom(Painter src) {
+			public void copyReversedFrom(Painter src, boolean withConn) {
 				copySrc = src;
 				oval1.label = src.oval2.label;
 				oval2.label = src.oval1.label;
@@ -1040,8 +1048,22 @@ public class Applet extends JApplet {
 				selectedDotA = null;
 				overDotA = null;
 				overDotB = null;
+				connections.clear();
+				
+				if(withConn) {
+					for(Iterator i = src.connections.iterator(); i.hasNext(); ) {
+						Connection con = (Connection) i.next();
+						int dst_i = getPointIndex(src.dotsA, con.src); 
+						int src_i = getPointIndex(src.dotsB, con.dst);
+						Connection new_con = new Connection();
+						new_con.src = getPointByIndex(dotsA, src_i);
+						new_con.dst = getPointByIndex(dotsB, dst_i);
+						connections.add(new_con);
+					}
+				}
+				
 				repaint();
-			}
+			}			
 			
 			protected void makeCopyOfPoints(Collection col) {
 				Collection col_copy = new LinkedList(col);
@@ -1074,10 +1096,10 @@ public class Applet extends JApplet {
 				}
 				return null;
 			}
-			
+						
 			public void mouseClicked(MouseEvent e) {
 				mouseMoved(e); // just a HACK to get sure that vars are correct
-				Point p = getPointByPos(dotsA, e.getPoint());
+/*				Point p = getPointByPos(dotsA, e.getPoint());
 				if(p != null) {
 					selectedDotA = p;
 				} else if(selectedDotA != null) {
@@ -1094,11 +1116,11 @@ public class Applet extends JApplet {
 					}
 				}
 				
-				repaint();
+				repaint(); */
 			}
 
 			protected void onChange() {
-				((JLabel)getComponentByName("res1")).setText("");
+//				((JLabel)getComponentByName("res1")).setText("");
 			}
 			
 			public void mouseMoved(MouseEvent e) {
@@ -1115,7 +1137,14 @@ public class Applet extends JApplet {
 			public void mouseDragged(MouseEvent e) {}
 
 		};
-		final Painter painter = new Painter();
+		final Painter painter = new Painter() {
+			public void mouseClicked(MouseEvent e) {
+				// ignore
+			}
+		};
+		painter.addSurjectivConnections();
+		final Painter painter2 = new Painter();
+		painter2.copyReversedFrom(painter, true);
 		
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
@@ -1125,25 +1154,19 @@ public class Applet extends JApplet {
 			
 		String[] choices1 = new String[] { "ja", "nein" };
 		addVisualThings(jContentPane, new VisualThing[] {
-			new VTLabel("Konstruieren Sie eine bijektive Abbildung", 10, 10),
+			new VTLabel("Betrachten Sie die Abbildung", 10, 10),
 			new VTLabel("f : X → Y", 10, 0, "Courier"),
 			new VTImage("bild", 10, 5, W, H, painter),
+			new VTLabel("Dann ist die Umkehrabbildung", 10, 1),
+			new VTLabel("g : Y → X", 10, 0, "Courier"),
+			new VTImage("bild2", 10, 5, W, H, painter2),
 
 			// Bedienung
-			new VTButton("überprüfen", 10, 20, new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					if(painter.isCorrect()) {
-						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
-					} else {
-						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
-					}
-					((JLabel)getComponentByName("res1")).setText(painter.getResultText());
-				}}),
-			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-			new VTButton("reset", 10, 0, new ActionListener() {
+			new VTButton("reset", 10, 5, new ActionListener() {
 				public void actionPerformed(ActionEvent arg0) {
 					painter.reset();
-					((JLabel)getComponentByName("res1")).setText("");
+					painter.addSurjectivConnections();
+					painter2.copyReversedFrom(painter, true);
 				}
 			}),
 
