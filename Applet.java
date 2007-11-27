@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(523, 900);
+		this.setSize(367, 333);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -1172,15 +1172,14 @@ public class Applet extends JApplet {
 				"gilt: \\m{f(n,m) = (k,r)}\n" +
 				"Man muss also zeigen, dass die folgenden Gleichungen für\n" +
 				"\\m{k,r ∈ ℤ} nach \\m{m,n ∈ ℤ} auflösbar sind:\n" +
-				"   \\selector \\m=k\n" +
-				"   \\selector \\m=r\n" +
+				"   \\selector[s1]{n-m,3n-4m,4n-5m} \\m{= k}\n" +
+				"   \\selector[s2]{n-m,3n-4m,4n-5m} \\m{= r}\n" +
+				"(Hilfe: Die erste Komponente von f(n,m) muss gleich k sein\n" +
+				"und die zweite Komponente gleich r.)\n" +
 				"\n" +
-				"Lösen Sie nun die Gleichungen\n" +
-				"   3n -4m = k\n" +
-				"   4n -5m = r\n" +
-				"nach n und m auf:\n" +
-				"   n=\\selector\n" +
-				"   m=\\selector\n" +
+				"Lösen Sie nun die Gleichungen nach n und m auf:\n" +
+				"   \\m{n =} \\selector[s3]{k-r,2k-3r,3k-4r,4k-5r}\n" +
+				"   \\m{m =} \\selector[s4]{k-r,2k-3r,3k-4r,4k-5r}\n" +
 				"\n" +
 				"\\button[type=check] \\label[res1]{wwwwwwwwwwwwwww}" +
 				" \\button[type=help]"
@@ -1234,15 +1233,10 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected == "0";
-		case 2: return selected == "n";
-		case 3: return selected == "-n";
-		case 5: return selected == "2n";
-		case 6: return selected == "2n";
-		case 7: return selected == "2n + 1";
-		case 8: return selected == "2n + 1";
-		case 9: return selected == "2n";
-		case 10: return selected == "2n + 1";
+		case 1: return selected.compareTo("3n-4m") == 0;
+		case 2: return selected.compareTo("4n-5m") == 0;
+		case 3: return selected.compareTo("3k-4r") == 0;
+		case 4: return selected.compareTo("2k-3r") == 0;
 		default: return false;
 		}
 	}
