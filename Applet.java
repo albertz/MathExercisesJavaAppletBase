@@ -517,6 +517,11 @@ public class Applet extends JApplet {
 				new VTLabel(var + " → " + c, 0, 0, "Courier"),
 				false);
 	}
+
+	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing sub) {
+		return new VTFrac(stepX, stepY,
+				new VTLabel("lim", 0, 0, "Courier"), sub, false);
+	}
 	
 	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing var, VisualThing c) {
 		return new VTFrac(stepX, stepY,
@@ -605,13 +610,100 @@ public class Applet extends JApplet {
 				System.err.println("getThingsByContentStr: not parsed until end");
 			return getArrayByThingList(things);
 		}
+		
+		protected static String getTextOutOfVisualThing(VisualThing thing) {
+			if(thing instanceof VTLabel) {
+				return ((VTLabel)thing).getText();
+			} else if(thing instanceof VTContainer) {
+				VTContainer cont = (VTContainer) thing;
+				if(cont.things.length == 0)
+					return "";
+				else
+					return getTextOutOfVisualThing(cont.things[0]);
+			} else {
+				System.err.println("getTextOutOfVisualThing: cannot handle thing");
+				return "";
+			}
+		}
+		
+		/*
+		 * expect extparam as "param1=value1,param2=value2,..."
+		 */
+		protected static String getExtParamVar(String extparam, String param, boolean matchIfNoParams) {
+			int state = 0;
+			String curparam = ""; 
+			String curvar = "";
+			int pos = 0;
+			int parcount = 0;
+			
+			while(state >= 0) {
+				int c = pos < extparam.length() ? extparam.charAt(pos) : -1;
 				
+				switch(state) {
+				case 0: // paramname
+					switch(c) {
+					case -1: state = -1; parcount++; break;
+					case ',': 
+						if(param.compareToIgnoreCase(curparam) == 0) return "";
+						curparam = "";
+						parcount++;
+						break;
+					case '=': state = 5; break;
+					default: curparam += (char)c;
+					}
+					break;
+					
+				case 5: // var
+					switch(c) {
+					case -1:
+					case ',':
+						if(param.compareToIgnoreCase(curparam) == 0) return curvar;
+						curparam = ""; curvar = "";
+						parcount++;
+						state = 0; break;
+					default: curvar += (char)c;
+					}
+					break;
+					
+				}
+				
+				pos++;
+			}
+			
+			if(matchIfNoParams && parcount <= 1) return extparam;
+			return null;
+		}
+		
+		protected static String getExtParamVar(String extparam, String param) {
+			return getExtParamVar(extparam, param, false);
+		}
+		
 		protected static VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
 			if(tagname.compareToIgnoreCase("frac") == 0) {
 				return new VTFrac(0, 0, upperparam, lowerparam);
 			}
-			else if(tagname.compareToIgnoreCase("lim2") == 0) {
-				return newVTLimes(0, 0, baseparam, lowerparam);
+			else if(tagname.compareToIgnoreCase("lim") == 0) {
+				return newVTLimes(0, 0, lowerparam);
+			}
+			else if(tagname.compareToIgnoreCase("text") == 0) {
+				Runnable action = null; // TODO: depending on extparam.onchange
+				String name = getExtParamVar(extparam, "name");
+				return new VTText(name, 0, 0, action);
+			}
+			else if(tagname.compareToIgnoreCase("button") == 0) {
+				ActionListener action = null; // TODO: depending on extparam.action
+				String name = getExtParamVar(extparam, "name");
+				return new VTButton(name, getTextOutOfVisualThing(baseparam), 0, 0, action);
+			}
+			else if(tagname.compareToIgnoreCase("label") == 0) {
+				String name = getExtParamVar(extparam, "name", true);
+				return new VTLabel(name, getTextOutOfVisualThing(baseparam), 0, 0);
+			}
+			else if(tagname.compareToIgnoreCase("selector") == 0) {
+				Runnable action = null; // TODO: depending on extparam.action
+				String[] items = getTextOutOfVisualThing(baseparam).split(",");
+				String name = getExtParamVar(extparam, "name");
+				return new VTSelector(name, items, 0, 0, action);
 			}
 			else
 				System.out.println("handleTag: don't know tag " + tagname);
@@ -1270,7 +1362,8 @@ public class Applet extends JApplet {
 		addVisualThings(jContentPane, VTMeta.getThingsByContentStr(
 				"Hallo Welt\n" +
 				"und noch mal Hallo.\n" +
-				"\\lim2{n}_∞ \\frac^{1}_{n} = 0"
+				"\\lim_{n → ∞} \\frac^{1}_{n} = 0\n" +
+				"\\button{click me} \\selector{a,b,c,d} \\text \\label[einlabel]{hallo}"
 				));
 /*		{
 			new VTLabel("Man betrachte die Abbildung h : ℤ² → ℤ², (n,m) → (3n-4m,4n-5m).", 10, 10),
