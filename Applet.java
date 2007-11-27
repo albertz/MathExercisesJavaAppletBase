@@ -498,14 +498,14 @@ public class Applet extends JApplet {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
 					top,
 					new VTLine(0, -6, width),
-					new VTEmptySpace(0, -6, (width - down.getWidth()) / 2, 5),
+					new VTEmptySpace(0, -2, (width - down.getWidth()) / 2, 5),
 					down,
 				};
 			else
 				this.things = new VisualThing[] {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
 					top,
-					new VTEmptySpace(0, -6, (width - down.getWidth()) / 2, 5),
+					new VTEmptySpace(0, -2, (width - down.getWidth()) / 2, 5),
 					down,
 				};
 		}
@@ -633,7 +633,9 @@ public class Applet extends JApplet {
 		}
 		
 		protected String getTextOutOfVisualThing(VisualThing thing) {
-			if(thing instanceof VTLabel) {
+			if(thing == null)
+				return "";
+			else if(thing instanceof VTLabel) {
 				return ((VTLabel)thing).getText();
 			} else if(thing instanceof VTContainer) {
 				VTContainer cont = (VTContainer) thing;
@@ -740,6 +742,9 @@ public class Applet extends JApplet {
 			else if(tagname.compareToIgnoreCase("object") == 0) {
 				return getExternThing(extparam);
 			}
+			else if(tagname.compareToIgnoreCase("m") == 0) {
+				return new VTLabel(getTextOutOfVisualThing(baseparam), 0, 0, "Courier");
+			}
 			else
 				System.out.println("handleTag: don't know tag " + tagname);
 			
@@ -829,7 +834,7 @@ public class Applet extends JApplet {
 					if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9')
 						curtag.name += (char)c;
 					else switch(c) {
-					case '\\': addNewVT(things, curstr, curtag.handle()); curtag.reset(); break;
+					case '\\': addNewVT(things, curstr, curtag.handle()); curstr = ""; curtag.reset(); break;
 					case '{': state = 11; break;
 					case '[': state = 12; break;
 					case '_': state = 13; curtagtmpstr = ""; break;
@@ -852,24 +857,28 @@ public class Applet extends JApplet {
 					break;
 				case 13: // tagmode, lowerparam simple (directly after '_')
 					switch(c) {					
-					case -1: pos--;
+					case -1: case '\\': pos--;
 					case ' ': case 8: case '\n':
+					case '^':
 						curtag.lowerparam = new VTLabel(curtagtmpstr, 0, 0);
-						state = 10;
+						curtagtmpstr = "";
+						if(c == '^') state = 14;
+						else state = 10;
 						break;
-					case '^': state = 14; break;
 					case '{': state = 15; break;
 					default: curtagtmpstr += (char)c;
 					}
 					break;
 				case 14: // tagmode, upperparam simple (directly after '^')
 					switch(c) {					
-					case -1: pos--;
+					case -1: case '\\': pos--;
 					case ' ': case 8: case '\n':
+					case '_':
 						curtag.upperparam = new VTLabel(curtagtmpstr, 0, 0);
-						state = 10;
+						curtagtmpstr = "";
+						if(c == '_') state = 13;
+						else state = 10;
 						break;
-					case '_': state = 13; break;
 					case '{': state = 16; break;
 					default: curtagtmpstr += (char)c;
 					}
@@ -1147,346 +1156,71 @@ public class Applet extends JApplet {
 				resetResultLabels();
 			}
 		};
-		final int W = 500, H = 180;
-		class Painter implements VTImage.PainterAndListener {
-			
-			class Oval {
-				public Oval(Point p, int w, int h, Color c, String label) {
-					this.p = p;
-					this.w = w;
-					this.h = h;
-					this.c = c;
-					this.label = label;
-				}
-				
-				Point p;
-				int w, h;
-				Color c;
-				String label;
-				
-				public void paint(Graphics g) {
-					g.setColor(c);
-					g.fillOval(p.x, p.y, w, h);
-					g.drawString(label, p.x, p.y);
-				}
-				
-				public Point getRandomPoint(Collection keepDistance, float d) {
-					Point res = null;
-					Random rnd = new Random();
-					
-					boolean distance = false;
-					while(!distance) {
-						double r = Math.sqrt(rnd.nextDouble()); // sqrt damit groessere r etwas wahrscheinlicher werden
-						double a = rnd.nextDouble() * 2 * Math.PI;
-						double x = Math.cos(a) * w * 0.5 * r; 
-						double y = Math.sin(a) * h * 0.5 * r;
-						x *= 0.8; y *= 0.8; // damit es auch echt drin ist
-						res = new Point((int)x + p.x + w / 2, (int)y + p.y + h / 2);
-						
-						distance = true;
-						for(Iterator i = keepDistance.iterator(); i.hasNext(); ) {
-							Point p = (Point) i.next();
-							if(p.distance(res) < d) {
-								distance = false;
-								break;
-							}
-						}
-					}
-					
-					return res;
-				}
-			}
-			
-			class Connection {
-				public Point src;
-				public Point dst;
-				
-				public void paint(Graphics g) {
-					g.drawLine(src.x, src.y, dst.x, dst.y);
-					
-					Point p1 = turn(new Point(src.x - dst.x, src.y - dst.y), 0.25 * Math.PI); 
-					Point p2 = turn(new Point(src.x - dst.x, src.y - dst.y), -0.25 * Math.PI); 
-					double r = Math.sqrt(p1.x * p1.x + p1.y * p1.y);
-					double R = 10;
-					p1.x *= R / r; p1.y *= R / r; p2.x *= R / r; p2.y *= R / r;
-					g.drawLine(dst.x, dst.y, dst.x + p1.x, dst.y + p1.y);
-					g.drawLine(dst.x, dst.y, dst.x + p2.x, dst.y + p2.y);
-
-				}
-			}
-			
-			Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "A");
-			Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "B");
-			private Collection dotsA = new LinkedList(), dotsB = new LinkedList();
-			private int dotsCountA = 5, dotsCountB = 6;
-			private Collection connections = new LinkedList();
-			private Point selectedDotA = null; 
-			private Point overDotA = null, overDotB = null;
-			
-			public void paint(Graphics g) {
-				oval1.paint(g);
-				oval2.paint(g);
-				g.setColor(new Color(0, 200, 0));
-				drawDots(g, dotsA);
-				g.setColor(new Color(0, 200, 0));
-				drawDots(g, dotsB);
-				g.setColor(Color.BLACK);
-				drawConnections(g, connections);
-			}
-
-			public Painter() {
-				reset();
-			}
-			
-			private void fillWithDots(Collection col, Oval o, int n) {
-				for(int i = 0; i < n; i++) {
-					col.add(o.getRandomPoint(col, 30));
-				}
-			}
-			
-			private void drawDots(Graphics g, Collection col) {
-				Color c = g.getColor();
-				for(Iterator i = col.iterator(); i.hasNext(); ) {
-					Point p = (Point) i.next();
-					if(p == selectedDotA)
-						g.setColor(Color.BLUE);
-					else if(p == overDotA || p == overDotB)
-						g.setColor(Color.CYAN);
-					else
-						g.setColor(c);
-					g.fillOval(p.x - 4, p.y - 4, 8, 8);
-				}
-			}
-			
-			private void drawConnections(Graphics g, Collection cons) {
-				if(selectedDotA != null && overDotB != null) {
-					Color c = g.getColor();
-					g.setColor(Color.GRAY);
-					Connection tmpCon = new Connection();
-					tmpCon.src = selectedDotA;
-					tmpCon.dst = overDotB;
-					tmpCon.paint(g);
-					g.setColor(c);
-				}
-
-				for(Iterator i = cons.iterator(); i.hasNext(); ) {
-					Connection con = (Connection) i.next();
-					if(selectedDotA != null && overDotB != null
-							&& con.src.distance(selectedDotA) == 0
-							&& con.dst.distance(overDotB) != 0) {
-						// ignore
-					} else
-						con.paint(g);
-				}
-			}
-			
-			public boolean isCorrect() {
-				Collection dotsA_copy = new LinkedList(dotsA);
-				Collection dotsB_copy = new LinkedList(dotsB);
-				for(Iterator i = connections.iterator(); i.hasNext(); ) {
-					Connection p = (Connection) i.next();
-					dotsA_copy.remove(p.src);
-					if(dotsB_copy.contains(p.dst))
-						dotsB_copy.remove(p.dst);
-					else
-						return false;
-				}
-				return dotsA_copy.isEmpty();
-			}
-			
-			public String getResultText() {
-				Collection dotsA_copy = new LinkedList(dotsA);
-				Collection dotsB_copy = new LinkedList(dotsB);
-				for(Iterator i = connections.iterator(); i.hasNext(); ) {
-					Connection p = (Connection) i.next();
-					dotsA_copy.remove(p.src);
-					if(dotsB_copy.contains(p.dst))
-						dotsB_copy.remove(p.dst);
-					else
-						return "leider ist das nicht korrekt";
-				}
-				if(dotsA_copy.isEmpty())
-					return "das ist richtig!";
-				else
-					return "alle Punkte in A müssen zugewiesen werden";
-			}
-			
-			private Point turn(Point p, double a) {
-				double x = Math.cos(a);
-				double y = Math.sin(a);
-				return new Point((int)(x * p.x + y * p.y), (int)(-y * p.x + x * p.y));
-			}
-			
-			public void reset() {
-				dotsA.clear();
-				dotsB.clear();
-				connections.clear();
-				fillWithDots(dotsA, oval1, dotsCountA);
-				fillWithDots(dotsB, oval2, dotsCountB);
-				selectedDotA = null;
-				overDotA = null;
-				overDotB = null;
-				repaint();
-			}
-						
-			private Point getPointByPos(Collection col, Point pos) {
-				for(Iterator i = col.iterator(); i.hasNext(); ) {
-					Point p = (Point) i.next();
-					if(p.distance(pos) < 10) return p;
-				}
-				return null;
-			}
-			
-			private Connection getConnectionBySrc(Point src, Collection cons) {
-				for(Iterator i = cons.iterator(); i.hasNext(); ) {
-					Connection con = (Connection) i.next();
-					if(con.src.distance(src) == 0) return con;
-				}
-				return null;
-			}
-			
-			public void mouseClicked(MouseEvent e) {
-				mouseMoved(e); // just a HACK to get sure that vars are correct
-				Point p = getPointByPos(dotsA, e.getPoint());
-				if(p != null) {
-					selectedDotA = p;
-				} else if(selectedDotA != null) {
-					p = getPointByPos(dotsB, e.getPoint());
-					if(p != null) {
-						Connection con = getConnectionBySrc(selectedDotA, connections);
-						if(con != null) connections.remove(con);
-						con = new Connection();
-						con.src = selectedDotA;
-						con.dst = p;
-						connections.add(con);
-						
-						onChange();
-					}
-				}
-				
-				repaint();
-			}
-
-			private void onChange() {
-				((JLabel)getComponentByName("res1")).setText("");
-			}
-			
-			public void mouseMoved(MouseEvent e) {
-				overDotA = getPointByPos(dotsA, e.getPoint());
-				overDotB = getPointByPos(dotsB, e.getPoint());
-
-				e.getComponent().repaint();
-			}
-
-			public void mouseEntered(MouseEvent e) {}
-			public void mouseExited(MouseEvent e) {}
-			public void mousePressed(MouseEvent e) {}
-			public void mouseReleased(MouseEvent e) {}
-			public void mouseDragged(MouseEvent e) {}
-
-		};
-		final Painter painter = new Painter();
 			
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
 		 * ∙ × ÷ ± — ≠
+		 * “ ”
 		 */
 			
-		String[] choices1 = new String[] { "1", "0", "n", "2n", "-n", "-2n", "2n + 1", "n/2" };
-		VTMeta meta = new VTMeta(0, 0, "", new VisualThing[] {
-				new VTButton("check1", "überprüfen", 0, 20, createCheckButtonListener(1, new Runnable() {
-					public void run() {
-						
-					}
-				}, null)),
-				new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-				new VTButton("help1", "Hilfe", 10, 0, createHelpButtonListener(1)),
-
-		}, updater);
+		VTMeta meta = new VTMeta(0, 0, "", null, updater);
 		addVisualThings(jContentPane, meta.getThingsByContentStr(
-				"Hallo Welt\n" +
-				"und noch mal Hallo.\n" +
-				"\\lim_{n → ∞} \\frac^{1}_{n} = 0\n" +
-				"\\button{click me} \\selector{a,b,c,d} \\text \\label[einlabel]{hallo}\n" +
-				"\\object[check1] \\object[res1] \\object[help1]\n" +
-				"\\button[type=check,index=3] \\label[res3]{wwwwwwwwwwwwwww}" +
-				" \\button[type=help,index=3]"
+				"Man betrachte die Abbildung \\m{h : ℤ² → ℤ², (n,m) → (3n-4m,4n-5m).}\n" +
+				"a) Man zeige, dass \\m{f} bijektiv ist\n" +
+				"1) f ist injektiv:" +
+				"Lassen Sie uns einfach mal die Version “\\m{f(x) = f(y) ⇒ x = y}”\n" +
+				"für den Nachweis der Injektivität verwenden.\n" +
+				"Es seien also \\m{x = (n,m) ∈ ℤ²} und \\m{y = (p,q) ∈ ℤ²} und\n" +
+				"es gelte \\m{f(x) = f(y)}, d.h.\n" +
+				"( \\selector[s1]{3n-4m,4n-5m,3p-4q,4p-5q},\\selector[s2]{3n-4m,4n-5m,3p-4q,4p-5q}) \\m{=}" +
+				"( \\selector[s3]{3n-4m,4n-5m,3p-4q,4p-5q},\\selector[s4]{3n-4m,4n-5m,3p-4q,4p-5q})\n" +
+				"\n" +
+				"Da Paare von Zahlen gleich sind, genau dann, wenn entsprechende\n" +
+				"Komponenten gleich sind, ist dies gleichbedeutend mit\n" +
+				"\\selector[s5]{3n-4m,4n-5m,3p-4q}\\m=\\selector[s6]{3n-4m,4n-5m,3p-4q} und" +
+				" \\selector[s7]{4n-5m,3p-4q,4p-5q}\\m=\\selector[s8]{4n-5m,3p-4q,4p-5q}\n" +
+				"\n" +
+				"Sortiert man in der ersten Gleichung um, so erhält man\n" +
+				"\\selector[s9]{...}\\m{∙(n-p) = 4∙}\\selector[s10]{...}.\n" +
+				"Sortiert man in der zweiten Gleichung um, so erhält man\n" +
+				"\\selector[s11]{...}\\m{∙(n-p) = 5∙}\\selector[s12]{...}.\n" +
+				"Insgesamt erhält man also:\n" +
+				"   \\m{(n-p) = }\\frac^4_3\\m{∙(m-q)}\n" +
+				"   \\m{(n-p) = }\\frac^5_4\\m{∙(m-q)}\n" +
+				"Da die Faktoren \\m{4/3} und \\m{5/4} verschieden sind, können die\n" +
+				"beiden rechten Seiten nur gleich sein, wenn \\m{m-q = 0} gilt.\n" +
+				"Dies impliziert aber (wegen obiger Gleichungen) \\m{n-p = 0}.\n" +
+				"Also \\m{m = q} und \\m{n = p}.\n" +
+				"\n" +
+				"\n" +
+				"2) f ist surjektiv:\n" +
+				"Man muss zeigen:\n" +
+				"Für alle \\m{(k,r) ∈ ℤ²} gibt es \\m{(n,m) ∈ ℤ²}, so dass\n"+
+				"gilt: \\m{f(n,m) = (k,r)}\n" +
+				"Man muss also zeigen, dass die folgenden Gleichungen für\n" +
+				"\\m{k,r ∈ ℤ} nach \\m{m,n ∈ ℤ} auflösbar sind:\n" +
+				"   \\selector \\m=k\n" +
+				"   \\selector \\m=r\n" +
+				"\n" +
+				"Lösen Sie nun die Gleichungen\n" +
+				"   3n -4m = k\n" +
+				"   4n -5m = r\n" +
+				"nach n und m auf:\n" +
+				"   n=\\selector\n" +
+				"   m=\\selector\n" +
+				"\n" +
+				"\\button[type=check] \\label[res1]{wwwwwwwwwwwwwww}" +
+				" \\button[type=help]"
 				));
-/*		{
-			new VTLabel("Man betrachte die Abbildung h : ℤ² → ℤ², (n,m) → (3n-4m,4n-5m).", 10, 10),
-			
-				
-				new VTLabel("Es gibt viele Bijektionen von ℕ auf ℤ.", 10, 10),			
-			new VTLabel("Eine könnte etwa so aussehen:", 10, -2),
-			new VTLabel("1 ↦ 0", 20, -2),
-			new VTLabel("2 ↦ 1", 20, -2),
-			new VTLabel("3 ↦ -1", 20, -2),
-			new VTLabel("4 ↦ 2", 20, -2),
-			new VTLabel("5 ↦ -2", 20, -2),
-			new VTLabel("...", 20, -2),
-			
-			new VTLabel("Man sieht, dass die Zuordnung für gerade natürliche Zahlen auf positive Zahlen", 10, 5),
-			new VTLabel("geht, während sie für ungerade Zahlen negative Werte annimmt.", 10, -2),
-			new VTLabel("Machen Sie sich bitte klar, dass jede positive natürliche Zahl k von der Form", 10, -2),
-			new VTLabel("k = 2n ist, während jede ungerade positive Zahl k von der Form k = 2n + 1 ist (n ∈ ℕ).", 10, -2),
-			
-			new VTLabel("Die allgemeine Formel für die oben angedeutete Zuordnung lautet:", 10, 5),
-			new VTLabel("f : ℕ → ℤ", 10, -2),
-			new VTLabel("f(0) :=", 20, -2),
-			new VTSelector("s1", choices1, 10, 0, updater),
-			new VTLabel("f(2n) :=", 20, -2),
-			new VTSelector("s2", choices1, 10, 0, updater),
-			new VTLabel("f(2n + 1) :=", 20, -2),
-			new VTSelector("s3", choices1, 10, 0, updater),
-			
-			
-			new VTContainer("con1", 0, 10, new VisualThing[] {
-					new VTLabel("Behauptung:", 10, 0),
-					new VTLabel("f ist bijektiv.", 10, -2),
-					
-					new VTLabel("Beweis:", 10, 5),
-					
-					new VTLabel("a) f ist injektiv:", 10, 2),
-					new VTLabel("Um dies zu zeigen, verwenden wir die Version: f(k) = f(m) ⇒ k = m", 10, -2),
 
-					new VTLabel("Fall 1: f(k) > 0:", 10, 2),
-					new VTLabel("Nach Definition der Abbildung f gilt dann:", 10, -2),
-					new VTLabel("k =", 10, -2),
-					new VTSelector("s5", choices1, 10, 0, updater),
-					new VTLabel(",   m =", 10, 0),
-					new VTSelector("s6", choices1, 10, 0, updater),
-					new VTLabel("Es gilt also k = m.", 10, -2),
-					
-					new VTLabel("Fall 2: f(k) < 0:", 10, 2),
-					new VTLabel("Nach Definition der Abbildung f gilt dann:", 10, -2),
-					new VTLabel("k =", 10, -2),
-					new VTSelector("s7", choices1, 10, 0, updater),
-					new VTLabel(",   m =", 10, 0),
-					new VTSelector("s8", choices1, 10, 0, updater),
-					new VTLabel("Es gilt also k = m.", 10, -2),
-					
-					new VTLabel("Fall 3: f(k) = 0: klar", 10, 2),
-					
-					new VTLabel("b) f ist surjektiv:", 10, 2),
-					new VTLabel("Wir musse also zeigen, dass jede positive ganze Zahl, jede negative ganze Zahl", 10, -2),
-					new VTLabel("und die Zahl 0 als Werte von f auftreten. Wegen f(0) = 0 brauchen wir nur", 10, -2),
-					new VTLabel("positive und negative ganze Zahlen zu betrachten. Sei n ∈ ℕ, dann gilt:", 10, -2),
-					new VTLabel("f(", 10, -2),
-					new VTSelector("s9", choices1, 10, 0, updater),
-					new VTLabel(") = n", 10, 0),
-					new VTLabel("f(", 10, -2),
-					new VTSelector("s10", choices1, 10, 0, updater),
-					new VTLabel(") = -n", 10, 0),
-					new VTLabel("Somit wird ganz ℤ erreicht, also ist f surjektiv.", 10, -2),
-					
-					new VTButton("überprüfen", 10, 20, createCheckButtonListener(5)),
-					new VTLabel("res5", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-					new VTButton("Hilfe", 10, 0, createHelpButtonListener(5)),
-			}),
-			
-		});*/
+		/*
+		 *      Richtig! Es ist ganz wichtig, dass für k,r \in \Z die oben angegebene Formel für n
+     und m immer ganze Zahlen liefert, dies heißt nämlich, dass man (k,r) \in \Z^2
+     immer mit (n,m) \in \Z^2 erreichen kann. Damit ist f surjektiv.
 
+		 * 
+		 */
 		resetResultLabels();
 		resetSelectorColors();
 //		getComponentByName("con1").setVisible(false);
