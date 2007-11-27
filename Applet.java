@@ -1,4 +1,4 @@
-package applets.Abbildungen_I37_BijektivBeweis;
+package applets.Abbildungen_I37_BijektivBeweis_Part2;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -1166,34 +1166,6 @@ public class Applet extends JApplet {
 			
 		VTMeta meta = new VTMeta(0, 0, "", null, updater);
 		addVisualThings(jContentPane, meta.getThingsByContentStr(
-				"Man betrachte die Abbildung \\m{h : ℤ² → ℤ², (n,m) → (3n-4m,4n-5m).}\n" +
-				"a) Man zeige, dass \\m{f} bijektiv ist\n" +
-				"1) f ist injektiv:" +
-				"Lassen Sie uns einfach mal die Version “\\m{f(x) = f(y) ⇒ x = y}”\n" +
-				"für den Nachweis der Injektivität verwenden.\n" +
-				"Es seien also \\m{x = (n,m) ∈ ℤ²} und \\m{y = (p,q) ∈ ℤ²} und\n" +
-				"es gelte \\m{f(x) = f(y)}, d.h.\n" +
-				"( \\selector[s1]{3n-4m,4n-5m,3p-4q,4p-5q},\\selector[s2]{3n-4m,4n-5m,3p-4q,4p-5q}) \\m{=}" +
-				"( \\selector[s3]{3n-4m,4n-5m,3p-4q,4p-5q},\\selector[s4]{3n-4m,4n-5m,3p-4q,4p-5q})\n" +
-				"\n" +
-				"Da Paare von Zahlen gleich sind, genau dann, wenn entsprechende\n" +
-				"Komponenten gleich sind, ist dies gleichbedeutend mit\n" +
-				"\\selector[s5]{3n-4m,4n-5m,3p-4q}\\m=\\selector[s6]{3n-4m,4n-5m,3p-4q} und" +
-				" \\selector[s7]{4n-5m,3p-4q,4p-5q}\\m=\\selector[s8]{4n-5m,3p-4q,4p-5q}\n" +
-				"\n" +
-				"Sortiert man in der ersten Gleichung um, so erhält man\n" +
-				"\\selector[s9]{...}\\m{∙(n-p) = 4∙}\\selector[s10]{...}.\n" +
-				"Sortiert man in der zweiten Gleichung um, so erhält man\n" +
-				"\\selector[s11]{...}\\m{∙(n-p) = 5∙}\\selector[s12]{...}.\n" +
-				"Insgesamt erhält man also:\n" +
-				"   \\m{(n-p) = }\\frac^4_3\\m{∙(m-q)}\n" +
-				"   \\m{(n-p) = }\\frac^5_4\\m{∙(m-q)}\n" +
-				"Da die Faktoren \\m{4/3} und \\m{5/4} verschieden sind, können die\n" +
-				"beiden rechten Seiten nur gleich sein, wenn \\m{m-q = 0} gilt.\n" +
-				"Dies impliziert aber (wegen obiger Gleichungen) \\m{n-p = 0}.\n" +
-				"Also \\m{m = q} und \\m{n = p}.\n" +
-				"\n" +
-				"\n" +
 				"2) f ist surjektiv:\n" +
 				"Man muss zeigen:\n" +
 				"Für alle \\m{(k,r) ∈ ℤ²} gibt es \\m{(n,m) ∈ ℤ²}, so dass\n"+
