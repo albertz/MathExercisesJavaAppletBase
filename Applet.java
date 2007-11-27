@@ -1,4 +1,4 @@
-package applets.Abbildungen_I34_BijektivUmkehrungKonstruieren;
+package applets.Abbildungen_I37_BijektivBeweis;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -20,7 +20,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -31,9 +30,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-
-import applets.Abbildungen_Injektiv_Verkettung.Applet.VTButton;
-import applets.Abbildungen_Injektiv_Verkettung.Applet.VTLabel;
 
 public class Applet extends JApplet {
 
@@ -52,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(523, 520);
+		this.setSize(523, 900);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -139,12 +135,14 @@ public class Applet extends JApplet {
 					label.setName(name);
 				label.setText(text);
 				label.setFont(new Font(fontName, 0, 12));
+				label.setOpaque(false);
 			}
 			return label;
 		}
 
 		public int getHeight() {
-			return 21;
+			getComponent();
+			return label.getFontMetrics(label.getFont()).getHeight();
 		}
 
 		public int getWidth() {
@@ -464,6 +462,10 @@ public class Applet extends JApplet {
 				this.setText(getText() + "—");
 			}
 		}
+
+		public int getHeight() {
+			return 10;
+		}
 		
 	}
 	
@@ -516,6 +518,15 @@ public class Applet extends JApplet {
 				false);
 	}
 	
+	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing var, VisualThing c) {
+		return new VTFrac(stepX, stepY,
+				new VTLabel("lim", 0, 0, "Courier"),
+				new VTContainer(0, 0, new VisualThing[] {
+						var, new VTLabel("→", 0, 0, "Courier"), c
+				}),
+				false);
+	}
+
 	public static class VTLineCombiner extends VTContainer {
 
 		public VTLineCombiner(String name, int stepX, int stepY, VisualThing[] things) {
@@ -558,6 +569,211 @@ public class Applet extends JApplet {
 				}
 				curX += things[i].getWidth();
 			}
+		}
+		
+	}
+
+	public static class VTMeta extends VTContainer  {
+				
+		public VTMeta(String name, int stepX, int stepY, String content) {
+			super(name, stepX, stepY, getThingsByContentStr(content));
+		}
+
+		public VTMeta(int stepX, int stepY, String content) {
+			this(null, stepX, stepY, content);
+		}
+		
+		private static class Number {
+			public int number = 0;
+		}
+		
+		public static VisualThing createSimpleContainer(List thing_list) {
+			return new VTContainer(0, 0, getArrayByThingList(thing_list));
+		}
+		
+		public static VisualThing[] getArrayByThingList(List thing_list) {
+			VisualThing[] things = new VisualThing[thing_list.size()];
+			for(int i = 0; i < things.length; i++)
+				things[i] = (VisualThing) thing_list.get(i);
+			return things;
+		}
+		
+		public static VisualThing[] getThingsByContentStr(String content) {
+			Number endpos = new Number();
+			List things = getThingsByContentStr(content, 0, endpos);
+			if(endpos.number <= content.length())
+				System.err.println("getThingsByContentStr: not parsed until end");
+			return getArrayByThingList(things);
+		}
+				
+		protected static VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
+			if(tagname.compareToIgnoreCase("frac") == 0) {
+				return new VTFrac(0, 0, upperparam, lowerparam);
+			}
+			else if(tagname.compareToIgnoreCase("lim2") == 0) {
+				return newVTLimes(0, 0, baseparam, lowerparam);
+			}
+			else
+				System.out.println("handleTag: don't know tag " + tagname);
+			
+			return null;
+		}
+
+		protected static VisualThing handleTag(String tag, VisualThing baseparam) {
+			return handleTag(tag, baseparam, "", null, null);
+		}
+
+		protected static VisualThing handleTag(String tag) {
+			return handleTag(tag, null);
+		}
+		
+		protected static void addNewVT(List things, String curstr, VisualThing newVT) {
+			if(curstr.length() > 0) things.add(new VTLabel(curstr, 5, 0));
+			if(newVT != null) things.add(newVT);
+		}
+		
+		protected static class Tag {
+			/***
+			 * @param tag			Tagname
+			 * @param baseparam		all in {...}
+			 * @param extparam		all in [...]
+			 * @param lowerparam	all in _...
+			 * @param upperparam	all in ^...
+			 * @return	VisualThing
+			 */
+			public String name = "";
+			public VisualThing baseparam = null;
+			public String extparam = "";
+			public VisualThing lowerparam = null;
+			public VisualThing upperparam = null;
+			
+			public boolean isSet() {
+				return name.length() != 0;
+			}
+			
+			public void reset() {
+				name = ""; baseparam = null; extparam = ""; lowerparam = null; upperparam = null;
+			}
+			
+			public VisualThing handle() {
+				return VTMeta.handleTag(name, baseparam, extparam, lowerparam, upperparam);
+			}
+		}
+		
+		public static List getThingsByContentStr(String content, int startpos, Number endpos) {
+			int state = 0;
+			int pos = startpos;
+			List lastlines = new LinkedList(); // VTLineCombiners
+			List things = new LinkedList(); // current things which are filled
+			String curstr = "";
+			Tag curtag = new Tag();
+			Number newpos = new Number(); // if recursive calls will be done, this is for getting the new pos
+			String curtagtmpstr = ""; // used by lowerparam and upperparam in simple mode
+			
+			while(state >= 0) {
+				int c = (pos >= content.length()) ? -1 : content.charAt(pos);
+				
+				switch(state) {
+				case 0: // default + clean up
+					curstr = ""; curtag.reset(); state = 1;
+				case 1: // default
+					switch(c) {
+					case '\\': curtag.reset(); state = 10; break;
+					case -1: case '}': case ']': // these marks the end at all
+						state = -1;
+					case '\n': // new line
+						addNewVT(things, curstr, null); curstr = "";
+						lastlines.add(new VTLineCombiner(0, 5, getArrayByThingList(things)));
+						things.clear();
+						break;
+					default: curstr += (char)c;
+					}
+					break;
+					
+				case 10: // we got a '\', tagmode
+					if(!curtag.isSet()) switch(c) { // check first for special chars if curtag is not set yet
+					case '\\': case '{':
+					case '[': case '_':
+					case '^': case -1:
+						state = 1; pos--; // handle char as normal text 
+					}
+					if(state == 1) break;
+
+					if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9')
+						curtag.name += (char)c;
+					else switch(c) {
+					case '\\': addNewVT(things, curstr, curtag.handle()); curtag.reset(); break;
+					case '{': state = 11; break;
+					case '[': state = 12; break;
+					case '_': state = 13; curtagtmpstr = ""; break;
+					case '^': state = 14; curtagtmpstr = ""; break;
+					default: // nothing special, so tag ended here
+						addNewVT(things, curstr, curtag.handle());
+						state = 0; pos--; // handle char as normal text 
+					}
+					break;
+				case 11: // tagmode, baseparam starting
+					curtag.baseparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
+					pos = newpos.number - 1; state = 10;
+					break;
+				case 12: // tagmode, extparam starting
+					switch(c) {
+					case -1: state = 10; pos--; break;
+					case ']': state = 10; break;
+					default: curtag.extparam += (char)c;
+					}
+					break;
+				case 13: // tagmode, lowerparam simple (directly after '_')
+					switch(c) {					
+					case -1: pos--;
+					case ' ': case 8: case '\n':
+						curtag.lowerparam = new VTLabel(curtagtmpstr, 0, 0);
+						state = 10;
+						break;
+					case '^': state = 14; break;
+					case '{': state = 15; break;
+					default: curtagtmpstr += (char)c;
+					}
+					break;
+				case 14: // tagmode, upperparam simple (directly after '^')
+					switch(c) {					
+					case -1: pos--;
+					case ' ': case 8: case '\n':
+						curtag.upperparam = new VTLabel(curtagtmpstr, 0, 0);
+						state = 10;
+						break;
+					case '_': state = 13; break;
+					case '{': state = 16; break;
+					default: curtagtmpstr += (char)c;
+					}
+					break;
+				case 15: // tagmode, lowerparam normal (in {...})
+					curtag.lowerparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
+					pos = newpos.number - 1; state = 10;
+					break;
+				case 16: // tagmode, upperparam normal (in {...})
+					curtag.upperparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
+					pos = newpos.number - 1; state = 10;
+					break;
+					
+				
+				
+				default:
+					System.err.println("getThingsByContentStr: unknown state " + state);
+					state = 0;
+				}
+				
+				pos++;
+			}
+			endpos.number = pos;
+			
+			// we fill the last things in the automat automatically in lastlines at the end
+			if(lastlines.size() == 0)
+				return null;
+			else if(lastlines.size() == 1)
+				return Arrays.asList(((VTLineCombiner) lastlines.get(0)).things);
+			else
+				return lastlines;
 		}
 		
 	}
@@ -816,10 +1032,10 @@ public class Applet extends JApplet {
 					this.label = label;
 				}
 				
-				public Point p;
-				public int w, h;
-				public Color c;
-				public String label;
+				Point p;
+				int w, h;
+				Color c;
+				String label;
 				
 				public void paint(Graphics g) {
 					g.setColor(c);
@@ -872,25 +1088,21 @@ public class Applet extends JApplet {
 				}
 			}
 			
-			public Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "A");
-			public Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "B");
-			public Collection dotsA = new LinkedList(), dotsB = new LinkedList();
-			protected int dotsCountA = 3, dotsCountB = 3;
-			public Collection connections = new LinkedList();
-			public Point selectedDotA = null; 
-			public Point overDotA = null, overDotB = null;
-			public List dotANames = null;
-			public List dotBNames = Arrays.asList(new String[] {"K","U","D"});
-			public boolean dotANames_showalways = true;
-			public boolean dotBNames_showalways = true;
+			Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "A");
+			Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "B");
+			private Collection dotsA = new LinkedList(), dotsB = new LinkedList();
+			private int dotsCountA = 5, dotsCountB = 6;
+			private Collection connections = new LinkedList();
+			private Point selectedDotA = null; 
+			private Point overDotA = null, overDotB = null;
 			
 			public void paint(Graphics g) {
 				oval1.paint(g);
 				oval2.paint(g);
 				g.setColor(new Color(0, 200, 0));
-				drawDots(g, dotsA, dotANames_showalways, dotANames);
+				drawDots(g, dotsA);
 				g.setColor(new Color(0, 200, 0));
-				drawDots(g, dotsB, dotBNames_showalways, dotBNames);
+				drawDots(g, dotsB);
 				g.setColor(Color.BLACK);
 				drawConnections(g, connections);
 			}
@@ -899,16 +1111,15 @@ public class Applet extends JApplet {
 				reset();
 			}
 			
-			protected void fillWithDots(Collection col, Oval o, int n) {
+			private void fillWithDots(Collection col, Oval o, int n) {
 				for(int i = 0; i < n; i++) {
 					col.add(o.getRandomPoint(col, 30));
 				}
 			}
 			
-			protected void drawDots(Graphics g, Collection col, boolean showalways, List names) {
+			private void drawDots(Graphics g, Collection col) {
 				Color c = g.getColor();
-				int k = 0;
-				for(Iterator i = col.iterator(); i.hasNext(); k++) {
+				for(Iterator i = col.iterator(); i.hasNext(); ) {
 					Point p = (Point) i.next();
 					if(p == selectedDotA)
 						g.setColor(Color.BLUE);
@@ -917,19 +1128,10 @@ public class Applet extends JApplet {
 					else
 						g.setColor(c);
 					g.fillOval(p.x - 4, p.y - 4, 8, 8);
-					if(p == overDotA || p == overDotB || showalways)
-						g.drawString(getDotName(names, k), p.x + 4, p.y - 4);
 				}
 			}
 			
-			protected String getDotName(List names, int index) {
-				if(names != null)
-					return (String) names.get(index);
-				else
-					return String.valueOf(index + 1);
-			}
-						
-			protected void drawConnections(Graphics g, Collection cons) {
+			private void drawConnections(Graphics g, Collection cons) {
 				if(selectedDotA != null && overDotB != null) {
 					Color c = g.getColor();
 					g.setColor(Color.GRAY);
@@ -951,155 +1153,56 @@ public class Applet extends JApplet {
 				}
 			}
 			
-			public void addSurjectivConnections() {
-				Iterator j = dotsB.iterator();
-				for(Iterator i = dotsA.iterator(); i.hasNext(); ) {
-					Connection con = new Connection();
-					con.src = (Point) i.next();
-					if(!j.hasNext())
-						j = dotsB.iterator();
-					con.dst = (Point) j.next();
-					connections.add(con);
-				}
-			}
-			
-			protected int getPointIndex(Collection col, Point pos) {
-				int k = 0;
-				for(Iterator i = col.iterator(); i.hasNext(); k++) {
-					Point p = (Point) i.next();
-					if(p.distance(pos) == 0) return k;
-				}
-				return -1;
-			}
-			
-			protected Point getPointByIndex(Collection col, int index) {
-				int k = 0;
-				for(Iterator i = col.iterator(); i.hasNext(); k++) {
-					Point p = (Point) i.next();
-					if(index == k) return p;
-				}
-				return null;
-			}
-			
-			public boolean existsConnection(Point a, Point b) {
-				for(Iterator i = connections.iterator(); i.hasNext(); ) {
-					Connection p = (Connection) i.next();
-					if(p.src.distance(a) == 0 && p.dst.distance(b) == 0)
-						return true;
-				}
-				return false;
-			}
-			
 			public boolean isCorrect() {
 				Collection dotsA_copy = new LinkedList(dotsA);
+				Collection dotsB_copy = new LinkedList(dotsB);
 				for(Iterator i = connections.iterator(); i.hasNext(); ) {
 					Connection p = (Connection) i.next();
-					Point a = (Point) p.dst.clone();
-					Point b = (Point) p.src.clone();
-					a.x += oval1.p.x - oval2.p.x;
-					b.x += oval2.p.x - oval1.p.x;
-					if(!copySrc.existsConnection(a, b))
-						return false;
 					dotsA_copy.remove(p.src);
+					if(dotsB_copy.contains(p.dst))
+						dotsB_copy.remove(p.dst);
+					else
+						return false;
 				}
 				return dotsA_copy.isEmpty();
 			}
 			
 			public String getResultText() {
 				Collection dotsA_copy = new LinkedList(dotsA);
+				Collection dotsB_copy = new LinkedList(dotsB);
 				for(Iterator i = connections.iterator(); i.hasNext(); ) {
 					Connection p = (Connection) i.next();
-					Point a = (Point) p.dst.clone();
-					Point b = (Point) p.src.clone();
-					a.x += oval1.p.x - oval2.p.x;
-					b.x += oval2.p.x - oval1.p.x;
-					if(!copySrc.existsConnection(a, b))
-						return "das ist leider falsch; überprüfen Sie mal " + getDotName(dotANames, getPointIndex(dotsA, p.src));
 					dotsA_copy.remove(p.src);
+					if(dotsB_copy.contains(p.dst))
+						dotsB_copy.remove(p.dst);
+					else
+						return "leider ist das nicht korrekt";
 				}
-				if(!dotsA_copy.isEmpty())
-					return "alle Punkte in B müssen zugewiesen werden";
-				else
+				if(dotsA_copy.isEmpty())
 					return "das ist richtig!";
+				else
+					return "alle Punkte in A müssen zugewiesen werden";
 			}
 			
-			protected Point turn(Point p, double a) {
+			private Point turn(Point p, double a) {
 				double x = Math.cos(a);
 				double y = Math.sin(a);
 				return new Point((int)(x * p.x + y * p.y), (int)(-y * p.x + x * p.y));
 			}
 			
 			public void reset() {
-				copySrc = null;
 				dotsA.clear();
 				dotsB.clear();
+				connections.clear();
 				fillWithDots(dotsA, oval1, dotsCountA);
 				fillWithDots(dotsB, oval2, dotsCountB);
-				resetConnections();
-			}
-			
-			public void resetConnections() {
-				connections.clear();
 				selectedDotA = null;
 				overDotA = null;
 				overDotB = null;
 				repaint();
 			}
-			
-			// used for isCorrect and getResultText
-			private Painter copySrc = null;
-			
-			public void copyReversedFrom(Painter src, boolean withConn) {
-				copySrc = src;
-				oval1.label = src.oval2.label;
-				oval2.label = src.oval1.label;
-				dotANames = src.dotBNames;
-				dotBNames = src.dotANames;
-				dotsA = new LinkedList(src.dotsB);
-				dotsB = new LinkedList(src.dotsA);
-				makeCopyOfPoints(dotsA);
-				makeCopyOfPoints(dotsB);
-				fixXPos(dotsA, oval1.p.x - oval2.p.x);
-				fixXPos(dotsB, oval2.p.x - oval1.p.x);
-				dotsCountA = dotsA.size();
-				dotsCountB = dotsB.size();
-				selectedDotA = null;
-				overDotA = null;
-				overDotB = null;
-				connections.clear();
-				
-				if(withConn) {
-					for(Iterator i = src.connections.iterator(); i.hasNext(); ) {
-						Connection con = (Connection) i.next();
-						int dst_i = getPointIndex(src.dotsA, con.src); 
-						int src_i = getPointIndex(src.dotsB, con.dst);
-						Connection new_con = new Connection();
-						new_con.src = getPointByIndex(dotsA, src_i);
-						new_con.dst = getPointByIndex(dotsB, dst_i);
-						connections.add(new_con);
-					}
-				}
-				
-				repaint();
-			}			
-			
-			protected void makeCopyOfPoints(Collection col) {
-				Collection col_copy = new LinkedList(col);
-				col.clear();
-				for(Iterator i = col_copy.iterator(); i.hasNext(); ) {
-					Point p = (Point) i.next();
-					col.add(p.clone());
-				}
-			}
-			
-			protected void fixXPos(Collection col, int d) {
-				for(Iterator i = col.iterator(); i.hasNext(); ) {
-					Point p = (Point) i.next();
-					p.x += d;
-				}
-			}
-			
-			protected Point getPointByPos(Collection col, Point pos) {
+						
+			private Point getPointByPos(Collection col, Point pos) {
 				for(Iterator i = col.iterator(); i.hasNext(); ) {
 					Point p = (Point) i.next();
 					if(p.distance(pos) < 10) return p;
@@ -1107,14 +1210,14 @@ public class Applet extends JApplet {
 				return null;
 			}
 			
-			protected Connection getConnectionBySrc(Point src, Collection cons) {
+			private Connection getConnectionBySrc(Point src, Collection cons) {
 				for(Iterator i = cons.iterator(); i.hasNext(); ) {
 					Connection con = (Connection) i.next();
 					if(con.src.distance(src) == 0) return con;
 				}
 				return null;
 			}
-						
+			
 			public void mouseClicked(MouseEvent e) {
 				mouseMoved(e); // just a HACK to get sure that vars are correct
 				Point p = getPointByPos(dotsA, e.getPoint());
@@ -1137,7 +1240,7 @@ public class Applet extends JApplet {
 				repaint();
 			}
 
-			protected void onChange() {
+			private void onChange() {
 				((JLabel)getComponentByName("res1")).setText("");
 			}
 			
@@ -1155,90 +1258,104 @@ public class Applet extends JApplet {
 			public void mouseDragged(MouseEvent e) {}
 
 		};
-		final Painter painter = new Painter() {
-			public boolean isCorrect() {
-				Collection dotsA_copy = new LinkedList(dotsA);
-				Collection dotsB_copy = new LinkedList(dotsB);
-				for(Iterator i = connections.iterator(); i.hasNext(); ) {
-					Connection p = (Connection) i.next();
-					dotsA_copy.remove(p.src);
-					dotsB_copy.remove(p.dst);
-				}
-				return dotsA_copy.isEmpty() && dotsB_copy.isEmpty();
-			}
+		final Painter painter = new Painter();
 			
-			public String getResultText() {
-				Collection dotsA_copy = new LinkedList(dotsA);
-				Collection dotsB_copy = new LinkedList(dotsB);
-				for(Iterator i = connections.iterator(); i.hasNext(); ) {
-					Connection p = (Connection) i.next();
-					dotsA_copy.remove(p.src);
-					dotsB_copy.remove(p.dst);
-				}
-				if(!dotsA_copy.isEmpty())
-					return "alle Punkte in A müssen zugewiesen werden";
-				else if(dotsB_copy.isEmpty())
-					return "das ist richtig!";
-				else
-					return "das ist leider falsch";
-			}
-			
-		};
-		//painter.addSurjectivConnections();
-		final Painter painter2 = new Painter();
-		painter2.copyReversedFrom(painter, false);
-		
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
-		 * ∙ × ÷ ± — ≠ ⁻¹
+		 * ∙ × ÷ ± — ≠
 		 */
 			
-		String[] choices1 = new String[] { "ja", "nein" };
-		addVisualThings(jContentPane, new VisualThing[] {
-			new VTLabel("Es sei A = {1,2,3} und B = {K,U,D}.", 10, 10),
-			new VTLabel("Geben Sie eine bijektive Abbildung", 10, 1),
-			new VTLabel("f : A → B", 10, 0, "Courier"),
-			new VTLabel("an", 10, 0),
-			new VTImage("bild", 10, 5, W, H, painter),
-			new VTButton("reset", 10, 1, new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					painter.reset();
-					painter2.copyReversedFrom(painter, false);
-					((JLabel)getComponentByName("res1")).setText("");
+		String[] choices1 = new String[] { "1", "0", "n", "2n", "-n", "-2n", "2n + 1", "n/2" };
+		addVisualThings(jContentPane, VTMeta.getThingsByContentStr(
+				"Hallo Welt\n" +
+				"und noch mal Hallo.\n" +
+				"\\lim2{n}_∞ \\frac^{1}_{n} = 0"
+				));
+/*		{
+			new VTLabel("Man betrachte die Abbildung h : ℤ² → ℤ², (n,m) → (3n-4m,4n-5m).", 10, 10),
+			
+				
+				new VTLabel("Es gibt viele Bijektionen von ℕ auf ℤ.", 10, 10),			
+			new VTLabel("Eine könnte etwa so aussehen:", 10, -2),
+			new VTLabel("1 ↦ 0", 20, -2),
+			new VTLabel("2 ↦ 1", 20, -2),
+			new VTLabel("3 ↦ -1", 20, -2),
+			new VTLabel("4 ↦ 2", 20, -2),
+			new VTLabel("5 ↦ -2", 20, -2),
+			new VTLabel("...", 20, -2),
+			
+			new VTLabel("Man sieht, dass die Zuordnung für gerade natürliche Zahlen auf positive Zahlen", 10, 5),
+			new VTLabel("geht, während sie für ungerade Zahlen negative Werte annimmt.", 10, -2),
+			new VTLabel("Machen Sie sich bitte klar, dass jede positive natürliche Zahl k von der Form", 10, -2),
+			new VTLabel("k = 2n ist, während jede ungerade positive Zahl k von der Form k = 2n + 1 ist (n ∈ ℕ).", 10, -2),
+			
+			new VTLabel("Die allgemeine Formel für die oben angedeutete Zuordnung lautet:", 10, 5),
+			new VTLabel("f : ℕ → ℤ", 10, -2),
+			new VTLabel("f(0) :=", 20, -2),
+			new VTSelector("s1", choices1, 10, 0, updater),
+			new VTLabel("f(2n) :=", 20, -2),
+			new VTSelector("s2", choices1, 10, 0, updater),
+			new VTLabel("f(2n + 1) :=", 20, -2),
+			new VTSelector("s3", choices1, 10, 0, updater),
+			
+			new VTButton("überprüfen", 10, 20, createCheckButtonListener(1, new Runnable() {
+				public void run() {
+					getComponentByName("con1").setVisible(true);
 				}
-			}),
-			new VTLabel("Wie lautet in diesem Fall die Umkehrabbildung", 10, 10),
-			new VTLabel("f⁻¹ : B → A", 10, 0, "Courier"),
-			new VTLabel("?", 10, 0),
-			new VTImage("bild2", 10, 5, W, H, painter2),
-
-			// Bedienung
-			new VTButton("überprüfen", 10, 1, new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					if(!painter.isCorrect()) {
-						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
-						((JLabel)getComponentByName("res1")).setText("f: " + painter.getResultText());
-					} else if(!painter2.isCorrect()) {
-						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
-						((JLabel)getComponentByName("res1")).setText("f⁻¹: " + painter2.getResultText());
-					} else {
-						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
-						((JLabel)getComponentByName("res1")).setText(painter2.getResultText());
-					}
-				}}),
+			}, null)),
 			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-			new VTButton("reset", 10, 0, new ActionListener() {
-				public void actionPerformed(ActionEvent arg0) {
-					painter2.resetConnections();
-					((JLabel)getComponentByName("res1")).setText("");
-				}
-			}),
+			new VTButton("Hilfe", 10, 0, createHelpButtonListener(1)),
+			
+			new VTContainer("con1", 0, 10, new VisualThing[] {
+					new VTLabel("Behauptung:", 10, 0),
+					new VTLabel("f ist bijektiv.", 10, -2),
+					
+					new VTLabel("Beweis:", 10, 5),
+					
+					new VTLabel("a) f ist injektiv:", 10, 2),
+					new VTLabel("Um dies zu zeigen, verwenden wir die Version: f(k) = f(m) ⇒ k = m", 10, -2),
 
-		});
+					new VTLabel("Fall 1: f(k) > 0:", 10, 2),
+					new VTLabel("Nach Definition der Abbildung f gilt dann:", 10, -2),
+					new VTLabel("k =", 10, -2),
+					new VTSelector("s5", choices1, 10, 0, updater),
+					new VTLabel(",   m =", 10, 0),
+					new VTSelector("s6", choices1, 10, 0, updater),
+					new VTLabel("Es gilt also k = m.", 10, -2),
+					
+					new VTLabel("Fall 2: f(k) < 0:", 10, 2),
+					new VTLabel("Nach Definition der Abbildung f gilt dann:", 10, -2),
+					new VTLabel("k =", 10, -2),
+					new VTSelector("s7", choices1, 10, 0, updater),
+					new VTLabel(",   m =", 10, 0),
+					new VTSelector("s8", choices1, 10, 0, updater),
+					new VTLabel("Es gilt also k = m.", 10, -2),
+					
+					new VTLabel("Fall 3: f(k) = 0: klar", 10, 2),
+					
+					new VTLabel("b) f ist surjektiv:", 10, 2),
+					new VTLabel("Wir musse also zeigen, dass jede positive ganze Zahl, jede negative ganze Zahl", 10, -2),
+					new VTLabel("und die Zahl 0 als Werte von f auftreten. Wegen f(0) = 0 brauchen wir nur", 10, -2),
+					new VTLabel("positive und negative ganze Zahlen zu betrachten. Sei n ∈ ℕ, dann gilt:", 10, -2),
+					new VTLabel("f(", 10, -2),
+					new VTSelector("s9", choices1, 10, 0, updater),
+					new VTLabel(") = n", 10, 0),
+					new VTLabel("f(", 10, -2),
+					new VTSelector("s10", choices1, 10, 0, updater),
+					new VTLabel(") = -n", 10, 0),
+					new VTLabel("Somit wird ganz ℤ erreicht, also ist f surjektiv.", 10, -2),
+					
+					new VTButton("überprüfen", 10, 20, createCheckButtonListener(5)),
+					new VTLabel("res5", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+					new VTButton("Hilfe", 10, 0, createHelpButtonListener(5)),
+			}),
+			
+		});*/
 
 		resetResultLabels();
 		resetSelectorColors();
+//		getComponentByName("con1").setVisible(false);
 		
 		jContentPane.repaint();
 	}
@@ -1277,9 +1394,15 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 3: return selected == "nein";
-		case 5: return parseNum(selected) != -666;
-		case 6: return Math.pow(parseNum(getSelected(5)), 2) == Math.pow(parseNum(selected), 2);
+		case 1: return selected == "0";
+		case 2: return selected == "n";
+		case 3: return selected == "-n";
+		case 5: return selected == "2n";
+		case 6: return selected == "2n";
+		case 7: return selected == "2n + 1";
+		case 8: return selected == "2n + 1";
+		case 9: return selected == "2n";
+		case 10: return selected == "2n + 1";
 		default: return false;
 		}
 	}
