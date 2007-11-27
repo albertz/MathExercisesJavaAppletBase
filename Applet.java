@@ -236,7 +236,7 @@ public class Applet extends JApplet {
 	public static class VTButton extends VisualThing {
 
 		public VTButton(String name, String text, int stepX, int stepY,
-				ActionListener actionListener) {
+				Runnable actionListener) {
 			this.name = name;
 			this.text = text;
 			this.stepX = stepX;
@@ -245,7 +245,7 @@ public class Applet extends JApplet {
 		}
 
 		public VTButton(String text, int stepX, int stepY,
-				ActionListener actionListener) {
+				Runnable actionListener) {
 			this.text = text;
 			this.stepX = stepX;
 			this.stepY = stepY;
@@ -256,7 +256,7 @@ public class Applet extends JApplet {
 		private String name = null;
 		private String text;
 		private JButton button = null;
-		private ActionListener actionListener;
+		private Runnable actionListener;
 
 		public Component getComponent() {
 			if (button == null) {
@@ -264,7 +264,12 @@ public class Applet extends JApplet {
 				button.setText(text);
 				if (name != null)
 					button.setName(name);
-				button.addActionListener(actionListener);
+				if(actionListener != null)
+					button.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							actionListener.run();
+						}
+					});
 			}
 			return button;
 		}
@@ -578,32 +583,48 @@ public class Applet extends JApplet {
 		
 	}
 
-	public static class VTMeta extends VTContainer  {
+	public class VTMeta extends VTContainer  {
 				
-		public VTMeta(String name, int stepX, int stepY, String content) {
-			super(name, stepX, stepY, getThingsByContentStr(content));
+		private VisualThing[] extern; // extern things for \object
+		private Runnable updater; // used by selector and text
+		
+		public VTMeta(String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
+			super(name, stepX, stepY, null);
+			this.extern = extern;
+			this.updater = updater;
+			
+			things = getThingsByContentStr(content);
 		}
 
-		public VTMeta(int stepX, int stepY, String content) {
-			this(null, stepX, stepY, content);
+		public VTMeta(int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
+			this(null, stepX, stepY, content, extern, updater);
+		}
+
+		private VisualThing getExternThing(String name) {
+			if(extern == null) return null;
+			for(int i = 0; i < extern.length; i++) {
+				if(extern[i].getComponent().getName().compareTo(name) == 0)
+					return extern[i];
+			}
+			return null;
 		}
 		
-		private static class Number {
+		private class Number {
 			public int number = 0;
 		}
 		
-		public static VisualThing createSimpleContainer(List thing_list) {
+		public VisualThing createSimpleContainer(List thing_list) {
 			return new VTContainer(0, 0, getArrayByThingList(thing_list));
 		}
 		
-		public static VisualThing[] getArrayByThingList(List thing_list) {
+		public VisualThing[] getArrayByThingList(List thing_list) {
 			VisualThing[] things = new VisualThing[thing_list.size()];
 			for(int i = 0; i < things.length; i++)
 				things[i] = (VisualThing) thing_list.get(i);
 			return things;
 		}
 		
-		public static VisualThing[] getThingsByContentStr(String content) {
+		public VisualThing[] getThingsByContentStr(String content) {
 			Number endpos = new Number();
 			List things = getThingsByContentStr(content, 0, endpos);
 			if(endpos.number <= content.length())
@@ -611,7 +632,7 @@ public class Applet extends JApplet {
 			return getArrayByThingList(things);
 		}
 		
-		protected static String getTextOutOfVisualThing(VisualThing thing) {
+		protected String getTextOutOfVisualThing(VisualThing thing) {
 			if(thing instanceof VTLabel) {
 				return ((VTLabel)thing).getText();
 			} else if(thing instanceof VTContainer) {
@@ -629,7 +650,7 @@ public class Applet extends JApplet {
 		/*
 		 * expect extparam as "param1=value1,param2=value2,..."
 		 */
-		protected static String getExtParamVar(String extparam, String param, boolean matchIfNoParams) {
+		protected String getExtParamVar(String extparam, String param, boolean matchIfNoParams) {
 			int state = 0;
 			String curparam = ""; 
 			String curvar = "";
@@ -671,14 +692,14 @@ public class Applet extends JApplet {
 			}
 			
 			if(matchIfNoParams && parcount <= 1) return extparam;
-			return null;
+			return "";
 		}
 		
-		protected static String getExtParamVar(String extparam, String param) {
+		protected String getExtParamVar(String extparam, String param) {
 			return getExtParamVar(extparam, param, false);
 		}
 		
-		protected static VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
+		protected VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
 			if(tagname.compareToIgnoreCase("frac") == 0) {
 				return new VTFrac(0, 0, upperparam, lowerparam);
 			}
@@ -686,24 +707,38 @@ public class Applet extends JApplet {
 				return newVTLimes(0, 0, lowerparam);
 			}
 			else if(tagname.compareToIgnoreCase("text") == 0) {
-				Runnable action = null; // TODO: depending on extparam.onchange
-				String name = getExtParamVar(extparam, "name");
+				Runnable action = updater;
+				String name = getExtParamVar(extparam, "name", true);
 				return new VTText(name, 0, 0, action);
 			}
 			else if(tagname.compareToIgnoreCase("button") == 0) {
-				ActionListener action = null; // TODO: depending on extparam.action
+				int index = (int) parseNum(getExtParamVar(extparam, "index"));
+				if(index == -666) index = 1;
+				String text = getTextOutOfVisualThing(baseparam);
+				Runnable action = null;
+				if(getExtParamVar(extparam, "type").compareToIgnoreCase("help") == 0) {
+					action = createHelpButtonListener(index);
+					if(text == "") text = "Hilfe";
+				}
+				else if(getExtParamVar(extparam, "type").compareToIgnoreCase("check") == 0) {
+					action = createCheckButtonListener(index);
+					if(text == "") text = "überprüfen";
+				}
 				String name = getExtParamVar(extparam, "name");
-				return new VTButton(name, getTextOutOfVisualThing(baseparam), 0, 0, action);
+				return new VTButton(name, text, 0, 0, action);
 			}
 			else if(tagname.compareToIgnoreCase("label") == 0) {
 				String name = getExtParamVar(extparam, "name", true);
 				return new VTLabel(name, getTextOutOfVisualThing(baseparam), 0, 0);
 			}
 			else if(tagname.compareToIgnoreCase("selector") == 0) {
-				Runnable action = null; // TODO: depending on extparam.action
+				Runnable action = updater;
 				String[] items = getTextOutOfVisualThing(baseparam).split(",");
-				String name = getExtParamVar(extparam, "name");
+				String name = getExtParamVar(extparam, "name", true);
 				return new VTSelector(name, items, 0, 0, action);
+			}
+			else if(tagname.compareToIgnoreCase("object") == 0) {
+				return getExternThing(extparam);
 			}
 			else
 				System.out.println("handleTag: don't know tag " + tagname);
@@ -711,20 +746,20 @@ public class Applet extends JApplet {
 			return null;
 		}
 
-		protected static VisualThing handleTag(String tag, VisualThing baseparam) {
+		protected VisualThing handleTag(String tag, VisualThing baseparam) {
 			return handleTag(tag, baseparam, "", null, null);
 		}
 
-		protected static VisualThing handleTag(String tag) {
+		protected VisualThing handleTag(String tag) {
 			return handleTag(tag, null);
 		}
 		
-		protected static void addNewVT(List things, String curstr, VisualThing newVT) {
+		protected void addNewVT(List things, String curstr, VisualThing newVT) {
 			if(curstr.length() > 0) things.add(new VTLabel(curstr, 5, 0));
 			if(newVT != null) things.add(newVT);
 		}
 		
-		protected static class Tag {
+		protected class Tag {
 			/***
 			 * @param tag			Tagname
 			 * @param baseparam		all in {...}
@@ -748,11 +783,11 @@ public class Applet extends JApplet {
 			}
 			
 			public VisualThing handle() {
-				return VTMeta.handleTag(name, baseparam, extparam, lowerparam, upperparam);
+				return handleTag(name, baseparam, extparam, lowerparam, upperparam);
 			}
 		}
 		
-		public static List getThingsByContentStr(String content, int startpos, Number endpos) {
+		public List getThingsByContentStr(String content, int startpos, Number endpos) {
 			int state = 0;
 			int pos = startpos;
 			List lastlines = new LinkedList(); // VTLineCombiners
@@ -775,7 +810,7 @@ public class Applet extends JApplet {
 						state = -1;
 					case '\n': // new line
 						addNewVT(things, curstr, null); curstr = "";
-						lastlines.add(new VTLineCombiner(0, 5, getArrayByThingList(things)));
+						lastlines.add(new VTLineCombiner(10, 5, getArrayByThingList(things)));
 						things.clear();
 						break;
 					default: curstr += (char)c;
@@ -1016,10 +1051,10 @@ public class Applet extends JApplet {
 		return walker.comp;
 	}
 
-	private ActionListener createCheckButtonListener(final int startIndex,
+	private Runnable createCheckButtonListener(final int startIndex,
 			final Runnable correctAction, final Runnable wrongAction) {
-		return new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+		return new Runnable() {
+			public void run() {
 				boolean correct = true;
 				for (int i = startIndex;; i++) {
 					JComponent comp = (JComponent) getComponentByName("s" + i);
@@ -1058,13 +1093,13 @@ public class Applet extends JApplet {
 		}
 	}
 
-	private ActionListener createCheckButtonListener(int startIndex) {
+	private Runnable createCheckButtonListener(int startIndex) {
 		return createCheckButtonListener(startIndex, null, null);
 	}
 
-	private ActionListener createHelpButtonListener(final int startIndex) {
-		return new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
+	private Runnable createHelpButtonListener(final int startIndex) {
+		return new Runnable() {
+			public void run() {
 				for (int i = startIndex;; i++) {
 					JComponent comp = (JComponent) getComponentByName("s" + i);
 					if (comp == null)
@@ -1359,11 +1394,24 @@ public class Applet extends JApplet {
 		 */
 			
 		String[] choices1 = new String[] { "1", "0", "n", "2n", "-n", "-2n", "2n + 1", "n/2" };
-		addVisualThings(jContentPane, VTMeta.getThingsByContentStr(
+		VTMeta meta = new VTMeta(0, 0, "", new VisualThing[] {
+				new VTButton("check1", "überprüfen", 0, 20, createCheckButtonListener(1, new Runnable() {
+					public void run() {
+						
+					}
+				}, null)),
+				new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+				new VTButton("help1", "Hilfe", 10, 0, createHelpButtonListener(1)),
+
+		}, updater);
+		addVisualThings(jContentPane, meta.getThingsByContentStr(
 				"Hallo Welt\n" +
 				"und noch mal Hallo.\n" +
 				"\\lim_{n → ∞} \\frac^{1}_{n} = 0\n" +
-				"\\button{click me} \\selector{a,b,c,d} \\text \\label[einlabel]{hallo}"
+				"\\button{click me} \\selector{a,b,c,d} \\text \\label[einlabel]{hallo}\n" +
+				"\\object[check1] \\object[res1] \\object[help1]\n" +
+				"\\button[type=check,index=3] \\label[res3]{wwwwwwwwwwwwwww}" +
+				" \\button[type=help,index=3]"
 				));
 /*		{
 			new VTLabel("Man betrachte die Abbildung h : ℤ² → ℤ², (n,m) → (3n-4m,4n-5m).", 10, 10),
@@ -1392,13 +1440,6 @@ public class Applet extends JApplet {
 			new VTLabel("f(2n + 1) :=", 20, -2),
 			new VTSelector("s3", choices1, 10, 0, updater),
 			
-			new VTButton("überprüfen", 10, 20, createCheckButtonListener(1, new Runnable() {
-				public void run() {
-					getComponentByName("con1").setVisible(true);
-				}
-			}, null)),
-			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-			new VTButton("Hilfe", 10, 0, createHelpButtonListener(1)),
 			
 			new VTContainer("con1", 0, 10, new VisualThing[] {
 					new VTLabel("Behauptung:", 10, 0),
