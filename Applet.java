@@ -1,4 +1,4 @@
-package applets.Abbildungen_I37_BijektivBeweis_Part2;
+package applets.Abbildungen_I37_BijektivBeweis_Part3;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(367, 333);
+		this.setSize(444, 185);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -1166,35 +1166,20 @@ public class Applet extends JApplet {
 			
 		VTMeta meta = new VTMeta(0, 0, "", null, updater);
 		addVisualThings(jContentPane, meta.getThingsByContentStr(
-				"2) f ist surjektiv:\n" +
-				"Man muss zeigen:\n" +
-				"Für alle \\m{(k,r) ∈ ℤ²} gibt es \\m{(n,m) ∈ ℤ²}, so dass\n"+
-				"gilt: \\m{f(n,m) = (k,r)}\n" +
-				"Man muss also zeigen, dass die folgenden Gleichungen für\n" +
-				"\\m{k,r ∈ ℤ} nach \\m{m,n ∈ ℤ} auflösbar sind:\n" +
-				"   \\selector[s1]{n-m,3n-4m,4n-5m} \\m{= k}\n" +
-				"   \\selector[s2]{n-m,3n-4m,4n-5m} \\m{= r}\n" +
-				"(Hilfe: Die erste Komponente von f(n,m) muss gleich k sein\n" +
-				"und die zweite Komponente gleich r.)\n" +
+				"b) Wie lautet die Umkehrabbildung \\m{g : ℤ² → ℤ²} zu \\m{f}?\n" +
+				"\\m{g(k,r) =} ( \\selector[s1]{3n-4m,2k-3r,3k-4r,4k-5r}, \\selector[s2]{3n-4m,2k-3r,3k-4r,4k-5r} ) \n" +
 				"\n" +
-				"Lösen Sie nun die Gleichungen nach n und m auf:\n" +
-				"   \\m{n =} \\selector[s3]{k-r,2k-3r,3k-4r,4k-5r}\n" +
-				"   \\m{m =} \\selector[s4]{k-r,2k-3r,3k-4r,4k-5r}\n" +
+				"Hilfe:\n" +
+				"Welche Formeln haben Sie zum Nachweis der Surjektivität berechnet?\n" +
+				"(Beachten Sie: Die Lösbarkeit der fraglichen Gleichung zeigt Surjektivität.\n" +
+				"Die eindeutige Lösbarkeit zeigt Bijektivität.)\n" +
 				"\n" +
 				"\\button[type=check] \\label[res1]{wwwwwwwwwwwwwww}" +
 				" \\button[type=help]"
 				));
 
-		/*
-		 *      Richtig! Es ist ganz wichtig, dass für k,r \in \Z die oben angegebene Formel für n
-     und m immer ganze Zahlen liefert, dies heißt nämlich, dass man (k,r) \in \Z^2
-     immer mit (n,m) \in \Z^2 erreichen kann. Damit ist f surjektiv.
-
-		 * 
-		 */
 		resetResultLabels();
 		resetSelectorColors();
-//		getComponentByName("con1").setVisible(false);
 		
 		jContentPane.repaint();
 	}
@@ -1233,10 +1218,8 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected.compareTo("3n-4m") == 0;
-		case 2: return selected.compareTo("4n-5m") == 0;
-		case 3: return selected.compareTo("3k-4r") == 0;
-		case 4: return selected.compareTo("2k-3r") == 0;
+		case 1: return selected.compareTo("3k-4r") == 0;
+		case 2: return selected.compareTo("2k-3r") == 0;
 		default: return false;
 		}
 	}
