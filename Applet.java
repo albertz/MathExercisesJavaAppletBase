@@ -1136,7 +1136,9 @@ public class Applet extends JApplet {
 			
 			public void mouseClicked(MouseEvent e) {
 				if(state < dotCount) {
-					points[state] = new Point(e.getX(), e.getY());
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(e.getY(), false);
+					points[state] = new Point(transformX(selectedX), transformY(selectedY));
 				}
 				state++; state %= dotCount + 1;
 				repaint();
