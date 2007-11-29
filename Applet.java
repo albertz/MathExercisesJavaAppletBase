@@ -1,4 +1,4 @@
-package applets.Abbildungen_I40_GraphX2_invers;
+package applets.Abbildungen_I41_GraphSqrt;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(534, 433);
+		this.setSize(432, 532);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -822,25 +822,25 @@ public class Applet extends JApplet {
 				resetResultLabels();
 			}
 		};
-		final int W = 500, H = 400;
+		final int W = 400, H = 500;
 		class Painter implements VTImage.PainterAndListener {
 			// Funktionsplotter / Graphzeichner
 			
 			public Function2D function = new Function2D() {
 				public double get(double x) {
-					return x*x;
+					return Math.sqrt(x);
 				}
 			};
-			public double x_l = 0, x_r = 3.2;
-			public double y_u = 0, y_o = 10.2;
+			public double x_l = 0, x_r = 10.2;
+			public double y_u = 0, y_o = 3.2;
 			public int xspace_l = 40, xspace_r = 20;
 			public int yspace_u = 20, yspace_o = 20;
 			
-			public double axeXStep = 0.5;
+			public double axeXStep = 1;
 			public double axeXMult = 1;
 			public int axeXTextStep = 2;
 			public String axeXPostText = "";
-			public double axeYStep = 1;
+			public double axeYStep = 0.5;
 			public double axeYMult = 1;
 			public int axeYTextStep = 2;
 			public String axeYPostText = "";
@@ -848,12 +848,12 @@ public class Applet extends JApplet {
 			public int state = 0;
 			public String[] stateMsgs = new String[] {
 					"definieren Sie Y\n" +
-						"    (y = %y%)",
+						"    (y = %x%)",
 					"die Demonstration zeigt, wie X nun definiert ist\n" +
-						"    (y = %y%, x = %x%)\n" +
+						"    (y = %x%, x = %y%)\n" +
 						"klicken Sie um Y neu zu definieren" };
 			
-			public double selectedX1 = -1, selectedX2 = -1;
+			public double selectedX1 = -10, selectedX2 = -10;
 			public double selectedX = 0;
 			public double selectedY = 0;
 			
@@ -863,20 +863,23 @@ public class Applet extends JApplet {
 				g.drawLine(transformX(0), 0, transformX(0), H);
 				g.drawLine(0, transformY(0), W, transformY(0));
 
+				// Diagonale
+				g.setColor(new Color(200, 200, 150));
+				g.drawLine(transformX(-100), transformY(-100), transformX(100), transformY(100));
+
 				drawStateMsg(g);
 				drawAchsentext(g);
 				drawSelectionXPos(g);
 				drawSelectionYPos(g);
 				drawSelectionXRange(g);
 				drawSimulationX2Y(g);
-				
+								
 				// Funktion
 				g.setColor(Color.BLUE);
 				drawFunction(g);
 			}
 
-			protected int simulationX2Ypos = 0;
-			protected int simulationX2Ydir = -1; // 1 = pos; -1 = neg
+			protected int simulationX2Ypos = 0; 
 			protected Timer simulationX2Ytimer = null;
 			
 			protected void stopSimulationX2Y() {
@@ -904,9 +907,7 @@ public class Applet extends JApplet {
 				int f_x = transformY(function.get(selectedX));
 				int x = transformX(selectedX);
 				int len = x - transformX(0) + transformY(0) - f_x; 
-				int pos = (int)(((double)len / 200) * simulationX2Ypos) % (len + 20);
-				if(simulationX2Ydir < 0) pos = 20 + len - pos;
-				int y = transformY(0) - s * pos;
+				int y = transformY(0) - s * ((int)(((double)len / 200) * simulationX2Ypos) % (len + 20));
 				if(s * y < s * f_x) {
 					x -= Math.signum(selectedX) * Math.abs(f_x - y);
 					if(Math.signum(selectedX) * x < transformX(0)) x = transformX(0);
@@ -1066,8 +1067,8 @@ public class Applet extends JApplet {
 			}
 			public void mouseMoved(MouseEvent e) {
 				if(state == 0) {
-					doSelectionYPos(e.getY(), false);
-					doSelectionXPos(transformX(Math.sqrt(selectedY)), false);
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(transformY(function.get(selectedX)), false);
 				}
 			}
 			public void mouseEntered(MouseEvent e) {}
