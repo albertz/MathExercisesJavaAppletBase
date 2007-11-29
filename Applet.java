@@ -1,4 +1,4 @@
-package applets.Abbildungen_I37_BijektivBeweis_Part3;
+package applets.Abbildungen_I40_GraphX2;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,10 +48,14 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(444, 185);
+		this.setSize(534, 433);
 		this.setContentPane(getJContentPane());
 	}
 
+	public interface Function2D {
+		double get(double x);
+	}
+		
 	/**
 	 * z.B. nen Label oder ein Selector
 	 */
@@ -135,14 +139,12 @@ public class Applet extends JApplet {
 					label.setName(name);
 				label.setText(text);
 				label.setFont(new Font(fontName, 0, 12));
-				label.setOpaque(false);
 			}
 			return label;
 		}
 
 		public int getHeight() {
-			getComponent();
-			return label.getFontMetrics(label.getFont()).getHeight();
+			return 21;
 		}
 
 		public int getWidth() {
@@ -236,7 +238,7 @@ public class Applet extends JApplet {
 	public static class VTButton extends VisualThing {
 
 		public VTButton(String name, String text, int stepX, int stepY,
-				Runnable actionListener) {
+				ActionListener actionListener) {
 			this.name = name;
 			this.text = text;
 			this.stepX = stepX;
@@ -245,7 +247,7 @@ public class Applet extends JApplet {
 		}
 
 		public VTButton(String text, int stepX, int stepY,
-				Runnable actionListener) {
+				ActionListener actionListener) {
 			this.text = text;
 			this.stepX = stepX;
 			this.stepY = stepY;
@@ -256,7 +258,7 @@ public class Applet extends JApplet {
 		private String name = null;
 		private String text;
 		private JButton button = null;
-		private Runnable actionListener;
+		private ActionListener actionListener;
 
 		public Component getComponent() {
 			if (button == null) {
@@ -264,12 +266,7 @@ public class Applet extends JApplet {
 				button.setText(text);
 				if (name != null)
 					button.setName(name);
-				if(actionListener != null)
-					button.addActionListener(new ActionListener() {
-						public void actionPerformed(ActionEvent e) {
-							actionListener.run();
-						}
-					});
+				button.addActionListener(actionListener);
 			}
 			return button;
 		}
@@ -467,10 +464,6 @@ public class Applet extends JApplet {
 				this.setText(getText() + "—");
 			}
 		}
-
-		public int getHeight() {
-			return 10;
-		}
 		
 	}
 	
@@ -498,14 +491,14 @@ public class Applet extends JApplet {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
 					top,
 					new VTLine(0, -6, width),
-					new VTEmptySpace(0, -2, (width - down.getWidth()) / 2, 5),
+					new VTEmptySpace(0, -6, (width - down.getWidth()) / 2, 5),
 					down,
 				};
 			else
 				this.things = new VisualThing[] {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
 					top,
-					new VTEmptySpace(0, -2, (width - down.getWidth()) / 2, 5),
+					new VTEmptySpace(0, -6, (width - down.getWidth()) / 2, 5),
 					down,
 				};
 		}
@@ -522,21 +515,7 @@ public class Applet extends JApplet {
 				new VTLabel(var + " → " + c, 0, 0, "Courier"),
 				false);
 	}
-
-	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing sub) {
-		return new VTFrac(stepX, stepY,
-				new VTLabel("lim", 0, 0, "Courier"), sub, false);
-	}
 	
-	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing var, VisualThing c) {
-		return new VTFrac(stepX, stepY,
-				new VTLabel("lim", 0, 0, "Courier"),
-				new VTContainer(0, 0, new VisualThing[] {
-						var, new VTLabel("→", 0, 0, "Courier"), c
-				}),
-				false);
-	}
-
 	public static class VTLineCombiner extends VTContainer {
 
 		public VTLineCombiner(String name, int stepX, int stepY, VisualThing[] things) {
@@ -579,337 +558,6 @@ public class Applet extends JApplet {
 				}
 				curX += things[i].getWidth();
 			}
-		}
-		
-	}
-
-	public class VTMeta extends VTContainer  {
-				
-		private VisualThing[] extern; // extern things for \object
-		private Runnable updater; // used by selector and text
-		
-		public VTMeta(String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
-			super(name, stepX, stepY, null);
-			this.extern = extern;
-			this.updater = updater;
-			
-			things = getThingsByContentStr(content);
-		}
-
-		public VTMeta(int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
-			this(null, stepX, stepY, content, extern, updater);
-		}
-
-		private VisualThing getExternThing(String name) {
-			if(extern == null) return null;
-			for(int i = 0; i < extern.length; i++) {
-				if(extern[i].getComponent().getName().compareTo(name) == 0)
-					return extern[i];
-			}
-			return null;
-		}
-		
-		private class Number {
-			public int number = 0;
-		}
-		
-		public VisualThing createSimpleContainer(List thing_list) {
-			return new VTContainer(0, 0, getArrayByThingList(thing_list));
-		}
-		
-		public VisualThing[] getArrayByThingList(List thing_list) {
-			VisualThing[] things = new VisualThing[thing_list.size()];
-			for(int i = 0; i < things.length; i++)
-				things[i] = (VisualThing) thing_list.get(i);
-			return things;
-		}
-		
-		public VisualThing[] getThingsByContentStr(String content) {
-			Number endpos = new Number();
-			List things = getThingsByContentStr(content, 0, endpos);
-			if(endpos.number <= content.length())
-				System.err.println("getThingsByContentStr: not parsed until end");
-			return getArrayByThingList(things);
-		}
-		
-		protected String getTextOutOfVisualThing(VisualThing thing) {
-			if(thing == null)
-				return "";
-			else if(thing instanceof VTLabel) {
-				return ((VTLabel)thing).getText();
-			} else if(thing instanceof VTContainer) {
-				VTContainer cont = (VTContainer) thing;
-				if(cont.things.length == 0)
-					return "";
-				else
-					return getTextOutOfVisualThing(cont.things[0]);
-			} else {
-				System.err.println("getTextOutOfVisualThing: cannot handle thing");
-				return "";
-			}
-		}
-		
-		/*
-		 * expect extparam as "param1=value1,param2=value2,..."
-		 */
-		protected String getExtParamVar(String extparam, String param, boolean matchIfNoParams) {
-			int state = 0;
-			String curparam = ""; 
-			String curvar = "";
-			int pos = 0;
-			int parcount = 0;
-			
-			while(state >= 0) {
-				int c = pos < extparam.length() ? extparam.charAt(pos) : -1;
-				
-				switch(state) {
-				case 0: // paramname
-					switch(c) {
-					case -1: state = -1; parcount++; break;
-					case ',': 
-						if(param.compareToIgnoreCase(curparam) == 0) return "";
-						curparam = "";
-						parcount++;
-						break;
-					case '=': state = 5; break;
-					default: curparam += (char)c;
-					}
-					break;
-					
-				case 5: // var
-					switch(c) {
-					case -1:
-					case ',':
-						if(param.compareToIgnoreCase(curparam) == 0) return curvar;
-						curparam = ""; curvar = "";
-						parcount++;
-						state = 0; break;
-					default: curvar += (char)c;
-					}
-					break;
-					
-				}
-				
-				pos++;
-			}
-			
-			if(matchIfNoParams && parcount <= 1) return extparam;
-			return "";
-		}
-		
-		protected String getExtParamVar(String extparam, String param) {
-			return getExtParamVar(extparam, param, false);
-		}
-		
-		protected VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
-			if(tagname.compareToIgnoreCase("frac") == 0) {
-				return new VTFrac(0, 0, upperparam, lowerparam);
-			}
-			else if(tagname.compareToIgnoreCase("lim") == 0) {
-				return newVTLimes(0, 0, lowerparam);
-			}
-			else if(tagname.compareToIgnoreCase("text") == 0) {
-				Runnable action = updater;
-				String name = getExtParamVar(extparam, "name", true);
-				return new VTText(name, 0, 0, action);
-			}
-			else if(tagname.compareToIgnoreCase("button") == 0) {
-				int index = (int) parseNum(getExtParamVar(extparam, "index"));
-				if(index == -666) index = 1;
-				String text = getTextOutOfVisualThing(baseparam);
-				Runnable action = null;
-				if(getExtParamVar(extparam, "type").compareToIgnoreCase("help") == 0) {
-					action = createHelpButtonListener(index);
-					if(text == "") text = "Hilfe";
-				}
-				else if(getExtParamVar(extparam, "type").compareToIgnoreCase("check") == 0) {
-					action = createCheckButtonListener(index);
-					if(text == "") text = "überprüfen";
-				}
-				String name = getExtParamVar(extparam, "name");
-				return new VTButton(name, text, 0, 0, action);
-			}
-			else if(tagname.compareToIgnoreCase("label") == 0) {
-				String name = getExtParamVar(extparam, "name", true);
-				return new VTLabel(name, getTextOutOfVisualThing(baseparam), 0, 0);
-			}
-			else if(tagname.compareToIgnoreCase("selector") == 0) {
-				Runnable action = updater;
-				String[] items = getTextOutOfVisualThing(baseparam).split(",");
-				String name = getExtParamVar(extparam, "name", true);
-				return new VTSelector(name, items, 0, 0, action);
-			}
-			else if(tagname.compareToIgnoreCase("object") == 0) {
-				return getExternThing(extparam);
-			}
-			else if(tagname.compareToIgnoreCase("m") == 0) {
-				return new VTLabel(getTextOutOfVisualThing(baseparam), 0, 0, "Courier");
-			}
-			else
-				System.out.println("handleTag: don't know tag " + tagname);
-			
-			return null;
-		}
-
-		protected VisualThing handleTag(String tag, VisualThing baseparam) {
-			return handleTag(tag, baseparam, "", null, null);
-		}
-
-		protected VisualThing handleTag(String tag) {
-			return handleTag(tag, null);
-		}
-		
-		protected void addNewVT(List things, String curstr, VisualThing newVT) {
-			if(curstr.length() > 0) things.add(new VTLabel(curstr, 5, 0));
-			if(newVT != null) things.add(newVT);
-		}
-		
-		protected class Tag {
-			/***
-			 * @param tag			Tagname
-			 * @param baseparam		all in {...}
-			 * @param extparam		all in [...]
-			 * @param lowerparam	all in _...
-			 * @param upperparam	all in ^...
-			 * @return	VisualThing
-			 */
-			public String name = "";
-			public VisualThing baseparam = null;
-			public String extparam = "";
-			public VisualThing lowerparam = null;
-			public VisualThing upperparam = null;
-			
-			public boolean isSet() {
-				return name.length() != 0;
-			}
-			
-			public void reset() {
-				name = ""; baseparam = null; extparam = ""; lowerparam = null; upperparam = null;
-			}
-			
-			public VisualThing handle() {
-				return handleTag(name, baseparam, extparam, lowerparam, upperparam);
-			}
-		}
-		
-		public List getThingsByContentStr(String content, int startpos, Number endpos) {
-			int state = 0;
-			int pos = startpos;
-			List lastlines = new LinkedList(); // VTLineCombiners
-			List things = new LinkedList(); // current things which are filled
-			String curstr = "";
-			Tag curtag = new Tag();
-			Number newpos = new Number(); // if recursive calls will be done, this is for getting the new pos
-			String curtagtmpstr = ""; // used by lowerparam and upperparam in simple mode
-			
-			while(state >= 0) {
-				int c = (pos >= content.length()) ? -1 : content.charAt(pos);
-				
-				switch(state) {
-				case 0: // default + clean up
-					curstr = ""; curtag.reset(); state = 1;
-				case 1: // default
-					switch(c) {
-					case '\\': curtag.reset(); state = 10; break;
-					case -1: case '}': case ']': // these marks the end at all
-						state = -1;
-					case '\n': // new line
-						addNewVT(things, curstr, null); curstr = "";
-						lastlines.add(new VTLineCombiner(10, 5, getArrayByThingList(things)));
-						things.clear();
-						break;
-					default: curstr += (char)c;
-					}
-					break;
-					
-				case 10: // we got a '\', tagmode
-					if(!curtag.isSet()) switch(c) { // check first for special chars if curtag is not set yet
-					case '\\': case '{':
-					case '[': case '_':
-					case '^': case -1:
-						state = 1; pos--; // handle char as normal text 
-					}
-					if(state == 1) break;
-
-					if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9')
-						curtag.name += (char)c;
-					else switch(c) {
-					case '\\': addNewVT(things, curstr, curtag.handle()); curstr = ""; curtag.reset(); break;
-					case '{': state = 11; break;
-					case '[': state = 12; break;
-					case '_': state = 13; curtagtmpstr = ""; break;
-					case '^': state = 14; curtagtmpstr = ""; break;
-					default: // nothing special, so tag ended here
-						addNewVT(things, curstr, curtag.handle());
-						state = 0; pos--; // handle char as normal text 
-					}
-					break;
-				case 11: // tagmode, baseparam starting
-					curtag.baseparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
-					pos = newpos.number - 1; state = 10;
-					break;
-				case 12: // tagmode, extparam starting
-					switch(c) {
-					case -1: state = 10; pos--; break;
-					case ']': state = 10; break;
-					default: curtag.extparam += (char)c;
-					}
-					break;
-				case 13: // tagmode, lowerparam simple (directly after '_')
-					switch(c) {					
-					case -1: case '\\': pos--;
-					case ' ': case 8: case '\n':
-					case '^':
-						curtag.lowerparam = new VTLabel(curtagtmpstr, 0, 0);
-						curtagtmpstr = "";
-						if(c == '^') state = 14;
-						else state = 10;
-						break;
-					case '{': state = 15; break;
-					default: curtagtmpstr += (char)c;
-					}
-					break;
-				case 14: // tagmode, upperparam simple (directly after '^')
-					switch(c) {					
-					case -1: case '\\': pos--;
-					case ' ': case 8: case '\n':
-					case '_':
-						curtag.upperparam = new VTLabel(curtagtmpstr, 0, 0);
-						curtagtmpstr = "";
-						if(c == '_') state = 13;
-						else state = 10;
-						break;
-					case '{': state = 16; break;
-					default: curtagtmpstr += (char)c;
-					}
-					break;
-				case 15: // tagmode, lowerparam normal (in {...})
-					curtag.lowerparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
-					pos = newpos.number - 1; state = 10;
-					break;
-				case 16: // tagmode, upperparam normal (in {...})
-					curtag.upperparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
-					pos = newpos.number - 1; state = 10;
-					break;
-					
-				
-				
-				default:
-					System.err.println("getThingsByContentStr: unknown state " + state);
-					state = 0;
-				}
-				
-				pos++;
-			}
-			endpos.number = pos;
-			
-			// we fill the last things in the automat automatically in lastlines at the end
-			if(lastlines.size() == 0)
-				return null;
-			else if(lastlines.size() == 1)
-				return Arrays.asList(((VTLineCombiner) lastlines.get(0)).things);
-			else
-				return lastlines;
 		}
 		
 	}
@@ -1060,10 +708,11 @@ public class Applet extends JApplet {
 		return walker.comp;
 	}
 
-	private Runnable createCheckButtonListener(final int startIndex,
-			final Runnable correctAction, final Runnable wrongAction) {
-		return new Runnable() {
-			public void run() {
+	private ActionListener createCheckButtonListener(final int startIndex,
+			final Runnable correctAction, final Runnable wrongAction,
+			final String correctStr, final String wrongStr) {
+		return new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				boolean correct = true;
 				for (int i = startIndex;; i++) {
 					JComponent comp = (JComponent) getComponentByName("s" + i);
@@ -1076,7 +725,7 @@ public class Applet extends JApplet {
 					if (!correct)
 						break;
 				}
-				setResultLabel(startIndex, correct);
+				setResultLabel(startIndex, correct, correctStr, wrongStr);
 				if (correct) {
 					if (correctAction != null)
 						correctAction.run();
@@ -1088,27 +737,44 @@ public class Applet extends JApplet {
 		};
 	}
 
+	private ActionListener createCheckButtonListener(int startIndex,
+			Runnable correctAction, Runnable wrongAction) {
+		return createCheckButtonListener(startIndex, correctAction, wrongAction, null, null);
+	}
+	
+	private ActionListener createCheckButtonListener(int startIndex) {
+		return createCheckButtonListener(startIndex, null, null, null, null);
+	}
+
+	private ActionListener createCheckButtonListener(int startIndex, String correctStr, String wrongStr) {
+		return createCheckButtonListener(startIndex, null, null, correctStr, wrongStr);
+	}
+
 	private void setResultLabel(int index, boolean correct) {
+		setResultLabel(index, correct, null, null);
+	}
+	
+	private void setResultLabel(int index, boolean correct, String correctStr, String wrongStr) {
+		if(correctStr == null)
+			correctStr = "alles ist richtig!";
+		if(wrongStr == null)
+			wrongStr = "leider ist etwas falsch";
 		if (correct) {
 			((JLabel) getComponentByName("res" + index))
 					.setForeground(Color.MAGENTA);
 			((JLabel) getComponentByName("res" + index))
-					.setText("alles ist richtig!");
+					.setText(correctStr);
 		} else {
 			((JLabel) getComponentByName("res" + index))
 					.setForeground(Color.RED);
 			((JLabel) getComponentByName("res" + index))
-					.setText("leider ist etwas falsch");
+					.setText(wrongStr);
 		}
 	}
 
-	private Runnable createCheckButtonListener(int startIndex) {
-		return createCheckButtonListener(startIndex, null, null);
-	}
-
-	private Runnable createHelpButtonListener(final int startIndex) {
-		return new Runnable() {
-			public void run() {
+	private ActionListener createHelpButtonListener(final int startIndex) {
+		return new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
 				for (int i = startIndex;; i++) {
 					JComponent comp = (JComponent) getComponentByName("s" + i);
 					if (comp == null)
@@ -1156,27 +822,283 @@ public class Applet extends JApplet {
 				resetResultLabels();
 			}
 		};
+		final int W = 500, H = 400;
+		class Painter implements VTImage.PainterAndListener {
+			// Funktionsplotter / Graphzeichner
+			
+			public Function2D function = new Function2D() {
+				public double get(double x) {
+					return x*x;
+				}
+			};
+			public double x_l = 0, x_r = 3.2;
+			public double y_u = 0, y_o = 10.2;
+			public int xspace_l = 40, xspace_r = 20;
+			public int yspace_u = 20, yspace_o = 20;
+			
+			public double axeXStep = 0.5;
+			public double axeXMult = 1;
+			public int axeXTextStep = 2;
+			public String axeXPostText = "";
+			public double axeYStep = 1;
+			public double axeYMult = 1;
+			public int axeYTextStep = 2;
+			public String axeYPostText = "";
+			
+			public int state = 0;
+			public String[] stateMsgs = new String[] {
+					"definieren Sie X\n" +
+						"    (x = %x%)",
+					"die Demonstration zeigt, wie Y nun definiert ist\n" +
+						"    (x = %x%, y = %y%)\n" +
+						"klicken Sie um X neu zu definieren" };
+			
+			public double selectedX1 = -1, selectedX2 = -1;
+			public double selectedX = 0;
+			public double selectedY = 0;
+			
+			public void paint(Graphics g) {
+				// Achsen
+				g.setColor(Color.GRAY);
+				g.drawLine(transformX(0), 0, transformX(0), H);
+				g.drawLine(0, transformY(0), W, transformY(0));
+
+				drawStateMsg(g);
+				drawAchsentext(g);
+				drawSelectionXPos(g);
+				drawSelectionYPos(g);
+				drawSelectionXRange(g);
+				drawSimulationX2Y(g);
+				
+				// Funktion
+				g.setColor(Color.BLUE);
+				drawFunction(g);
+			}
+
+			protected int simulationX2Ypos = 0; 
+			protected Timer simulationX2Ytimer = null;
+			
+			protected void stopSimulationX2Y() {
+				simulationX2Ypos = 0;
+				try {
+					if(simulationX2Ytimer != null) simulationX2Ytimer.cancel();
+				} catch(IllegalArgumentException e) {}
+				repaint();
+			}
+			
+			protected void resetSimulationX2Y() {
+				stopSimulationX2Y();
+				
+				simulationX2Ytimer = new Timer();
+				simulationX2Ytimer.schedule(new TimerTask() {
+					public void run() {
+						simulationX2Ypos += 10;
+						repaint();
+					}
+				}, 0, 50);
+ 			}
+			
+			protected void drawSimulationX2Y(Graphics g) {
+				int s = (int)Math.signum(function.get(selectedX));
+				int f_x = transformY(function.get(selectedX));
+				int x = transformX(selectedX);
+				int len = x - transformX(0) + transformY(0) - f_x; 
+				int y = transformY(0) - s * ((int)(((double)len / 200) * simulationX2Ypos) % (len + 20));
+				if(s * y < s * f_x) {
+					x -= Math.signum(selectedX) * Math.abs(f_x - y);
+					if(Math.signum(selectedX) * x < transformX(0)) x = transformX(0);
+					y = f_x;
+				}
+				g.setColor(new Color(255, 123, 50, 200));
+				g.fillOval(x - 3, y - 3, 6, 6);
+			}
+			
+			protected void drawStateMsg(Graphics g) {
+				g.setColor(new Color(122, 123, 50));
+				if(stateMsgs != null && state < stateMsgs.length) {
+					String msg = stateMsgs[state];
+					msg = msg.replace("%x%", "" + ((double)Math.round(selectedX * 10) / 10));
+					msg = msg.replace("%y%", "" + ((double)Math.round(selectedY * 10) / 10));
+					String[] lines = msg.split("\n");
+					for(int i = 0; i < lines.length; i++)
+						g.drawString(lines[i], transformX(0) + 25, 25 + i*25);
+				}
+			}
+			
+			protected void drawSelectionXRange(Graphics g) {
+				g.setColor(new Color(123, 255, 50, 80));
+				g.fillRect(transformX(selectedX1), 0, transformX(selectedX2) - transformX(selectedX1), H);
+				
+				g.setColor(new Color(123, 255, 50, 200));
+				g.drawLine(transformX(selectedX1), 0, transformX(selectedX1), H);
+				g.drawLine(transformX(selectedX2), 0, transformX(selectedX2), H);
+			}
+			
+			protected void drawSelectionXPos(Graphics g) {
+				g.setColor(new Color(255, 255, 50, 200));
+				g.drawLine(transformX(selectedX), 0, transformX(selectedX), H);
+			}
+
+			protected void drawSelectionYPos(Graphics g) {
+				g.setColor(new Color(255, 255, 50, 200));
+				g.drawLine(0, transformY(selectedY), W, transformY(selectedY));
+			}
+
+			protected void drawAchsentext(Graphics g) {
+				double x = 0;
+				for(; x > x_l; x -= axeXStep) {}
+				for(; x <= x_r; x += axeXStep) {
+					g.drawLine(transformX(x), transformY(0), transformX(x), transformY(0) + 5);
+					long n = Math.round(x / axeXStep);
+					if(n % axeXTextStep == 0) {
+						g.drawString("" + (int)(axeXMult * x) + axeXPostText, transformX(x) - 10, transformY(0) + 20);
+					}
+				}
+
+				double y = 0;
+				for(; y > y_u; y -= axeYStep) {}
+				for(; y <= y_o; y += axeYStep) {
+					g.drawLine(transformX(0), transformY(y), transformX(0) - 5, transformY(y));
+					long n = Math.round(y / axeYStep);
+					if(n % axeYTextStep == 0) {
+						g.drawString("" + (int)(axeYMult * y) + axeYPostText, transformX(0) - 25, transformY(y) + 10);
+					}
+				}
+			}
+			
+			protected void drawFunction(Graphics g) {
+				double step = (x_r - x_l) / 100;
+				int last_y = transformY(function.get(x_l));
+				int y;
+				for(double x = x_l; x <= x_r; x += step) {
+					y = transformY(function.get(x));
+					g.drawLine(transformX(x - step), last_y, transformX(x), y);
+					last_y = y;
+				}
+			}
+			
+			public int transformX(double x) {
+				return xspace_l + (int) ((x - x_l) * (W - xspace_r) / (x_r - x_l));
+			}
+			
+			public int transformY(double y) {
+				return H - yspace_u - (int) ((y - y_u) * (H - yspace_o) / (y_o - y_u));
+			}
+			
+			public double retransformX(int x) {
+				return x_l + (double)(x - xspace_l) * (x_r - x_l) / (W - xspace_r);
+			}
+			
+			public double retransformY(int y) {
+				return y_u + (double)(H - yspace_u - y) * (y_o - y_u) / (H - yspace_o);
+			}
+			
+			public Painter() {
+				reset();
+			}
+			
+			
+			public boolean isCorrect() {
+				double step = Math.PI / 8;				
+				return Math.round(selectedX1 / step) == -4 && Math.round(selectedX2 / step) == 4;
+			}
+			
+			public String getResultText() {
+				double step = Math.PI / 8;				
+				if(Math.round(selectedX1 / step) != -4)
+					return "das linke Intervallende ist nicht korrekt";
+				else if(Math.round(selectedX2 / step) != 4)
+					return "das rechte Intervallende ist nicht korrekt";
+				else
+					return "das ist korrekt; wie Sie sehen ist die Funktion surjektiv";
+			}
+			
+			
+			public void reset() {
+			}
+						
+			protected void doSelectionXRange(int state, int mouse_x) {
+				double step = axeXStep / 2;
+				double x = retransformX(mouse_x);
+				x = step * Math.round(x / step);
+				
+				switch(state) {
+				case 0: selectedX1 = x; break;
+				case 1: selectedX2 = x; break;
+				}
+				repaint();
+			}
+			
+			protected void doSelectionXPos(int mouse_x, boolean stepWise) {
+				double step = axeXStep / 2;
+				double x = retransformX(mouse_x);
+				if(stepWise)
+					x = step * Math.round(x / step);
+				if(x < x_l) x = x_l;
+				if(x > x_r) x = x_r;
+				selectedX = x;
+				
+				repaint();
+			}
+
+			protected void doSelectionYPos(int mouse_y, boolean stepWise) {
+				double step = axeYStep / 2;
+				double y = retransformY(mouse_y);
+				if(stepWise)
+					y = step * Math.round(y / step);
+				if(y < y_u) y = y_u;
+				if(y > y_o) y = y_o;
+				selectedY = y;
+				
+				repaint();
+			}
+			
+			public void mouseClicked(MouseEvent e) {
+				mouseMoved(e);
+				state++; state %= 2;
+				if(state == 0)
+					stopSimulationX2Y();
+				if(state == 1)
+					resetSimulationX2Y();
+			}
+			public void mouseMoved(MouseEvent e) {
+				if(state == 0) {
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(transformY(function.get(selectedX)), false);
+				}
+			}
+			public void mouseEntered(MouseEvent e) {}
+			public void mouseExited(MouseEvent e) {}
+			public void mousePressed(MouseEvent e) {}
+			public void mouseReleased(MouseEvent e) {}
+			public void mouseDragged(MouseEvent e) {}
+
+		};
+		final Painter painter = new Painter();
 			
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
 		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
 		 * ∙ × ÷ ± — ≠
-		 * “ ”
 		 */
 			
-		VTMeta meta = new VTMeta(0, 0, "", null, updater);
-		addVisualThings(jContentPane, meta.getThingsByContentStr(
-				"b) Wie lautet die Umkehrabbildung \\m{g : ℤ² → ℤ²} zu \\m{f}?\n" +
-				"\\m{g(k,r) =} ( \\selector[s1]{3n-4m,2k-3r,3k-4r,4k-5r}, \\selector[s2]{3n-4m,2k-3r,3k-4r,4k-5r} ) \n" +
-				"\n" +
-				"Hilfe:\n" +
-				"Welche Formeln haben Sie zum Nachweis der Surjektivität berechnet?\n" +
-				"(Beachten Sie: Die Lösbarkeit der fraglichen Gleichung zeigt Surjektivität.\n" +
-				"Die eindeutige Lösbarkeit zeigt Bijektivität.)\n" +
-				"\n" +
-				"\\button[type=check] \\label[res1]{wwwwwwwwwwwwwww}" +
-				" \\button[type=help]"
-				));
+		String[] choices1 = new String[] { "ja", "nein" };
+		addVisualThings(jContentPane, new VisualThing[] {
+			new VTImage("bla", 10, 10, W, H, painter),
+		
+			// Bedienung
+/*			new VTButton("überprüfen", 10, 20, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					if(painter.isCorrect()) {
+						((JLabel)getComponentByName("res7")).setForeground(Color.MAGENTA);
+					} else {
+						((JLabel)getComponentByName("res7")).setForeground(Color.RED);
+					}
+					((JLabel)getComponentByName("res7")).setText(painter.getResultText());
+				}}),
+			new VTLabel("res7", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+*/			
+		});
 
 		resetResultLabels();
 		resetSelectorColors();
@@ -1218,8 +1140,9 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected.compareTo("3k-4r") == 0;
-		case 2: return selected.compareTo("2k-3r") == 0;
+		case 1: return selected == "nein";
+		case 3: return selected == "ja";
+		case 5: return selected == "ja";
 		default: return false;
 		}
 	}
