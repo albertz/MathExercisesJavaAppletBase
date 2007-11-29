@@ -1,4 +1,4 @@
-package applets.Abbildungen_I40_GraphX2;
+package applets.Abbildungen_I40_GraphX2_invers;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -847,11 +847,11 @@ public class Applet extends JApplet {
 			
 			public int state = 0;
 			public String[] stateMsgs = new String[] {
-					"definieren Sie X\n" +
-						"    (x = %x%)",
-					"die Demonstration zeigt, wie Y nun definiert ist\n" +
-						"    (x = %x%, y = %y%)\n" +
-						"klicken Sie um X neu zu definieren" };
+					"definieren Sie Y\n" +
+						"    (y = %y%)",
+					"die Demonstration zeigt, wie X nun definiert ist\n" +
+						"    (y = %y%, x = %x%)\n" +
+						"klicken Sie um Y neu zu definieren" };
 			
 			public double selectedX1 = -1, selectedX2 = -1;
 			public double selectedX = 0;
@@ -875,7 +875,8 @@ public class Applet extends JApplet {
 				drawFunction(g);
 			}
 
-			protected int simulationX2Ypos = 0; 
+			protected int simulationX2Ypos = 0;
+			protected int simulationX2Ydir = -1; // 1 = pos; -1 = neg
 			protected Timer simulationX2Ytimer = null;
 			
 			protected void stopSimulationX2Y() {
@@ -903,7 +904,9 @@ public class Applet extends JApplet {
 				int f_x = transformY(function.get(selectedX));
 				int x = transformX(selectedX);
 				int len = x - transformX(0) + transformY(0) - f_x; 
-				int y = transformY(0) - s * ((int)(((double)len / 200) * simulationX2Ypos) % (len + 20));
+				int pos = (int)(((double)len / 200) * simulationX2Ypos) % (len + 20);
+				if(simulationX2Ydir < 0) pos = 20 + len - pos;
+				int y = transformY(0) - s * pos;
 				if(s * y < s * f_x) {
 					x -= Math.signum(selectedX) * Math.abs(f_x - y);
 					if(Math.signum(selectedX) * x < transformX(0)) x = transformX(0);
@@ -1063,8 +1066,8 @@ public class Applet extends JApplet {
 			}
 			public void mouseMoved(MouseEvent e) {
 				if(state == 0) {
-					doSelectionXPos(e.getX(), false);
-					doSelectionYPos(transformY(function.get(selectedX)), false);
+					doSelectionYPos(e.getY(), false);
+					doSelectionXPos(transformX(Math.sqrt(selectedY)), false);
 				}
 			}
 			public void mouseEntered(MouseEvent e) {}
