@@ -1,4 +1,4 @@
-package applets.Abbildungen_I43_GraphSinus;
+package applets.Abbildungen_I44_GraphSinus_injektivsurjektiv;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(622, 325);
+		this.setSize(622, 391);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -836,21 +836,17 @@ public class Applet extends JApplet {
 			public int xspace_l = 40, xspace_r = 20;
 			public int yspace_u = 20, yspace_o = 20;
 			
-			public double axeXStep = Math.PI / 4;
-			public double axeXMult = 1;
+			public double axeXStep = Math.PI / 8;
+			public double axeXMult = 0.5;
 			public int axeXTextStep = 2;
-			public String axeXPostText = "/2 π";
-			public double axeYStep = 0.25;
-			public double axeYMult = 1;
-			public int axeYTextStep = 4;
+			public String axeXPostText = "/4 π";
+			public double axeYStep = 0.1;
+			public double axeYMult = 0.1;
+			public int axeYTextStep = 10;
 			public String axeYPostText = "";
 			
 			public int state = 0;
-			public String[] stateMsgs = new String[] {
-					"sin : ℝ → ℝ   " +
-					"(x = %x%, y = %y%)",
-					"sin : ℝ → ℝ   " +
-					"(x = %x%, y = %y%)  (Simulierung)" };
+			public String[] stateMsgs = null;
 			public int stateMsgX = 25, stateMsgY = 25;
 			
 			public double selectedX1 = -100, selectedX2 = -100;
@@ -892,7 +888,6 @@ public class Applet extends JApplet {
 				g.drawLine(transformX(0), 0, transformX(0), H);
 				g.drawLine(0, transformY(0), W, transformY(0));
 
-				drawStateMsg(g);
 				drawAchsentext(g);
 				drawSelectionXPos(g);
 				drawSelectionYPos(g);
@@ -902,6 +897,8 @@ public class Applet extends JApplet {
 				// Funktion
 				g.setColor(Color.BLUE);
 				drawFunction(g);
+
+				drawStateMsg(g);
 			}
 			
 			protected void stopSimulationX2Y() {
@@ -950,13 +947,19 @@ public class Applet extends JApplet {
 			}
 			
 			protected void drawStateMsg(Graphics g) {
-				g.setColor(new Color(122, 123, 50));
 				String msg = getStateMsg();
 				msg = msg.replace("%x%", "" + ((double)Math.round(selectedX * 10) / 10));
 				msg = msg.replace("%y%", "" + ((double)Math.round(selectedY * 10) / 10));
 				String[] lines = msg.split("\n");
-				for(int i = 0; i < lines.length; i++)
-					g.drawString(lines[i], stateMsgX, stateMsgY + i*25);
+				for(int i = 0; i < lines.length; i++) {
+					if(lines[i].length() > 0) {
+						double w = g.getFontMetrics().getStringBounds(lines[i], g).getWidth();
+						g.setColor(Color.white);
+						g.fillRect(stateMsgX - 4, stateMsgY - 18 + i*25, (int)w + 8, 25);
+						g.setColor(new Color(122, 123, 50));
+						g.drawString(lines[i], stateMsgX, stateMsgY + i*25);
+					}
+				}
 			}
 			
 			protected void drawSelectionXRange(Graphics g) {
@@ -985,7 +988,7 @@ public class Applet extends JApplet {
 					g.drawLine(transformX(x), transformY(0), transformX(x), transformY(0) + 5);
 					long n = Math.round(x / axeXStep);
 					if(n % axeXTextStep == 0) {
-						g.drawString("" + (int)(axeXMult * x) + axeXPostText, transformX(x) - 10, transformY(0) + 20);
+						g.drawString("" + Math.round(axeXMult * x / axeXStep) + axeXPostText, transformX(x) - 10, transformY(0) + 20);
 					}
 				}
 
@@ -995,7 +998,7 @@ public class Applet extends JApplet {
 					g.drawLine(transformX(0), transformY(y), transformX(0) - 5, transformY(y));
 					long n = Math.round(y / axeYStep);
 					if(n % axeYTextStep == 0) {
-						g.drawString("" + (int)(axeYMult * y) + axeYPostText, transformX(0) - 25, transformY(y) + 10);
+						g.drawString("" + Math.round(axeYMult * y / axeYStep) + axeYPostText, transformX(0) - 25, transformY(y) + 10);
 					}
 				}
 			}
@@ -1033,24 +1036,71 @@ public class Applet extends JApplet {
 			
 			
 			public boolean isCorrect() {
-				double step = Math.PI / 8;				
-				return Math.round(selectedX1 / step) == -4 && Math.round(selectedX2 / step) == 4;
+				boolean user_sur = getSelected(1).compareToIgnoreCase("ja") == 0;
+				boolean user_inj = getSelected(2).compareToIgnoreCase("ja") == 0;
+				return user_sur == isSurjektiv() && user_inj == isInjektiv();
 			}
 			
 			public String getResultText() {
-				double step = Math.PI / 8;				
-				if(Math.round(selectedX1 / step) != -4)
-					return "das linke Intervallende ist nicht korrekt";
-				else if(Math.round(selectedX2 / step) != 4)
-					return "das rechte Intervallende ist nicht korrekt";
-				else
-					return "das ist korrekt; wie Sie sehen ist die Funktion surjektiv";
+				boolean user_sur = getSelected(1).compareToIgnoreCase("ja") == 0;
+				boolean user_inj = getSelected(2).compareToIgnoreCase("ja") == 0;
+				if(user_sur != isSurjektiv())
+					return "ist die Funktion wirklich" + (user_sur ? "" : " nicht") + " surjektiv?";
+				if(user_inj != isInjektiv())
+					return "ist die Funktion wirklich" + (user_inj ? "" : " nicht") + " injektiv?";
+				return "das ist korrekt";
 			}
 			
+			class ExcSet {
+				public double x1, x2;
+				public double y1, y2;
+				public String X, Y;
+				boolean injektiv, surjektiv;
+				
+				public ExcSet(double x1, double x2, double y1, double y2, String x, String y, boolean injektiv, boolean surjektiv) {
+					this.x1 = x1;
+					this.x2 = x2;
+					this.y1 = y1;
+					this.y2 = y2;
+					X = x;
+					Y = y;
+					this.injektiv = injektiv;
+					this.surjektiv = surjektiv;
+				}
+			}
+			
+			public int excNr = 0;
+			public ExcSet[] exs = new ExcSet[] {
+					new ExcSet(-Math.PI/4, 3*Math.PI/4, -1/Math.sqrt(2), 1, "-π/4 , 3π/4", "-1/√2 , 1", false, true),
+					new ExcSet(-Math.PI/2, Math.PI/2, -1, 1, "-π/2 , π/2", "-1 , 1", true, true),
+					new ExcSet(-11*Math.PI/4, 13*Math.PI/4, -1, 1, "-11π/4 , 13π/4", "-1 , 1", false, true),
+					new ExcSet(-3*Math.PI/2, -Math.PI/4, -2, 1, "-3π/2 , -π/4", "-2 , 1", false, false),
+			};
 			
 			public void reset() {
+				ExcSet e = exs[excNr];
+				stateMsgs = new String[] {
+					"sin : [" + e.X + "] → [" + e.Y + "]\n(x = %x%, y = %y%)",
+					"sin : [" + e.X + "] → [" + e.Y + "]\n(x = %x%, y = %y%)"
+				};
+				x_l = e.x1; x_r = e.x2;
+				y_u = e.y1; y_o = e.y2;
 			}
-						
+			
+			public void next() {
+				excNr++; excNr %= exs.length;
+				reset();
+				repaint();
+			}
+			
+			public boolean isSurjektiv() {
+				return exs[excNr].surjektiv;
+			}
+
+			public boolean isInjektiv() {
+				return exs[excNr].injektiv;
+			}
+			
 			protected void doSelectionXRange(int state, int mouse_x) {
 				double step = axeXStep / 2;
 				double x = retransformX(mouse_x);
@@ -1116,19 +1166,29 @@ public class Applet extends JApplet {
 		String[] choices1 = new String[] { "ja", "nein" };
 		addVisualThings(jContentPane, new VisualThing[] {
 			new VTImage("bla", 10, 10, W, H, painter),
-		
+			
+			new VTLabel("surjektiv: ", 10, 10),
+			new VTSelector("s1", choices1, 10, 0, updater),
+			new VTLabel(",", 10, 0),
+			new VTLabel("injektiv: ", 30, 0),
+			new VTSelector("s2", choices1, 10, 0, updater),
+			
 			// Bedienung
-/*			new VTButton("überprüfen", 10, 20, new ActionListener() {
+			new VTButton("überprüfen", 10, 20, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					if(painter.isCorrect()) {
-						((JLabel)getComponentByName("res7")).setForeground(Color.MAGENTA);
+						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
 					} else {
-						((JLabel)getComponentByName("res7")).setForeground(Color.RED);
+						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
 					}
-					((JLabel)getComponentByName("res7")).setText(painter.getResultText());
+					((JLabel)getComponentByName("res1")).setText(painter.getResultText());
 				}}),
-			new VTLabel("res7", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-*/			
+			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+			new VTButton("weiter", 10, 0, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					painter.next();
+				}}),
+			
 		});
 
 		resetResultLabels();
