@@ -409,7 +409,7 @@ public class Applet extends JApplet {
 		private String name;
 		protected JPanel panel = null;
 		protected VisualThing[] things;
-		protected Point size;
+		protected Point size = null;
 
 		public Component getComponent() {
 			if (panel == null) {
@@ -442,12 +442,17 @@ public class Applet extends JApplet {
 		}
 
 		public int getWidth() {
-			getComponent();
+			// when we have not generated the panel yet,
+			// then calculate always a new size (because we are perhaps
+			// changing things until we realy create the component)
+			if(panel == null)
+				size = addVisualThings(panel, things, true);
 			return size.x;
 		}
 
 		public int getHeight() {
-			getComponent();
+			if(panel == null)
+				size = addVisualThings(panel, things, true);
 			return size.y;
 		}
 
@@ -512,8 +517,14 @@ public class Applet extends JApplet {
 			}
 		}
 
+		public static int height = 10;
+		
+		public void setFontName(String fontName) {
+			// ignore this for VTLine
+		}
+		
 		public int getHeight() {
-			return 10;
+			return height;
 		}
 		
 	}
@@ -531,13 +542,15 @@ public class Applet extends JApplet {
 					withLine);
 		}
 		
+		int width, height;
+		
 		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down, boolean withLine) {
 			super(null, stepX, stepY, null);
 			
-			int width = Math.max(top.getWidth(), down.getWidth());
+			width = Math.max(top.getWidth(), down.getWidth());
 			if(withLine) width += 20;
 			
-			if(withLine)
+			if(withLine) {
 				this.things = new VisualThing[] {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
 					top,
@@ -545,19 +558,31 @@ public class Applet extends JApplet {
 					new VTEmptySpace(0, -2, (width - down.getWidth()) / 2, 5),
 					down,
 				};
-			else
+				height = Math.max(5, top.getHeight()) + Math.max(5, down.getHeight()) + VTLine.height - 8;
+			}
+			else {
 				this.things = new VisualThing[] {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
 					top,
 					new VTEmptySpace(0, -2, (width - down.getWidth()) / 2, 5),
 					down,
 				};
+				height = Math.max(5, top.getHeight()) + Math.max(5, down.getHeight()) - 2;
+			}
 		}
 
 		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down) {
 			this(stepX, stepY, top, down, true);
 		}
 
+		public int getWidth() {
+			return width;
+		}
+
+		public int getHeight() {
+			return height;
+		}
+		
 	}
 	
 	public static VisualThing newVTLimes(int stepX, int stepY, String var, String c) {
@@ -585,7 +610,9 @@ public class Applet extends JApplet {
 
 		public VTLineCombiner(String name, int stepX, int stepY, VisualThing[] things) {
 			super(name, stepX, stepY, things);
-			
+		}
+		
+		protected void calcSize() {
 			size = new Point(0, 5);
 			for(int i = 0; i < things.length; i++) {
 				size.y = Math.max(size.y, things[i].getHeight());
@@ -607,6 +634,7 @@ public class Applet extends JApplet {
 		}
 
 		private void addThings() {
+			calcSize();
 			int curX = 0, curY = 0;
 
 			for (int i = 0; i < things.length; i++) {
@@ -621,6 +649,16 @@ public class Applet extends JApplet {
 			}
 		}
 		
+		public int getHeight() {
+			calcSize();
+			return size.y;
+		}
+
+		public int getWidth() {
+			calcSize();
+			return size.x;
+		}
+	
 	}
 
 	public class VTMeta extends VTContainer  {
@@ -972,7 +1010,7 @@ public class Applet extends JApplet {
 						state = -1;
 					case '\n': // new line
 						addNewVT(things, curstr, null); curstr = "";
-						lastlines.add(new VTLineCombiner(10, 5, getArrayByThingList(things)));
+						lastlines.add(new VTLineCombiner(10, 7, getArrayByThingList(things)));
 						things.clear();
 						break;
 					default: curstr += (char)c;
@@ -1061,12 +1099,11 @@ public class Applet extends JApplet {
 			endpos.number = pos;
 			
 			// we fill the last things in the automat automatically in lastlines at the end
-			if(lastlines.size() == 0)
-				return null;
-			else if(lastlines.size() == 1)
-				return Arrays.asList(((VTLineCombiner) lastlines.get(0)).things);
-			else
-				return lastlines;
+			if(lastlines.size() == 1) {
+				((VTLineCombiner) lastlines.get(0)).setStepX(0);
+				((VTLineCombiner) lastlines.get(0)).setStepY(0);
+			}
+			return lastlines;
 		}
 		
 	}
@@ -1142,6 +1179,10 @@ public class Applet extends JApplet {
 	 * fügt alle Dinge zum panel hinzu; siehe VisualThing für weitere Details
 	 */
 	public static Point addVisualThings(JPanel panel, VisualThing[] things) {
+		return addVisualThings(panel, things, false);
+	}
+
+	public static Point addVisualThings(JPanel panel, VisualThing[] things, boolean onlyCalcSize) {
 		int curX = 0, curY = 0;
 		List xs_old = null;
 		List xs = new LinkedList();
@@ -1165,7 +1206,8 @@ public class Applet extends JApplet {
 			if(c != null) {
 				c.setBounds(new Rectangle(curX, curY, things[i].getWidth(),
 						things[i].getHeight()));
-				panel.add(c);
+				if(!onlyCalcSize)
+					panel.add(c);
 			}
 			max.x = Math.max(max.x, curX + things[i].getWidth());
 			max.y = Math.max(max.y, curY + things[i].getHeight());
@@ -1323,9 +1365,9 @@ public class Applet extends JApplet {
 			
 		VTMeta meta = new VTMeta(0, 0, "", null, updater);
 		addVisualThings(jContentPane, meta.getThingsByContentStr(
+				"\n" +
 				"Geben Sie ein \\theta an, so dass \\m{sin(\\theta) = -1} gilt.\n" +
-				"\\m{a = \\text[s1] \\cdot \\selector[s2]{1,2}}\n" +
-				"\\m{\\theta = \\text[s1]\\cdot\\selector[s2]{1,\\pi}}\n" +
+				"\\m{\\theta = \\text[s1] \\cdot \\selector[s2]{1,\\pi}}\n" +
 				"\n" +
 				"\\button[type=check] \\label[res1]{wwwwwwwwwwwwwww}" +
 				" \\button[type=help]"
