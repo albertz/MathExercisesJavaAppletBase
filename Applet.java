@@ -1,4 +1,4 @@
-package applets.Abbildungen_I46_SinUmkehr_Part1;
+package applets.Abbildungen_I46_SinUmkehr_Part2;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(347, 124);
+		this.setSize(369, 142);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -135,9 +135,7 @@ public class Applet extends JApplet {
 
 		public void setText(String text) {
 			this.text = text;
-			if(label == null)
-				getComponent();
-			else
+			if(label != null)
 				label.setText(text);
 		}
 		
@@ -147,9 +145,7 @@ public class Applet extends JApplet {
 		
 		public void setFontName(String fontName) {
 			this.fontName = fontName;
-			if(label == null)
-				getComponent();
-			else
+			if(label != null)
 				label.setFont(new Font(fontName, 0, 12));
 		}
 		
@@ -165,6 +161,7 @@ public class Applet extends JApplet {
 				label.setText(text);
 				label.setFont(new Font(fontName, 0, 12));
 				label.setOpaque(false);
+				//label.setBackground(Color.cyan);
 			}
 			return label;
 		}
@@ -542,14 +539,28 @@ public class Applet extends JApplet {
 					withLine);
 		}
 		
+		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down) {
+			this(stepX, stepY, top, down, true);
+		}
+
+		boolean withLine;
 		int width, height;
+		VisualThing top, down;
 		
 		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down, boolean withLine) {
 			super(null, stepX, stepY, null);
 			
+			this.withLine = withLine; 
+			this.top = top;
+			this.down = down;
+			
+			defineMyself();
+		}
+		
+		private void defineMyself() {
 			width = Math.max(top.getWidth(), down.getWidth());
 			if(withLine) width += 20;
-			
+
 			if(withLine) {
 				this.things = new VisualThing[] {
 					new VTEmptySpace(0, 0, (width - top.getWidth()) / 2, 5),
@@ -571,15 +582,22 @@ public class Applet extends JApplet {
 			}
 		}
 
-		public VTFrac(int stepX, int stepY, VisualThing top, VisualThing down) {
-			this(stepX, stepY, top, down, true);
+		public Component getComponent() {
+			if(panel == null)
+				defineMyself();
+			return super.getComponent();
 		}
-
+		
 		public int getWidth() {
+			// like in VTContainer, calc the size always again if not created yet
+			if(panel == null)
+				defineMyself();
 			return width;
 		}
 
 		public int getHeight() {
+			if(panel == null)
+				defineMyself();
 			return height;
 		}
 		
@@ -650,12 +668,12 @@ public class Applet extends JApplet {
 		}
 		
 		public int getHeight() {
-			calcSize();
+			if(panel == null) calcSize();
 			return size.y;
 		}
 
 		public int getWidth() {
-			calcSize();
+			if(panel == null) calcSize();
 			return size.x;
 		}
 	
@@ -978,6 +996,10 @@ public class Applet extends JApplet {
 				return name.length() != 0;
 			}
 			
+			public boolean everythingExceptNameIsNotSet() {
+				return baseparam == null && extparam.length() == 0 && lowerparam == null && upperparam == null;
+			}
+			
 			public void reset() {
 				name = ""; baseparam = null; extparam = ""; lowerparam = null; upperparam = null;
 			}
@@ -1029,14 +1051,15 @@ public class Applet extends JApplet {
 					if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9')
 						curtag.name += (char)c;
 					else switch(c) {
-					case '\\': addNewVT(things, curstr, curtag.handle()); curstr = ""; curtag.reset(); break;
 					case '{': state = 11; break;
 					case '[': state = 12; break;
 					case '_': state = 13; curtagtmpstr = ""; break;
 					case '^': state = 14; curtagtmpstr = ""; break;
 					default: // nothing special, so tag ended here
 						addNewVT(things, curstr, curtag.handle());
-						state = 0; pos--; // handle char as normal text 
+						state = 0;
+						if(c != ' ' || !curtag.everythingExceptNameIsNotSet())
+							pos--; // handle this char again 
 					}
 					break;
 				case 11: // tagmode, baseparam starting
@@ -1366,8 +1389,8 @@ public class Applet extends JApplet {
 		VTMeta meta = new VTMeta(0, 0, "", null, updater);
 		addVisualThings(jContentPane, meta.getThingsByContentStr(
 				"\n" +
-				"Geben Sie verschiedene \\m{\\theta} an, so dass \\m{sin(\\theta) = -1} gilt.\n" +
-				"   \\m{\\theta = \\text[s1] \\cdot \\selector[s2]{1,\\pi}}\n" +
+				"Geben Sie verschiedene \\m{\\theta} an, so dass \\m{sin(\\theta) = \\frac^{1}_{\\sqrt 2}} gilt.\n" +
+				"   \\m{\\theta  = \\text[s1] \\cdot  \\selector[s2]{1,\\pi}}\n" +
 				"\n" +
 				"\\button[type=check]   \\label[res1]{wwwwwwwwwwwwwww}"
 				));
@@ -1414,7 +1437,7 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return 0 == (parseNum(selected) + 0.5) % 2;
+		case 1: return 0 == (parseNum(selected) - 0.25) % 2 || 0 == (parseNum(selected) - 0.75) % 2;
 		case 2: return selected.compareTo("π") == 0;
 		case 3: return selected.compareTo("3p-4q") == 0;
 		case 4: return selected.compareTo("4p-5q") == 0;
