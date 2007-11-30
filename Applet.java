@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(486, 541);
+		this.setSize(347, 124);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -1366,11 +1366,10 @@ public class Applet extends JApplet {
 		VTMeta meta = new VTMeta(0, 0, "", null, updater);
 		addVisualThings(jContentPane, meta.getThingsByContentStr(
 				"\n" +
-				"Geben Sie ein \\theta an, so dass \\m{sin(\\theta) = -1} gilt.\n" +
-				"\\m{\\theta = \\text[s1] \\cdot \\selector[s2]{1,\\pi}}\n" +
+				"Geben Sie verschiedene \\m{\\theta} an, so dass \\m{sin(\\theta) = -1} gilt.\n" +
+				"   \\m{\\theta = \\text[s1] \\cdot \\selector[s2]{1,\\pi}}\n" +
 				"\n" +
-				"\\button[type=check] \\label[res1]{wwwwwwwwwwwwwww}" +
-				" \\button[type=help]"
+				"\\button[type=check]   \\label[res1]{wwwwwwwwwwwwwww}"
 				));
 	
 		resetResultLabels();
@@ -1395,6 +1394,8 @@ public class Applet extends JApplet {
 
 	public static double parseNum(String txt) {
 		try {
+			txt = txt.replace(",", ".");
+			txt = txt.replace(" ", "");
 			return Double.parseDouble(txt);
 		} catch (NumberFormatException e) {
 			return -666;
@@ -1413,8 +1414,8 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		switch(selId) {
-		case 1: return selected.compareTo("3n-4m") == 0;
-		case 2: return selected.compareTo("4n-5m") == 0;
+		case 1: return 0 == (parseNum(selected) + 0.5) % 2;
+		case 2: return selected.compareTo("π") == 0;
 		case 3: return selected.compareTo("3p-4q") == 0;
 		case 4: return selected.compareTo("4p-5q") == 0;
 		case 5: return selected.compareTo("3n-4m") == 0;
