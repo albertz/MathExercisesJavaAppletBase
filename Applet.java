@@ -1,4 +1,4 @@
-package applets.Abbildungen_I50_GraphTanUmkehr;
+package applets.Abbildungen_I50_Part2_GraphTanUmkehr;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
