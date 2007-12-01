@@ -1,4 +1,4 @@
-package applets.Abbildungen_I50_Part2_GraphTanUmkehr;
+package applets.Abbildungen_I51_GraphSecUmkehr;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -828,7 +828,7 @@ public class Applet extends JApplet {
 			
 			public Function2D function = new Function2D() {
 				public double get(double x) {
-					return Math.tan(x);
+					return 1 / Math.cos(x);
 				}
 			};
 			public double x_l = -Math.PI/2, x_r = Math.PI/2;
@@ -836,10 +836,10 @@ public class Applet extends JApplet {
 			public int xspace_l = 40, xspace_r = 20;
 			public int yspace_u = 20, yspace_o = 20;
 			
-			public double axeXStep = Math.PI / 8;
+			public double axeXStep = Math.PI / 4;
 			public double axeXMult = 0.5;
 			public int axeXTextStep = 2;
-			public String axeXPostText = "/4 π";
+			public String axeXPostText = "/2 π";
 			public double axeYStep = 1;
 			public double axeYMult = 1;
 			public int axeYTextStep = 1;
@@ -1004,7 +1004,7 @@ public class Applet extends JApplet {
 				int y;
 				for(double x = x_l + step; x <= x_r; x += step) {
 					y = transformY(function.get(x));
-					if(Math.abs(y - last_y) < 500)
+					if(Math.abs(y - last_y) < 2000)
 						g.drawLine(transformX(x - step), last_y, transformX(x), y);
 					last_y = y;
 				}
@@ -1090,11 +1090,9 @@ public class Applet extends JApplet {
 					resetSimulationX2Y(); */
 			}
 			public void mouseMoved(MouseEvent e) {
-				if(state == 0) {
-					doSelectionXPos(e.getX(), false);
-					doSelectionYPos(transformY(function.get(selectedX)), false);
-					repaint();
-				}
+				doSelectionXPos(e.getX(), false);
+				doSelectionYPos(transformY(function.get(selectedX)), false);
+				repaint();
 			}
 			public void mouseEntered(MouseEvent e) {}
 			public void mouseExited(MouseEvent e) {}
@@ -1103,9 +1101,83 @@ public class Applet extends JApplet {
 			public void mouseDragged(MouseEvent e) {}
 
 		};
-		final Painter painter = new Painter();
+		final Painter painter = new Painter() {
+			public int dotCount = 5;
+			
+			public void paint(Graphics g) {
+				super.paint(g);
+				drawDots(g);
+			}
+			
+			Point[] points = new Point[dotCount];
+			
+			protected void drawDots(Graphics g) {
+				for(int i = 0; i < state && i < dotCount; i++) {
+					if(state < dotCount)
+						g.setColor(Color.BLACK);
+					else {
+						// zeige Fehler in Farbe an
+						double dif = retransformY(points[i].y) - function.get(retransformX(points[i].x));
+						double err = Math.abs(dif) * 512;
+						err = Math.max(0, err);
+						err = Math.min(255, err);
+						g.setColor(new Color((int)err, 255 - (int)err, 0));
+					}
+					g.fillOval(points[i].x - 2, points[i].y - 2, 5, 5);
+				}
+
+				if(state < dotCount) {
+					g.setColor(Color.CYAN);
+					g.fillOval(transformX(selectedX) - 2, transformY(selectedY) - 2, 5, 5);
+				}
+			}
+			
+			public void mouseClicked(MouseEvent e) {
+				if(state < dotCount) {
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(e.getY(), false);
+					points[state] = new Point(transformX(selectedX), transformY(selectedY));
+				}
+				state++;
+				
+				repaint();
+			}
+			public void mouseMoved(MouseEvent e) {
+				if(state < dotCount) {
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(e.getY(), false);
+					repaint();
+				}
+				if(state >= dotCount)
+					super.mouseMoved(e);
+			}
+
+			protected String getStateMsg() {
+				if(state < dotCount) {
+					return "definieren Sie Punkt " + (state + 1) + " auf\n" +
+							"dem Graphen von sec: \n" +
+							"(x = %x%, y = %y%)";
+				}
+				
+				return "sec : [-π/2 , π/2] → ℝ\n(x = %x%, y = %y%)";
+			}
+			
+			protected void drawFunction(Graphics g) {
+				if(state >= dotCount) super.drawFunction(g);
+			}
+			
+			protected void drawSelectionXPos(Graphics arg0) {
+				/*if(state < dotCount)*/ super.drawSelectionXPos(arg0);
+			}
+			
+			protected void drawSelectionYPos(Graphics arg0) {
+				/*if(state < dotCount)*/ super.drawSelectionYPos(arg0);
+			}
+
+		};
+
 		final Painter painter2 = new Painter() {
-			public int dotCount = 8;
+			public int dotCount = 5;
 			
 			public void paint(Graphics g) {
 				super.paint(g);
@@ -1155,7 +1227,8 @@ public class Applet extends JApplet {
 			protected String getStateMsg() {
 				if(state < dotCount) {
 					return "definieren Sie Punkt " + (state + 1) + " auf\n" +
-							"dem Graphen der\nUmkehrfunktion von tan\n" +
+							"dem Graphen der\nUmkehrfunktion von\n" +
+							"sec : [0, π/2] → [1, ∞]\n" +
 							"(x = %x%, y = %y%)";
 				}
 				
@@ -1179,7 +1252,10 @@ public class Applet extends JApplet {
 		painter2.setXYValuesInversFrom(painter);
 		painter2.function = new Function2D() {
 			public double get(double x) {
-				return Math.atan(x);
+				if(x < 0.9) return 5000; // HACK: don't draw this
+				if(x <= 1) return 0;
+				return Math.max(0, // HACK: don't show numbers <0 
+						Math.acos(1/x));
 			}
 		};
 		
