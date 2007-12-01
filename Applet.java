@@ -1,4 +1,4 @@
-package applets.Abbildungen_I49_GraphTan;
+package applets.Abbildungen_I50_GraphTanUmkehr;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -48,7 +48,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(622, 364);
+		this.setSize(833, 433);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -816,13 +816,13 @@ public class Applet extends JApplet {
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 
-		final Runnable updater = new Runnable() {
+		Runnable updater = new Runnable() {
 			public void run() {
 				resetSelectorColors();
 				resetResultLabels();
 			}
 		};
-		final int W = 600, H = 300;
+		final int W = 400, H = 400;
 		class Painter implements VTImage.PainterAndListener {
 			// Funktionsplotter / Graphzeichner
 			
@@ -831,32 +831,30 @@ public class Applet extends JApplet {
 					return Math.tan(x);
 				}
 			};
-			public double x_l = -2 * Math.PI, x_r = 2 * Math.PI;
-			public double y_u = -4.2, y_o = 4.2;
-			public int xspace_l = 30, xspace_r = 30;
-			public int yspace_u = 20, yspace_o = 70;
+			public double x_l = -Math.PI/2, x_r = Math.PI/2;
+			public double y_u = -5, y_o = 5;
+			public int xspace_l = 40, xspace_r = 20;
+			public int yspace_u = 20, yspace_o = 20;
 			
-			public double axeXStep = Math.PI / 2;
+			public double axeXStep = Math.PI / 8;
 			public double axeXMult = 0.5;
 			public int axeXTextStep = 2;
-			public String axeXPostText = "π";
+			public String axeXPostText = "/4 π";
 			public double axeYStep = 1;
 			public double axeYMult = 1;
 			public int axeYTextStep = 1;
 			public String axeYPostText = "";
 			
 			public int state = 0;
-			public String[] stateMsgs = null;
-			public int stateMsgX = 25, stateMsgY = 25;
+			public String[] stateMsgs = new String[] {
+					"tan : [-π/2 , π/2] → ℝ\n" +
+					"(x = %x%, y = %y%)" };
+			public int stateMsgX = 10, stateMsgY = 25;
 			
-			public double selectedX1 = 0, selectedX2 = 0;
+			public double selectedX1 = -100, selectedX2 = -100;
 			public double selectedX = 0;
-			public double selectedY = -100;
+			public double selectedY = 0;
 
-			protected int simulationX2Ypos = 0;
-			protected int simulationX2Ydir = -1; // 1 = pos; -1 = neg
-			protected Timer simulationX2Ytimer = null;
-			
 			public void setXYValuesInversFrom(Painter src) {
 				x_l = src.y_u;
 				x_r = src.y_o;
@@ -883,19 +881,26 @@ public class Applet extends JApplet {
 				g.setColor(new Color(250, 250, 250));
 				g.fillRect(0, 0, W, H);
 				
-				drawAchsen(g);
+				// Achsen
+				g.setColor(Color.GRAY);
+				g.drawLine(transformX(0), 0, transformX(0), H);
+				g.drawLine(0, transformY(0), W, transformY(0));
+
+				drawStateMsg(g);
 				drawAchsentext(g);
 				drawSelectionXPos(g);
 				drawSelectionYPos(g);
 				drawSelectionXRange(g);
 				//drawSimulationX2Y(g);
-				drawStateMsg(g);
 				
 				// Funktion
 				g.setColor(Color.BLUE);
 				drawFunction(g);
-
 			}
+
+			protected int simulationX2Ypos = 0;
+			protected int simulationX2Ydir = 1; // 1 = pos; -1 = neg
+			protected Timer simulationX2Ytimer = null;
 			
 			protected void stopSimulationX2Y() {
 				simulationX2Ypos = 0;
@@ -921,14 +926,14 @@ public class Applet extends JApplet {
 				int s = (int)Math.signum(function.get(selectedX));
 				int f_x = transformY(function.get(selectedX));
 				int x = transformX(selectedX);
-				int len = Math.abs(x - transformX(0)) + Math.abs(transformY(0) - f_x); 
+				int len = x - transformX(0) + transformY(0) - f_x; 
 				int pos = (int)(((double)len / 200) * simulationX2Ypos);
 				if(pos != 0) pos %= len + 20;
 				if(simulationX2Ydir < 0) pos = 20 + len - pos;
 				int y = transformY(0) - s * pos;
 				if(s * y < s * f_x) {
 					x -= Math.signum(selectedX) * Math.abs(f_x - y);
-					if(Math.signum(selectedX) * x < Math.signum(selectedX) * transformX(0)) x = transformX(0);
+					if(Math.signum(selectedX) * x < transformX(0)) x = transformX(0);
 					y = f_x;
 				}
 				g.setColor(new Color(255, 123, 50, 200));
@@ -943,23 +948,13 @@ public class Applet extends JApplet {
 			}
 			
 			protected void drawStateMsg(Graphics g) {
+				g.setColor(new Color(122, 123, 50));
 				String msg = getStateMsg();
 				msg = msg.replace("%x%", "" + ((double)Math.round(selectedX * 10) / 10));
-				msg = msg.replace("%x1/pi%", "" + ((double)Math.round(selectedX1 * 10 / Math.PI) / 10));
-				msg = msg.replace("%x2/pi%", "" + ((double)Math.round(selectedX2 * 10 / Math.PI) / 10));
-				msg = msg.replace("%x1%", "" + ((double)Math.round(selectedX1 * 10) / 10));
-				msg = msg.replace("%x2%", "" + ((double)Math.round(selectedX2 * 10) / 10));
 				msg = msg.replace("%y%", "" + ((double)Math.round(selectedY * 10) / 10));
 				String[] lines = msg.split("\n");
-				for(int i = 0; i < lines.length; i++) {
-					if(lines[i].length() > 0) {
-						double w = g.getFontMetrics().getStringBounds(lines[i], g).getWidth();
-						g.setColor(Color.white);
-						g.fillRect(stateMsgX - 4, stateMsgY - 18 + i*25, (int)w + 8, 25);
-						g.setColor(new Color(122, 123, 50));
-						g.drawString(lines[i], stateMsgX, stateMsgY + i*25);
-					}
-				}
+				for(int i = 0; i < lines.length; i++)
+					g.drawString(lines[i], stateMsgX, stateMsgY + i*25);
 			}
 			
 			protected void drawSelectionXRange(Graphics g) {
@@ -981,40 +976,24 @@ public class Applet extends JApplet {
 				g.drawLine(0, transformY(selectedY), W, transformY(selectedY));
 			}
 
-			protected void drawAchsen(Graphics g) {
-				g.setColor(Color.GRAY);
-				int x = transformX(0), y = transformY(0);
-				if(x < xspace_l) x = xspace_l;
-				if(x > W - xspace_r) x = W - xspace_r;
-				if(y < yspace_o) y = yspace_o;
-				if(y > H - yspace_u) y = H - yspace_u;
-				g.drawLine(x, 0, x, H);
-				g.drawLine(0, y, W, y);
-			}
-
 			protected void drawAchsentext(Graphics g) {
-				int x = transformX(0), y = transformY(0);
-				if(x < xspace_l) x = xspace_l;
-				if(x > W - xspace_r) x = W - xspace_r;
-				if(y < yspace_o) y = yspace_o;
-				if(y > H - yspace_u) y = H - yspace_u;
-				double px = 0;
-				for(; px > x_l; px -= axeXStep) {}
-				for(; px <= x_r; px += axeXStep) {
-					g.drawLine(transformX(px), y, transformX(px), y + 5);
-					long n = Math.round(px / axeXStep);
+				double x = 0;
+				for(; x > x_l; x -= axeXStep) {}
+				for(; x <= x_r; x += axeXStep) {
+					g.drawLine(transformX(x), transformY(0), transformX(x), transformY(0) + 5);
+					long n = Math.round(x / axeXStep);
 					if(n % axeXTextStep == 0) {
-						g.drawString("" + Math.round(axeXMult * px / axeXStep) + axeXPostText, transformX(px) - 10, y + 20);
+						g.drawString("" + Math.round(axeXMult * x / axeXStep) + axeXPostText, transformX(x) - 10, transformY(0) + 20);
 					}
 				}
 
-				double py = 0;
-				for(; py > y_u; py -= axeYStep) {}
-				for(; py <= y_o; py += axeYStep) {
-					g.drawLine(x, transformY(py), x - 5, transformY(py));
-					long n = Math.round(py / axeYStep);
+				double y = 0;
+				for(; y > y_u; y -= axeYStep) {}
+				for(; y <= y_o; y += axeYStep) {
+					g.drawLine(transformX(0), transformY(y), transformX(0) - 5, transformY(y));
+					long n = Math.round(y / axeYStep);
 					if(n % axeYTextStep == 0) {
-						g.drawString("" + Math.round(axeYMult * py / axeYStep) + axeYPostText, x - 25, transformY(py) + 10);
+						g.drawString("" + Math.round(axeYMult * y / axeYStep) + axeYPostText, transformX(0) - 25, transformY(y) + 10);
 					}
 				}
 			}
@@ -1025,7 +1004,7 @@ public class Applet extends JApplet {
 				int y;
 				for(double x = x_l + step; x <= x_r; x += step) {
 					y = transformY(function.get(x));
-					if(Math.abs(last_y - y) < 500) // nur stetige Stellen zeichnen 
+					if(Math.abs(y - last_y) < 500)
 						g.drawLine(transformX(x - step), last_y, transformX(x), y);
 					last_y = y;
 				}
@@ -1053,58 +1032,24 @@ public class Applet extends JApplet {
 			
 			
 			public boolean isCorrect() {
-				return exs[excNr].isCorrect(selectedX1 / Math.PI, selectedX2 / Math.PI);
+				double step = Math.PI / 8;				
+				return Math.round(selectedX1 / step) == -4 && Math.round(selectedX2 / step) == 4;
 			}
 			
 			public String getResultText() {
-				if(isCorrect())
-					return "das ist korrekt";
+				double step = Math.PI / 8;				
+				if(Math.round(selectedX1 / step) != -4)
+					return "das linke Intervallende ist nicht korrekt";
+				else if(Math.round(selectedX2 / step) != 4)
+					return "das rechte Intervallende ist nicht korrekt";
 				else
-					return "leider ist das nicht korrekt";
+					return "das ist korrekt; wie Sie sehen ist die Funktion surjektiv";
 			}
 			
-			class ExcSet {
-				public double x; // x (/pi)
-				
-				public ExcSet(double x) {
-					this.x = x;
-				}
-				
-				// x1,x2 results (/pi)
-				public boolean isCorrect(double x1, double x2) {
-					if(x2 != x1 + 1) return false;
-					if(x % 1 == 0.5) return x == x1 || x == x2;
-					return Math.floor(x) - 0.5 == x1;
-				}
-			}
-			
-			public int excNr = 0;
-			public ExcSet[] exs = new ExcSet[] {
-					new ExcSet(0.25), new ExcSet(-1), new ExcSet(1.25), new ExcSet(0),
-					new ExcSet(1), new ExcSet(-0.75),
-			};
 			
 			public void reset() {
-				ExcSet e = exs[excNr];
-				String baseStateMsg =
-					"Geben Sie ein maximales Intervall an, " +
-					"in dem " + e.x + "π enthalten ist und " +
-					"für das tan invertierbar ist.";
-				stateMsgs = new String[] {
-					baseStateMsg + "\n(*x1 = %x1/pi%π, x2 = %x2/pi%π)",
-					baseStateMsg + "\n(x1 = %x1/pi%π, *x2 = %x2/pi%π)",
-					baseStateMsg + "\n(x1 = %x1/pi%π, x2 = %x2/pi%π)",
-				};
-				selectedX = e.x * Math.PI;
 			}
-			
-			public void next() {
-				excNr++; excNr %= exs.length;
-				updater.run();
-				reset();
-				repaint();
-			}
-			
+						
 			protected void doSelectionXRange(int state, int mouse_x) {
 				double step = axeXStep / 2;
 				double x = retransformX(mouse_x);
@@ -1131,22 +1076,25 @@ public class Applet extends JApplet {
 				double y = retransformY(mouse_y);
 				if(stepWise)
 					y = step * Math.round(y / step);
-				if(y < y_u) y = y_u;
-				if(y > y_o) y = y_o;
+				//if(y < y_u) y = y_u;
+				//if(y > y_o) y = y_o;
 				selectedY = y;
 			}
 			
 			public void mouseClicked(MouseEvent e) {
 				mouseMoved(e);
-				state++; state %= 3;
+/*				state++; state %= 2;
+				if(state == 0)
+					stopSimulationX2Y();
+				if(state == 1)
+					resetSimulationX2Y(); */
 			}
 			public void mouseMoved(MouseEvent e) {
-				if(state < 2) {
-					doSelectionXRange(state, e.getX());
-					updater.run();
+				if(state == 0) {
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(transformY(function.get(selectedX)), false);
 					repaint();
 				}
-				//doSelectionYPos(transformY(function.get(retransformX(e.getX()))), false);
 			}
 			public void mouseEntered(MouseEvent e) {}
 			public void mouseExited(MouseEvent e) {}
@@ -1156,7 +1104,84 @@ public class Applet extends JApplet {
 
 		};
 		final Painter painter = new Painter();
+		final Painter painter2 = new Painter() {
+			public int dotCount = 8;
+			
+			public void paint(Graphics g) {
+				super.paint(g);
+				drawDots(g);
+			}
+			
+			Point[] points = new Point[dotCount];
+			
+			protected void drawDots(Graphics g) {
+				for(int i = 0; i < state && i < dotCount; i++) {
+					if(state < dotCount)
+						g.setColor(Color.BLACK);
+					else {
+						// zeige Fehler in Farbe an
+						double dif = retransformY(points[i].y) - function.get(retransformX(points[i].x));
+						double err = Math.abs(dif) * 512;
+						err = Math.max(0, err);
+						err = Math.min(255, err);
+						g.setColor(new Color((int)err, 255 - (int)err, 0));
+					}
+					g.fillOval(points[i].x - 2, points[i].y - 2, 5, 5);
+				}
 
+				if(state < dotCount) {
+					g.setColor(Color.CYAN);
+					g.fillOval(transformX(selectedX) - 2, transformY(selectedY) - 2, 5, 5);
+				}
+			}
+			
+			public void mouseClicked(MouseEvent e) {
+				if(state < dotCount) {
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(e.getY(), false);
+					points[state] = new Point(transformX(selectedX), transformY(selectedY));
+				}
+				state++; state %= dotCount + 1;
+				repaint();
+			}
+			public void mouseMoved(MouseEvent e) {
+				if(state < dotCount) {
+					doSelectionXPos(e.getX(), false);
+					doSelectionYPos(e.getY(), false);
+					repaint();
+				}
+			}
+
+			protected String getStateMsg() {
+				if(state < dotCount) {
+					return "definieren Sie Punkt " + (state + 1) + " auf\n" +
+							"dem Graphen der\nUmkehrfunktion von tan\n" +
+							"(x = %x%, y = %y%)";
+				}
+				
+				return "die grünen Punkte\n" +
+						"sind ungefähr korrekt";
+			}
+			
+			protected void drawFunction(Graphics g) {
+				if(state >= dotCount) super.drawFunction(g);
+			}
+			
+			protected void drawSelectionXPos(Graphics arg0) {
+				if(state < dotCount) super.drawSelectionXPos(arg0);
+			}
+			
+			protected void drawSelectionYPos(Graphics arg0) {
+				if(state < dotCount) super.drawSelectionYPos(arg0);
+			}
+
+		};
+		painter2.setXYValuesInversFrom(painter);
+		painter2.function = new Function2D() {
+			public double get(double x) {
+				return Math.atan(x);
+			}
+		};
 		
 		/* Copy&Paste Bereich für häufig genutzte Zeichen:
 		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
@@ -1167,23 +1192,20 @@ public class Applet extends JApplet {
 		String[] choices1 = new String[] { "ja", "nein" };
 		addVisualThings(jContentPane, new VisualThing[] {
 			new VTImage("bla", 10, 10, W, H, painter),
-			
+			new VTImage("bla", 10, 0, W, H, painter2),
+		
 			// Bedienung
-			new VTButton("überprüfen", 10, 20, new ActionListener() {
+/*			new VTButton("überprüfen", 10, 20, new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
 					if(painter.isCorrect()) {
-						((JLabel)getComponentByName("res1")).setForeground(Color.MAGENTA);
+						((JLabel)getComponentByName("res7")).setForeground(Color.MAGENTA);
 					} else {
-						((JLabel)getComponentByName("res1")).setForeground(Color.RED);
+						((JLabel)getComponentByName("res7")).setForeground(Color.RED);
 					}
-					((JLabel)getComponentByName("res1")).setText(painter.getResultText());
+					((JLabel)getComponentByName("res7")).setText(painter.getResultText());
 				}}),
-			new VTLabel("res1", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
-			new VTButton("weiter", 10, 0, new ActionListener() {
-				public void actionPerformed(ActionEvent e) {
-					painter.next();
-				}}),
-			
+			new VTLabel("res7", "wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww", 10, 0),
+*/			
 		});
 
 		resetResultLabels();
