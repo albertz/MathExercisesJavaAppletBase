@@ -24,6 +24,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Dictionary;
@@ -1472,8 +1474,10 @@ public class Applet extends JApplet {
 			
 		String content = "";
 		try {
-			System.out.println(System.getProperty("user.dir"));			
-			FileReader file = new FileReader("content.vtmeta");
+			InputStream res = getClass().getClassLoader().getResourceAsStream("content.vtmeta");
+			InputStreamReader file = null;
+			if(res != null) file = new InputStreamReader(res);
+			if(file == null) file = new FileReader("content.vtmeta");
 			int c;
 			while(-1 != (c = file.read())) {
 				content += (char)c;
