@@ -1,0 +1,24 @@
+Zeigen Sie:
+Es sei \m{f : X \rightarrow  Y} eine Abbildung und \m{U, V} Mengen mit \m{U \subset  V \subset  X}.
+Dann gilt:          \m{ f(U) \subset  f(V) \subset  f(X)}
+
+Beweis:
+1) Man zeige zunächst \m{f(U) \subset  f(V)}:
+Da es sich offensichtlich um den Beweis einer Teilmengeneigenschaft handelt,
+beginnt der Beweis etwa wie folgt:
+Es sei \m{y \in  \selector[s1]{X,Y,U,V,f(X),f(U),f(V)}}.
+Wir wollen zeigen, das unter dieser Annahme gilt \m{y \in  \selector[s2]{X,Y,U,V,f(X),f(U),f(V)}}.
+Es sei jetzt \m{y \in  f(U)}. Dann gilt (unter Verwendung der Definition von \m{f(U)}):
+Es gibt \m{x \in  \selector[s3]{X,Y,U,V,f(X),f(U),f(V)}} mit \m{f(x) = y}.
+Wegen \m{x \in  U} und \m{U \subset  V} gilt aber \m{f(x) \in  f(V)}.
+Insbesondere haben wir also gezeigt \m{y = f(x) \in  f(V)}.
+Insgesamt haben wir also:
+           \m{y \in  f(U) \Rightarrow  y \in  f(V)}, also \m{f(U) \subset  f(V)}
+2) Es bleibt also \m{f(V) \subset  f(X)} zu zeigen:
+Man kann hierzu vorgehen wie in 1). Oder aber man mache sich klar, dass wir
+in 1) auch \m{V} statt \m{U} hätten nehmen können und \m{X} statt \m{V}. Dann sieht man, dass
+\m{f(V) \subset  f(X)} nur ein Spezialfall ist von 1).
+
+
+\button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
+\define[s1=f(U),s2=f(V),s3=U]
