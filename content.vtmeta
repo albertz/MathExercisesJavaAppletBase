@@ -1,30 +1,23 @@
-Zeigen Sie:
- Es sei \m{f : X \rightarrow  Y} eine Abbildunge und \m{W, Z} Teilmengen von \m{Y}
- mit \m{W \subset  Z \subset  Y}.
-Dann gilt:
-             \m{f⁻¹(W) \subset  f⁻¹(Z) \subset  X}
+ Es sei \m{f : \R² \rightarrow  \R, (x,y) \rightarrow  x² + y²}.
+ 
+ Wie sieht \m{f⁻¹(\{3\})} aus?
+  \selector[s1]{nein,ja}   Ein Quadrat der Länge \m{\sqrt 3} mit Zentrum \m{(0,0)}
+  \selector[s2]{nein,ja}   Eine Kreisscheibe mit Radius \m{3} mit Zentrum \m{(0,0)}
+  \selector[s3]{nein,ja}   Eine Kreislinie mit Radius \m{3} mit Zentrum \m{(0,0)}
+  \selector[s4]{nein,ja}   Eine Kreislinie mit Radius \m{\sqrt 3} mit Zentrum \m{(0,0)}
 
-Beweis:
- 1) Man zeige zunächst \m{f⁻¹(W) \subset  f⁻¹(Z)}.
- Da es sich offensichtlich um den Beweis einer Teilmengeneigenschaft handelt,
- beginnt der Beweis etwa wie folgt:
- Es sei \m{x \in} \selector[s1]{f⁻¹(Y),f⁻¹(W),f⁻¹(Z)}.
- Wir wollen zeigen, dass unter dieser Annahme gilt \m{x \in} \selector[s2]{f⁻¹(Y),f⁻¹(W),f⁻¹(Z)}.
- Es sei jetzt \m{x \in  f⁻¹(W)}.
- Dann gilt (unter Verwendung der Definition von \m{f⁻¹(W))}:
- \m{f(x) \in} \selector[s3]{Y,W,Z}.
- Wegen \m{W \subset  Z} folgt hieraus \m{f(x) \in} \selector[s4]{Y,W,Z,"W \cup  Z"}.
- Dann gilt aber auch \selector[s5]{3,43,f(x)} \m{\in  f⁻¹(Z)}.
- Insbesonder haben wir gezeigt:
- \m{x \in  f⁻¹(W) \Rightarrow  x \in  f⁻¹(Z)}, d.h. also
- \m{f⁻¹(W) \subset  f⁻¹(Z)}.
+ Wie sieht \m{f⁻¹(\{-2\})} aus?
+  \selector[s5]{nein,ja}   Eine Kreislinie mit Radius \m{\sqrt 2} mit Zentrum \m{(0,0)}
+  \selector[s6]{nein,ja}   \m{\empty}
 
- 2) \m{f⁻¹(Z) \subset  X}: Klar, denn
-    \selector[s6]{
-       "f ist injektiv", "f(x) \in  Y für alle x \in  X",
-       "Jeder Punkt von f⁻¹(Z) liegt in X"}
+ Wie sieht \m{U = f⁻¹(\]2,3\[)} aus?
+  \selector[s7]{nein,ja}   \m{U = \{(x,y) \in  \R²: 2 \leq  x² + y² \leq  3\}}
+  \selector[s8]{nein,ja}   \m{U = \{(x,y) \in  \R²: 2 < x² + y² < 3\}}
+  \selector[s9]{nein,ja}   \m{U = \{(x,y) \in  \R²: x = 2 oder y = 3\}}
+  \selector[s10]{nein,ja}   \m{U = \{(x,y) \in  \R²: x \in  \[2,3\] und y \in  \[2,3\]\}}
 
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="f⁻¹(W)", s2="f⁻¹(Z)", s3="W", s4="Z", s5="f(x)",
-        s6="Jeder Punkt von f⁻¹(Z) liegt in X"]
+\define[s1="nein", s2="nein", s3="nein", s4="ja",
+        s5="nein", s6="ja",
+        s7="nein", s8="ja", s9="nein", s10="nein"]

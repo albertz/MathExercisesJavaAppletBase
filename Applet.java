@@ -35,7 +35,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(477, 568);
+		this.setSize(412, 446);
 		this.setContentPane(getJContentPane());
 	}
 
