@@ -1,4 +1,4 @@
-package applets.Abbildungen_I60_Part2_UrbildF;
+package applets.Abbildungen_I60_Part1_UrbildFGrafik;
 
 import java.awt.Color;
 import java.util.LinkedList;
@@ -587,6 +587,14 @@ public class VTMeta extends VTContainer  {
 
 	public String getExtParamVar(String extparam, String param) {
 		return getExtParamVar(extparam, param, false);
+	}
+
+	public VisualThing[] getExtern() {
+		return extern;
+	}
+
+	public void setExtern(VisualThing[] extern) {
+		this.extern = extern;
 	}
 	
 }

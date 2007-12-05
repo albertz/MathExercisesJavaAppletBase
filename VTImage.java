@@ -1,4 +1,4 @@
-package applets.Abbildungen_I60_Part2_UrbildF;
+package applets.Abbildungen_I60_Part1_UrbildFGrafik;
 
 import java.awt.Component;
 import java.awt.Graphics;
@@ -11,12 +11,12 @@ public class VTImage extends VisualThing {
 		public void paint(Graphics g);
 	}
 
-	public static interface PainterAndListener extends VTImage.Painter,
+	public static interface PainterAndListener extends Painter,
 			MouseListener, MouseMotionListener {
 	}
 
 	public VTImage(String name, int stepX, int stepY, int width,
-			int height, VTImage.PainterAndListener painter) {
+			int height, PainterAndListener painter) {
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;
@@ -29,7 +29,7 @@ public class VTImage extends VisualThing {
 	private int width, height;
 	private String name;
 	private Component panel = null;
-	private VTImage.PainterAndListener painter;
+	private PainterAndListener painter;
 
 	public Component getComponent() {
 		if (panel == null) {

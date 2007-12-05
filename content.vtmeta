@@ -1,10 +1,14 @@
- Es sei \m{f : X \rightarrow  Y} eine Abbildung.
- 
- Gilt dann \m{f⁻¹(Y) = X}?
-  \selector[s1]{nein,ja}   Ja, denn jeder Punkt von \m{Y} liegt im Bild von \m{X} unter \m{f}
-  \selector[s2]{nein,ja}   Nein, denn \m{f} muss nicht injektiv sein
-  \selector[s3]{nein,ja}   Ja, denn eine Abbildung \m{f : X \rightarrow  Y} bildet jedes \m{x \in  X} auf ein \m{y \in  Y} ab
-  \selector[s4]{nein,ja}   Nein, falls \m{f(X) \subsetneq  Y}
+Es sei \m{f : X \rightarrow  Y} folgende Abbildung:
+\object[bild]
+
+- Bestimmen Sie das Urbild von \m{W = \{1,7,9\}}:\
+  \selector[s1]{}
+
+- Bestimmen Sie \m{W} so, dass gilt:
+     • \m{W \cap  f(X) = \{1\}           } \m{W =} \selector[s2]{}
+     • \m{W \cap  f(X) = \{\empty\}          } \m{W =} \selector[s3]{}
+     • \m{W \subset  f(X)                } \m{W =} \selector[s4]{}
+     • \m{W \neq  Y, f⁻¹(W) = X       } \m{W =} \selector[s5]{}
 
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]

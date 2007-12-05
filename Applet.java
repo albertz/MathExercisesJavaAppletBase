@@ -1,4 +1,4 @@
-package applets.Abbildungen_I60_Part2_UrbildF;
+package applets.Abbildungen_I60_Part1_UrbildFGrafik;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -18,10 +18,12 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComboBox;
 
+
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
-
+	private Content content = new Content(this);
+	
 	/**
 	 * This is the xxx default constructor
 	 */
@@ -35,7 +37,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(534, 230);
+		content.init();
 		this.setContentPane(getJContentPane());
 	}
 
@@ -267,14 +269,9 @@ public class Applet extends JApplet {
 				resetResultLabels();
 			}
 		};
-			
-		/* Copy&Paste Bereich für häufig genutzte Zeichen:
-		 * → ↦ ∞ ∈ ℝ π ℤ ℕ
-		 * ≤ ⇒ ∉ ∅ ⊆ ∩ ∪
-		 * ∙ × ÷ ± — ≠
-		 * “ ” θ
-		 */
-			
+
+		content.run();
+		
 		String content = "";
 		InputStream res = getClass().getClassLoader().getResourceAsStream("content.vtmeta");
 		InputStreamReader file = null;
@@ -313,6 +310,7 @@ public class Applet extends JApplet {
 				}
 			}
 		}
+		
 		addVisualThings(jContentPane, vtmeta.getThingsByContentStr(content));
 
 		resetResultLabels();

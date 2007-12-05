@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I60_Part2_UrbildF;
+package applets.Abbildungen_I60_Part1_UrbildFGrafik;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
