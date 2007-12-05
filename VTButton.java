@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I61_UrbildX2Y2;
+package applets.Abbildungen_I65_GleichheitMengen;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
