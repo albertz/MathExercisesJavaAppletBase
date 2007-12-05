@@ -7,7 +7,7 @@ Es sei \m{f : X \rightarrow  Y} folgende Abbildung:
 - Bestimmen Sie \m{W} so, dass gilt:
      • \m{W \cap  f(X) = \{1\}           } \m{W =} \selector[s2]{
      "\{0\}", "\Q", "\N", "\empty", "\{1,2,3,7\}", "\{0,1\}", "\{1,2\}"}
-     • \m{W \cap  f(X) = \empty            } \m{W =} \selector[s3]{
+     • \m{W \cap  f(X) = \empty             } \m{W =} \selector[s3]{
      "\{3\}", "\Q", "\N", "\{42\}", "\{1,2,3,7\}", "\{0,1\}", "\{1,2\}"}
      • \m{W \subset  f(X)                } \m{W =} \selector[s4]{
      "\{0,3\}", "\Q", "\N", "\{42\}", "\{1,2,3,7\}", "\{0,1\}", "\{0,1,2\}"}
