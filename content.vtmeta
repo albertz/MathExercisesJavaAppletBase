@@ -1,36 +1,11 @@
-Zu zeigen:   \m{f⁻¹(W \cap  Z) = f⁻¹(W) \cap  f⁻¹(Z)}
+ Es sei \m{f : X \rightarrow  Y} eine Abbildung.
  
-Beweis:
- “\m{\subset}”: Um diese Inklusion zu zeigen, müssen wir nachweisen:
- Es sei \m{a \in} \selector[s1]{
-	"f⁻¹(W)", "f⁻¹(Z)", "f⁻¹(W \cap  Z)", "f⁻¹(W) \cap  f⁻¹(Z)"}\
- \m{\Rightarrow  a \in} \selector[s2]{
-	"f⁻¹(W)", "f⁻¹(Z)", "f⁻¹(W \cap  Z)", "f⁻¹(W) \cap  f⁻¹(Z)"}.
- Es sei also \m{a \in  f⁻¹(W \cap  Z)}.
- Wie sehr oft in solchen Beweisen verwendet man als nächsten Schritt
- schlicht die voliegende Definition. Hier heißt dies:
-      \selector[s3]{a,f(a),f⁻¹(a)} \m{\in} \selector[s4]{W,Z,"W \cap  Z"}
- Insbesonder gilt also \m{f(a) \in  W} und \m{f(a) \in  Z}.
- Somit gilt \m{a \in  f⁻¹(W) \cap  f⁻¹(Z)}.
-
- “\m{\supset}”: Hier muss man zeigen:
- Es sei \m{x \in} \selector[s5]{
-	"f⁻¹(W)", "f⁻¹(Z)", "f⁻¹(W \cap  Z)", "f⁻¹(W) \cap  f⁻¹(Z)"}\
- \m{\Rightarrow  x \in} \selector[s6]{
- 	"f⁻¹(W)", "f⁻¹(Z)", "f⁻¹(W \cap  Z)", "f⁻¹(W) \cap  f⁻¹(Z)"}.
- Es sei also \m{x \in  f⁻¹(W) \cap  f⁻¹(Z)}.
- Insbesondere gilt dann \m{x \in  f⁻¹(\selector[s7]{W,f(W)})}\
- und \m{x \in} \selector[s8]{"Z","f⁻¹(Z)"}.
- Daher gilt \m{f(x) \in} \selector[s9]{W,f(W),f⁻¹(W)} und\
- \m{f(x) \in} \selector[s10]{Z,f(Z),f⁻¹(Z)}.
- Also \m{f(x) \in  \selector[s11]{W,f(W),f⁻¹(W)} \cap  \selector[s12]{Z,f(Z),f⁻¹(Z)}}.
- Dies heißt aber, \m{x \in  f⁻¹(\selector[s13]{"W \cup  Z", "W \cap  Z"})}.
- 
- Damit haben wir die Behauptung bewiesen.
+ Gilt dann \m{f⁻¹(Y) = X}?
+  \selector[s1]{nein,ja}   Ja, denn jeder Punkt von \m{Y} liegt im Bild von \m{X} unter \m{f}
+  \selector[s2]{nein,ja}   Nein, denn \m{f} muss nicht injektiv sein
+  \selector[s3]{nein,ja}   Ja, denn eine Abbildung \m{f : X \rightarrow  Y} bildet jedes \m{x \in  X} auf ein \m{y \in  Y} ab
+  \selector[s4]{nein,ja}   Nein, falls \m{f(X) \subsetneq  Y}
 
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="f⁻¹(W \cap  Z)", s2="f⁻¹(W) \cap  f⁻¹(Z)", s3="f(a)",
-        s4="W \cap  Z", s5="f⁻¹(W) \cap  f⁻¹(Z)", s6="f⁻¹(W \cap  Z)",
-        s7="W", s8="f⁻¹(Z)", s9="W", s10="Z", s11="W", s12="Z",
-        s13="W \cap  Z"]
+\define[s1="nein", s2="nein", s3="nein", s4="ja"]

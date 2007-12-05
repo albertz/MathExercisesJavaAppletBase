@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I65_GleichheitMengen;
+package applets.Abbildungen_I60_Part2_UrbildF;
 
 import java.awt.Color;
 import java.awt.Component;

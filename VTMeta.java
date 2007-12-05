@@ -1,4 +1,4 @@
-package applets.Abbildungen_I65_GleichheitMengen;
+package applets.Abbildungen_I60_Part2_UrbildF;
 
 import java.awt.Color;
 import java.util.LinkedList;
@@ -260,6 +260,12 @@ public class VTMeta extends VTContainer  {
 		}
 		else if(tagname.compareTo("supseteq") == 0) {
 			return new VTLabel("⊇", 0, 0);
+		}
+		else if(tagname.compareTo("subsetneq") == 0) {
+			return new VTLabel("⊊", 0, 0);
+		}
+		else if(tagname.compareTo("supsetneq") == 0) {
+			return new VTLabel("⊋", 0, 0);
 		}
 		else if(tagname.compareTo("cap") == 0) {
 			return new VTLabel("∩", 0, 0);

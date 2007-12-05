@@ -1,4 +1,4 @@
-package applets.Abbildungen_I65_GleichheitMengen;
+package applets.Abbildungen_I60_Part2_UrbildF;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -35,7 +35,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(423, 537);
+		this.setSize(534, 230);
 		this.setContentPane(getJContentPane());
 	}
 
