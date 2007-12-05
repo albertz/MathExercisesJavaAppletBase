@@ -1,17 +1,20 @@
-Es sei
-\m{f(x) = x³      }   für \m{-1 ≤ x ≤ 1}
-\m{f(x) = 1/x     }   für \m{x < -1}
-\m{f(x) = 1/x² - 2}   für \m{x > 1}
+Es sei \m{y \in} \selector[s1]{f(U),f(V),"f(U \cup  V)","f(U \cap  V)"}.\
 
-Berechnen Sie:
-\m{f(\R)       =} \selector[s1]{\empty,\R,\Q,\N,\{0\},
-"\[-1,1\]","\[-2,2\]","\]-2,2\[","\]-2,2\]","\]-2,1\]","\[0.5,1\]","\[0.25,1\]"}
-\m{f(\]-1,1\[)  =} \selector[s2]{\empty,\R,\Q,\N,\{0\},
-"\]-1,1\[","\]-2,2\[","\[-2,2\[","\]-2,2\]","\]-2,1\]","\[0.5,1\]","\[0.25,1\]"}
-\m{f(\]1/2,2\[) =} \selector[s3]{\empty,\R,\Q,\N,\{0\},
-"\]-0.25,1\[","\]-2,2\[","\]1/8,2\[","\]1/8,2\]","\]1/8,1\]","\]0.5,1\[","\]0.25,1\[",
-"\]1/8,1\] \cup \]-1.75,-1\[","\]1/4,1\] \cup \]-1.75,-1\[","\]1/8,1\] \cup \[-1.75,-1\]"}
+Nach Definition von \m{f(U \cap  V)} gibt es ein \
+\m{x \in} \selector[s2]{U,V,"U \cup  V","U \cap  V"} mit \m{f(x) = y}.\
+
+Wegen \m{x \in  U \cap  V \subset  U} gilt also \
+\m{x \in  U} und somit \m{y = f(x) \in  f(U)}.\
+
+Wegen \m{x \in  U \cap  V \subset  V} gilt also \
+\selector[s3]{"1 = 0","x \in  U \cup  \R","x \in  V"} und somit \
+\m{y = f(x) \in} \selector[s4]{"f(U \cap  V)",f(V)}.\
+
+Da also \m{y = f(x) \in  f(U)} und auch \m{y = f(x) \in  f(V)} \
+erfüllt, erhält man
+           \m{y = f(x) \in  f(U) \cap  f(V)}.
+Und dies war zu zeigen.
 
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="\]-2,1\]", s2="\]-1,1\[", s3="\]1/8,1\] \cup \]-1.75,-1\["]
+\define[s1="f(U \cap  V)", s2="U \cap  V", s3="x \in  V", s4="f(U \cap  V)"]

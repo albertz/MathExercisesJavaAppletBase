@@ -1,4 +1,4 @@
-package applets.Abbildungen_I55_Part2_Bildmengen;
+package applets.Abbildungen_I56_BildSchnitt;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -57,7 +57,7 @@ public class Applet extends JApplet {
 	 * @return void
 	 */
 	public void init() {
-		this.setSize(346, 261);
+		this.setSize(546, 227);
 		this.setContentPane(getJContentPane());
 	}
 
@@ -1507,6 +1507,26 @@ public class Applet extends JApplet {
 				}
 			});
 	
+	public String getPackageName() {
+		return this.getClass().getPackage().getName();
+	}
+
+	public String getPackageNameBase() {
+		String name = getPackageName().substring("applets.".length());
+		int i = name.indexOf("_");
+		return name.substring(0, i);
+	}
+
+	public String getPackageNameShort() {
+		String name = getPackageName();
+		int i = name.indexOf("_");
+		return name.substring(i + 1);
+	}
+	
+	public String getPackageAsPath() {
+		return getPackageName().replace(".", "/");
+	}
+	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 
@@ -1525,20 +1545,42 @@ public class Applet extends JApplet {
 		 */
 			
 		String content = "";
-		try {
-			InputStream res = getClass().getClassLoader().getResourceAsStream("content.vtmeta");
-			InputStreamReader file = null;
-			if(res != null) file = new InputStreamReader(res);
-			if(file == null) file = new FileReader("content.vtmeta");
-			int c;
-			while(-1 != (c = file.read())) {
-				content += (char)c;
+		InputStream res = getClass().getClassLoader().getResourceAsStream("content.vtmeta");
+		InputStreamReader file = null;
+		if(res != null) file = new InputStreamReader(res);
+		if(file == null) {
+			try {
+				file = new FileReader("content.vtmeta");
+			} catch (FileNotFoundException e) {
 			}
-			file.close();
-		} catch (FileNotFoundException e) {
+		}		
+		if(file == null) {
+			try {
+				String path = "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath(); 
+				file = new FileReader(path + "/content.vtmeta");
+			} catch (FileNotFoundException e) {
+				System.err.println("ERROR: FileNotFound: $workspace/content.vtmeta");
+			}
+		}		
+		if(file == null)
 			System.err.println("ERROR: FileNotFound: content.vtmeta");
-		} catch (IOException e) {
-			System.err.println("ERROR: IO: content.vtmeta");
+		else {
+			try {
+				int c;
+				while(-1 != (c = file.read())) {
+					content += (char)c;
+				}
+			}
+			catch (IOException e) {
+				System.err.println("ERROR: IO: content.vtmeta");
+			}
+			finally {
+				try {
+					file.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
 		addVisualThings(jContentPane, vtmeta.getThingsByContentStr(content));
 
