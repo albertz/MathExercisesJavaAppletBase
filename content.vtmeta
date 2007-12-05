@@ -2,14 +2,18 @@ Es sei \m{f : X \rightarrow  Y} folgende Abbildung:
 \object[bild]
 
 - Bestimmen Sie das Urbild von \m{W = \{1,7,9\}}:\
-  \selector[s1]{}
+  \selector[s1]{"\{A\}", "\{B\}", "\{C\}", "\{F\}", "\{A,B\}", "\{A,C\}", "\{A,F\}" }
 
 - Bestimmen Sie \m{W} so, dass gilt:
-     • \m{W \cap  f(X) = \{1\}           } \m{W =} \selector[s2]{}
-     • \m{W \cap  f(X) = \{\empty\}          } \m{W =} \selector[s3]{}
-     • \m{W \subset  f(X)                } \m{W =} \selector[s4]{}
-     • \m{W \neq  Y, f⁻¹(W) = X       } \m{W =} \selector[s5]{}
+     • \m{W \cap  f(X) = \{1\}           } \m{W =} \selector[s2]{
+     "\{0\}", "\Q", "\N", "\empty", "\{1,2,3,7\}", "\{0,1\}", "\{1,2\}"}
+     • \m{W \cap  f(X) = \empty            } \m{W =} \selector[s3]{
+     "\{3\}", "\Q", "\N", "\{42\}", "\{1,2,3,7\}", "\{0,1\}", "\{1,2\}"}
+     • \m{W \subset  f(X)                } \m{W =} \selector[s4]{
+     "\{0,3\}", "\Q", "\N", "\{42\}", "\{1,2,3,7\}", "\{0,1\}", "\{0,1,2\}"}
+     • \m{W \neq  Y, f⁻¹(W) = X        } \m{W =} \selector[s5]{
+     "\{1,2,3,5,6,8\}", "\{1,3,5,6,8,10\}", "\{1,2,3,7,8,9\}", "\{1\}", "\{1,2\}"}
 
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="nein", s2="nein", s3="nein", s4="ja"]
+\define[s1="\{A,C\}", s2="\{0,1\}", s3="\{42\}", s4="\{1,2,3,7\}", s5="\{1,3,5,6,8,10\}"]

@@ -158,6 +158,12 @@ class PZuweisungGfx implements VTImage.PainterAndListener {
 					&& con.src.distance(selectedDotA) == 0
 					&& con.dst.distance(overDotB) != 0) {
 				// ignore
+			} else if(overDotA != null
+					&& con.src.distance(overDotA) == 0) {
+				Color c = g.getColor();
+				g.setColor(Color.CYAN);
+				con.paint(g);
+				g.setColor(c);
 			} else
 				con.paint(g);
 		}
