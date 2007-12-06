@@ -26,7 +26,7 @@ public class Content {
 		zuweisung.addSurjectivConnections();
 */
 		
-		final Painter painter = new Painter(applet, 600, 300);
+		final PGraph painter = new PGraph(applet, 600, 300);
 		
 		
 		

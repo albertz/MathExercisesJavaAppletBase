@@ -6,7 +6,7 @@ import java.awt.event.MouseEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class Painter implements VTImage.PainterAndListener {
+class PGraph implements VTImage.PainterAndListener {
 	// Funktionsplotter / Graphzeichner
 	
 	private final Applet applet;
@@ -44,7 +44,7 @@ class Painter implements VTImage.PainterAndListener {
 	protected int simulationX2Ydir = -1; // 1 = pos; -1 = neg
 	protected Timer simulationX2Ytimer = null;
 	
-	public void setXYValuesInversFrom(Painter src) {
+	public void setXYValuesInversFrom(PGraph src) {
 		x_l = src.y_u;
 		x_r = src.y_o;
 		y_u = src.x_l;
@@ -233,7 +233,7 @@ class Painter implements VTImage.PainterAndListener {
 		return y_u + (double)(H - yspace_u - y) * (y_o - y_u) / (H - yspace_o - yspace_u);
 	}
 	
-	public Painter(Applet applet, int W, int H) {
+	public PGraph(Applet applet, int W, int H) {
 		this.applet = applet;
 		this.W = W; this.H = H;
 		reset();
