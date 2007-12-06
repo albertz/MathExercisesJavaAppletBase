@@ -1,15 +1,16 @@
  Es sei \m{f : \[-2,1\] \rightarrow  \R, x \rightarrow  x²}.
  Den Graph dieser Funktion kennen wir bereits:
-                                   
+\
 \object[graph] \
 \container{
    Es gilt:
-   f^(-1)([-1,1])       =
-   f^(-1)([-2,-1])      =
-   f^(-1)([2,5])        =
-   f^(-1)({1/2})        =
-   f^(-1)([1,-1/4]\cup[0,1/2]=
+   \m{f⁻¹(\[-1,1\])       =       } \selector[s1]{"\{1\}", "\[-1,1\]", "\[0,1\]"}
+   \m{f⁻¹(\[-2,-1\])      =       } \selector[s2]{"\{1\}", "\[-\sqrt 2,1\]", "\empty", "\[0,1\]"}
+   \m{f⁻¹(\[2,5\])        =       } \selector[s3]{"\[\sqrt 2, \sqrt 5\]", "\[-\sqrt 5, \sqrt 5\]", "\[-2, -\sqrt 2\]", "\[-2, \sqrt 2\]"}
+   \m{f⁻¹(\{1/2\})        =       } \selector[s4]{"\{1/\sqrt 2, -1/\sqrt 2\}", "\{1/\sqrt 2\}", "\{\sqrt 2\}", "\[0,\sqrt 2\]"}
+   \m{f⁻¹(\[-1,-1/4\] \cup  \[0,1/2\]) =} \selector[s5]{"\[-1/\sqrt 4, 1/\sqrt 2\]", "\[-1/\sqrt 2, 1/\sqrt 2\]", "\[-1/\sqrt 4, 1/\sqrt 4\]"}
 }
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="\{A,C\}", s2="\{0,1\}", s3="\{42\}", s4="\{1,2,3,7\}", s5="\{1,3,5,6,8,10\}"]
+\define[s1="\[-1,1\]", s2="\empty", s3="\[-2, -\sqrt 2\]",
+        s4="\{1/\sqrt 2, -1/\sqrt 2\}", s5="\[-1/\sqrt 2, 1/\sqrt 2\]"]

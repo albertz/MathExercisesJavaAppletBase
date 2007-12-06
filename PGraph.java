@@ -14,26 +14,26 @@ class PGraph implements VTImage.PainterAndListener {
 	
 	public Function2D function = new Function2D() {
 		public double get(double x) {
-			return Math.cos(x);
+			return x*x;
 		}
 	};
 	
-	public double x_l = -4 * Math.PI, x_r = 4 * Math.PI;
-	public double y_u = -1.2, y_o = 1.2;
+	public double x_l = -2, x_r = 1;
+	public double y_u = 0, y_o = 4;
 	public int xspace_l = 30, xspace_r = 30;
-	public int yspace_u = 20, yspace_o = 70;
+	public int yspace_u = 30, yspace_o = 30;
 	
-	public double axeXStep = Math.PI / 2;
-	public double axeXMult = 0.5;
-	public int axeXTextStep = 2;
-	public String axeXPostText = "π";
-	public double axeYStep = 0.1;
-	public double axeYMult = 0.1;
-	public int axeYTextStep = 10;
+	public double axeXStep = 1;
+	public double axeXMult = 1;
+	public int axeXTextStep = 1;
+	public String axeXPostText = "";
+	public double axeYStep = 1;
+	public double axeYMult = 1;
+	public int axeYTextStep = 1;
 	public String axeYPostText = "";
 	
 	public int state = 0;
-	public String[] stateMsgs = null;
+	public String[] stateMsgs = new String[] {};
 	public int stateMsgX = 25, stateMsgY = 25;
 	
 	public double selectedX1 = 0, selectedX2 = 0;
@@ -251,7 +251,7 @@ class PGraph implements VTImage.PainterAndListener {
 			return "leider ist das nicht korrekt";
 	}
 	
-	class ExcSet {
+	private static class ExcSet {
 		public double x; // x (/pi)
 		
 		public ExcSet(double x) {
@@ -277,7 +277,7 @@ class PGraph implements VTImage.PainterAndListener {
 	};
 	
 	public void reset() {
-		ExcSet e = exs[excNr];
+/*		ExcSet e = exs[excNr];
 		String baseStateMsg =
 			"Geben Sie ein maximales Intervall an, " +
 			"in dem " + e.x + "π enthalten ist und " +
@@ -287,7 +287,7 @@ class PGraph implements VTImage.PainterAndListener {
 			baseStateMsg + "\n(x1 = %x1/pi%π, *x2 = %x2/pi%π)",
 			baseStateMsg + "\n(x1 = %x1/pi%π, x2 = %x2/pi%π)",
 		};
-		selectedX = e.x * Math.PI;
+		selectedX = e.x * Math.PI; */
 	}
 	
 	public void next() {
@@ -329,21 +329,31 @@ class PGraph implements VTImage.PainterAndListener {
 	}
 	
 	public void mouseClicked(MouseEvent e) {
-		mouseMoved(e);
-		state++; state %= 3;
+//		mouseMoved(e);
+//		state++; state %= 3;
 	}
 	public void mouseMoved(MouseEvent e) {
-		if(state < 2) {
+/*		if(state < 2) {
 			doSelectionXRange(state, e.getX());
 			applet.updater.run();
 			applet.repaint();
-		}
-		//doSelectionYPos(transformY(function.get(retransformX(e.getX()))), false);
+		} */
+		doSelectionXPos(e.getX(), false);
+		doSelectionYPos(transformY(function.get(selectedX)), false);
+		applet.repaint();
 	}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
 	public void mousePressed(MouseEvent e) {}
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseDragged(MouseEvent e) {}
+
+	public int getH() {
+		return H;
+	}
+
+	public int getW() {
+		return W;
+	}
 
 }

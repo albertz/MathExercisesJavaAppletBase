@@ -11,7 +11,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(541, 445);
+		applet.setSize(665, 404);
 	}
 
 	public void run() {
@@ -26,12 +26,10 @@ public class Content {
 		zuweisung.addSurjectivConnections();
 */
 		
-		final PGraph painter = new PGraph(applet, 600, 300);
-		
-		
+		PGraph graph = new PGraph(applet, 300, 300);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("graph", 10, 5, 500, 180, painter)
+				new VTImage("graph", 10, 5, graph.getW(), graph.getH(), graph)
 		});
 		
 	}
