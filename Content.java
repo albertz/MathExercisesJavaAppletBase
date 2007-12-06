@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part1_UrbildX2;
+package applets.Abbildungen_I63_Part2_UrbildX3m;
 
 import java.util.Arrays;
 
@@ -11,7 +11,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(665, 404);
+		applet.setSize(630, 599);
 	}
 
 	public void run() {
@@ -26,7 +26,7 @@ public class Content {
 		zuweisung.addSurjectivConnections();
 */
 		
-		PGraph graph = new PGraph(applet, 300, 300);
+		PGraph graph = new PGraph(applet, 600, 300);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.getW(), graph.getH(), graph)

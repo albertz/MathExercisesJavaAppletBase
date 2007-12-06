@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part1_UrbildX2;
+package applets.Abbildungen_I63_Part2_UrbildX3m;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

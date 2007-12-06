@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part1_UrbildX2;
+package applets.Abbildungen_I63_Part2_UrbildX3m;
 
 import java.awt.Component;
 import java.awt.Graphics;

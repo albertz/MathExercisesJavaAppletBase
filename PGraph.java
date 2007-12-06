@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part1_UrbildX2;
+package applets.Abbildungen_I63_Part2_UrbildX3m;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -14,12 +14,17 @@ class PGraph implements VTImage.PainterAndListener {
 	
 	public Function2D function = new Function2D() {
 		public double get(double x) {
-			return x*x;
+			if(-1 <= x && x <= 1)
+				return x*x*x;
+			else if(x < -1)
+				return 1/x;
+			else
+				return 1/(x*x) - 2;
 		}
 	};
 	
-	public double x_l = -2, x_r = 1;
-	public double y_u = 0, y_o = 4;
+	public double x_l = -8, x_r = 8;
+	public double y_u = -2, y_o = 1;
 	public int xspace_l = 30, xspace_r = 30;
 	public int yspace_u = 30, yspace_o = 30;
 	
@@ -207,12 +212,13 @@ class PGraph implements VTImage.PainterAndListener {
 	}
 	
 	protected void drawFunction(Graphics g) {
-		double step = (x_r - x_l) / 100;
+		double step = (x_r - x_l) / 200;
 		int last_y = transformY(function.get(x_l));
 		int y;
 		for(double x = x_l + step; x <= x_r; x += step) {
 			y = transformY(function.get(x));
-			g.drawLine(transformX(x - step), last_y, transformX(x), y);
+			if(Math.abs(last_y - y) < 100) // nur stetige Stellen
+				g.drawLine(transformX(x - step), last_y, transformX(x), y);
 			last_y = y;
 		}
 	}

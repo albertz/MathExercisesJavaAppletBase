@@ -1,16 +1,16 @@
- Es sei \m{f : \[-2,1\] \rightarrow  \R, x \rightarrow  x²}.
- Den Graph dieser Funktion kennen wir bereits:
+ Es sei
+ \m{f(x) := x³      } für \m{1 \leq  x \leq  1}
+ \m{f(x) := 1/x     } für \m{x < -1}
+ \m{f(x) := 1/x² - 2} für \m{x > 1}
 \
-\object[graph] \
+\object[graph]
 \container{
    Es gilt:
-   \m{f⁻¹(\[-1,1\])       =       } \selector[s1]{"\{1\}", "\[-1,1\]", "\[0,1\]"}
-   \m{f⁻¹(\[-2,-1\])      =       } \selector[s2]{"\{1\}", "\[-\sqrt 2,1\]", "\empty", "\[0,1\]"}
-   \m{f⁻¹(\[2,5\])        =       } \selector[s3]{"\[\sqrt 2, \sqrt 5\]", "\[-\sqrt 5, \sqrt 5\]", "\[-2, -\sqrt 2\]", "\[-2, \sqrt 2\]"}
-   \m{f⁻¹(\{1/2\})        =       } \selector[s4]{"\{1/\sqrt 2, -1/\sqrt 2\}", "\{1/\sqrt 2\}", "\{\sqrt 2\}", "\[0,\sqrt 2\]"}
-   \m{f⁻¹(\[-1,-1/4\] \cup  \[0,1/2\]) =} \selector[s5]{"\[-1/\sqrt 4, 1/\sqrt 2\]", "\[-1/\sqrt 2, 1/\sqrt 2\]", "\[-1/\sqrt 4, 1/\sqrt 4\]"}
+   \m{f⁻¹(\[-1,1\])       =   } \selector[s1]{"\{1\}", "\{-1\}", "\[-1,1\]", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\[0,1\]"}
+   \m{f⁻¹(\[-2,-1\])      =   } \selector[s2]{"\{1\}", "\{-1\}", "\[-\sqrt 2,1\]", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\[0,1\]"}
+   \m{f⁻¹(\{-1\})         =   } \selector[s3]{"\{1\}", "\[0, 1\]", "\{-1\}", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\[-\sqrt 5, \sqrt 5\]", "\[-2, -\sqrt 2\]", "\[-2, \sqrt 2\]"}
+   \m{f⁻¹(\[-1,0\])       =   } \selector[s4]{"\{1/\sqrt 2, -1/\sqrt 2\}", "\{-1\}", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\{1/\sqrt 2\}", "\{\sqrt 2\}", "\[0,\sqrt 2\]"}
 }
 
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="\[-1,1\]", s2="\empty", s3="\[-2, -\sqrt 2\]",
-        s4="\{1/\sqrt 2, -1/\sqrt 2\}", s5="\[-1/\sqrt 2, 1/\sqrt 2\]"]
+\define[s1="\(-\infty,1\]", s2="\R", s3="\{-1\}", s4="\(-\infty,0\]"]

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I63_Part1_UrbildX2;
+package applets.Abbildungen_I63_Part2_UrbildX3m;
 
 import java.awt.Color;
 import java.awt.Component;
