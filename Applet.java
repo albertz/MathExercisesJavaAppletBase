@@ -259,16 +259,16 @@ public class Applet extends JApplet {
 	public String getPackageAsPath() {
 		return getPackageName().replace(".", "/");
 	}
+
+	final Runnable updater = new Runnable() {
+		public void run() {
+			resetSelectorColors();
+			resetResultLabels();
+		}
+	};
 	
 	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
-
-		Runnable updater = new Runnable() {
-			public void run() {
-				resetSelectorColors();
-				resetResultLabels();
-			}
-		};
 
 		content.run();
 		
