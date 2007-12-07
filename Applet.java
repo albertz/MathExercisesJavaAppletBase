@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part2_UrbildX3m;
+package applets.Abbildungen_I57_SchnittZuweisung;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -148,22 +148,29 @@ public class Applet extends JApplet {
 	}
 
 	private Runnable createCheckButtonListener(final int startIndex,
+			final CorrectCheck check,
 			final Runnable correctAction, final Runnable wrongAction) {
 		return new Runnable() {
 			public void run() {
 				boolean correct = true;
-				for (int i = startIndex;; i++) {
-					JComponent comp = (JComponent) getComponentByName("s" + i);
-					if (comp == null)
-						break;
-					String selected = comp instanceof JComboBox ? (String) ((JComboBox) comp)
-							.getSelectedItem()
-							: ((JTextField) comp).getText();
-					correct = isCorrect(i, selected);
-					if (!correct)
-						break;
-				}
-				setResultLabel(startIndex, correct);
+				if(check != null)
+					correct = check.isCorrect();
+				else
+					for (int i = startIndex;; i++) {
+						JComponent comp = (JComponent) getComponentByName("s" + i);
+						if (comp == null)
+							break;
+						String selected = comp instanceof JComboBox ? (String) ((JComboBox) comp)
+								.getSelectedItem()
+								: ((JTextField) comp).getText();
+						correct = isCorrect(i, selected);
+						if (!correct)
+							break;
+					}
+				if(check != null)
+					setResultLabel(startIndex, correct, check.getResultMsg());
+				else
+					setResultLabel(startIndex, correct);
 				if (correct) {
 					if (correctAction != null)
 						correctAction.run();
@@ -173,6 +180,10 @@ public class Applet extends JApplet {
 				}
 			}
 		};
+	}
+
+	public Runnable createCheckButtonListener(int index, CorrectCheck check) {
+		return createCheckButtonListener(index, check, null, null);
 	}
 
 	private void setResultLabel(int index, boolean correct) {
@@ -189,8 +200,22 @@ public class Applet extends JApplet {
 		}
 	}
 
+	private void setResultLabel(int index, boolean correct, String msg) {
+		if (correct) {
+			((JLabel) getComponentByName("res" + index))
+					.setForeground(Color.MAGENTA);
+			((JLabel) getComponentByName("res" + index))
+					.setText(msg);
+		} else {
+			((JLabel) getComponentByName("res" + index))
+					.setForeground(Color.RED);
+			((JLabel) getComponentByName("res" + index))
+					.setText(msg);
+		}
+	}
+
 	Runnable createCheckButtonListener(int startIndex) {
-		return createCheckButtonListener(startIndex, null, null);
+		return createCheckButtonListener(startIndex, null, null, null);
 	}
 
 	Runnable createHelpButtonListener(final int startIndex) {
@@ -221,6 +246,11 @@ public class Applet extends JApplet {
 		};
 	}
 
+	public static interface CorrectCheck {
+		boolean isCorrect();
+		String getResultMsg();
+	}
+	
 	public static String getMultipliedString(String str, int n) {
 		String res = "";
 		for (int i = 0; i < n; i++)
@@ -383,5 +413,6 @@ public class Applet extends JApplet {
 			}
 		});
 	}
+
 
 } // @jve:decl-index=0:visual-constraint="10,10"

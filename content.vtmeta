@@ -1,16 +1,6 @@
- Es sei
- \m{f(x) := x³      } für \m{1 \leq  x \leq  1}
- \m{f(x) := 1/x     } für \m{x < -1}
- \m{f(x) := 1/x² - 2} für \m{x > 1}
-\
-\object[graph]
-\container{
-   Es gilt:
-   \m{f⁻¹(\[-1,1\])       =   } \selector[s1]{"\{1\}", "\{-1\}", "\[-1,1\]", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\[0,1\]"}
-   \m{f⁻¹(\[-2,-1\])      =   } \selector[s2]{"\{1\}", "\{-1\}", "\[-\sqrt 2,1\]", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\[0,1\]"}
-   \m{f⁻¹(\{-1\})         =   } \selector[s3]{"\{1\}", "\[0, 1\]", "\{-1\}", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\[-\sqrt 5, \sqrt 5\]", "\[-2, -\sqrt 2\]", "\[-2, \sqrt 2\]"}
-   \m{f⁻¹(\[-1,0\])       =   } \selector[s4]{"\{1/\sqrt 2, -1/\sqrt 2\}", "\{-1\}", "\empty", "\(-\infty,1\]", "\(-\infty,0\]", "\R", "\{1/\sqrt 2\}", "\{\sqrt 2\}", "\[0,\sqrt 2\]"}
-}
+Zeigen Sie an einem Beispiel, dass \m{U \cap  V = \empty} sein kann
+und somit \m{f(U \cap  V) = \empty}, während \m{f(U) \cap  f(V) \neq  \empty} ist:
 
-\button[type=check]   \label[res1]{wwwwwwwwwwwwwww} \button[type=help]
-\define[s1="\(-\infty,1\]", s2="\R", s3="\{-1\}", s4="\(-\infty,0\]"]
+\object[zuweisung]
+
+\button[type=check,source=zuweisung]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}

@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part2_UrbildX3m;
+package applets.Abbildungen_I57_SchnittZuweisung;
 
 import java.awt.Color;
 import java.util.LinkedList;
@@ -146,7 +146,12 @@ public class VTMeta extends VTContainer  {
 				if(text == "") text = "Hilfe";
 			}
 			else if(getExtParamVar(extparam, "type").compareToIgnoreCase("check") == 0) {
-				action = this.applet.createCheckButtonListener(index);
+				String source = getExtParamVar(extparam, "source");
+				if(source.length() > 0 && getExternThing(source) instanceof Applet.CorrectCheck) {
+					action = this.applet.createCheckButtonListener(index, (Applet.CorrectCheck)getExternThing(source));
+				}
+				else
+					action = this.applet.createCheckButtonListener(index);
 				if(text == "") text = "überprüfen";
 			}
 			String name = getExtParamVar(extparam, "name");

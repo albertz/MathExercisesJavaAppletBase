@@ -1,11 +1,11 @@
-package applets.Abbildungen_I63_Part2_UrbildX3m;
+package applets.Abbildungen_I57_SchnittZuweisung;
 
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 
-public class VTImage extends VisualThing {
+public class VTImage extends VisualThing implements Applet.CorrectCheck {
 
 	public static interface Painter {
 		public void paint(Graphics g);
@@ -70,4 +70,13 @@ public class VTImage extends VisualThing {
 		return height;
 	}
 
+	public boolean isCorrect() {
+		return ((Applet.CorrectCheck)painter).isCorrect();
+	}
+	
+	public String getResultMsg() {
+		return ((Applet.CorrectCheck)painter).getResultMsg();
+	}
+	
+	
 }

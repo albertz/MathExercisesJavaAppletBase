@@ -1,4 +1,4 @@
-package applets.Abbildungen_I63_Part2_UrbildX3m;
+package applets.Abbildungen_I57_SchnittZuweisung;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -6,7 +6,7 @@ import java.awt.event.MouseEvent;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class PGraph implements VTImage.PainterAndListener {
+class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	// Funktionsplotter / Graphzeichner
 	
 	private final Applet applet;
@@ -250,7 +250,7 @@ class PGraph implements VTImage.PainterAndListener {
 		return exs[excNr].isCorrect(selectedX1 / Math.PI, selectedX2 / Math.PI);
 	}
 	
-	public String getResultText() {
+	public String getResultMsg() {
 		if(isCorrect())
 			return "das ist korrekt";
 		else
