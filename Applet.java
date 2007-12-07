@@ -1,4 +1,4 @@
-package applets.Abbildungen_I57_SchnittZuweisung;
+package applets.Abbildungen_I66_Zuweisung;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

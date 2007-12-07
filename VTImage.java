@@ -1,4 +1,4 @@
-package applets.Abbildungen_I57_SchnittZuweisung;
+package applets.Abbildungen_I66_Zuweisung;
 
 import java.awt.Component;
 import java.awt.Graphics;
