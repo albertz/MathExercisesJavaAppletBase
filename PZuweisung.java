@@ -158,8 +158,10 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 					&& con.src.distance(selectedDotA) == 0
 					&& con.dst.distance(overDotB) != 0) {
 				// ignore
-			} else if(overDotA != null
-					&& con.src.distance(overDotA) == 0) {
+			} else if(
+					(overDotA != null && con.src.distance(overDotA) == 0) ||
+					(overDotB != null && con.dst.distance(overDotB) == 0)
+					) {
 				Color c = g.getColor();
 				g.setColor(Color.CYAN);
 				con.paint(g);
@@ -170,17 +172,17 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	}
 	
 	public void addSurjectivConnections() {
-		Iterator i = dotsA.iterator();
-		for(Iterator j = dotsB.iterator(); j.hasNext(); ) {
+		Iterator j = dotsB.iterator();
+		for(Iterator i = dotsA.iterator(); i.hasNext(); ) {
 			Connection con = new Connection();
 			con.src = (Point) i.next();
-			if(!i.hasNext())
-				i = dotsA.iterator();
+			if(!j.hasNext())
+				j = dotsB.iterator();
 			con.dst = (Point) j.next();
 			connections.add(con);
 		}
 	}
-	
+		
 	protected int getPointIndex(Collection col, Point pos) {
 		int k = 0;
 		for(Iterator i = col.iterator(); i.hasNext(); k++) {
