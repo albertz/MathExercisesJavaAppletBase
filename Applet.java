@@ -1,4 +1,4 @@
-package applets.Abbildungen_I66_Zuweisung;
+package applets.Abbildungen_I04_2VerschiedeneAbb;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

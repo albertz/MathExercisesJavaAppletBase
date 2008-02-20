@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I66_Zuweisung;
+package applets.Abbildungen_I04_2VerschiedeneAbb;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
