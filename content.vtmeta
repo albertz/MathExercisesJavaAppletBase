@@ -1,16 +1,16 @@
-\object[zuweisung]
+Definieren Sie eine Abbildung \m{f : A \rightarrow  B}, indem Sie von jedem Punkt von \m{A} einen
+Pfeil auf einen Punkt von \m{B} ziehen.
+\object[zuw1]
+Zeichnen Sie eine andere Abbildung \m{g : A \rightarrow  B}, die von \m{f} verschieden ist.
+\object[zuw2]
 
-Geben Sie folgende Mengen an:
-\m{f(U)      = } \selector[s1]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(W) =} \selector[s2]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-\m{f(V)      = } \selector[s3]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(Z) =} \selector[s4]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-\m{f(U \cap  V)  = } \selector[s5]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(W \cap  Z)=} \selector[s6]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-\m{f(U) \cap  f(V) = } \selector[s7]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(W) \cap  f⁻¹(Z)=} \selector[s8]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
+\button[type=check,source=zuw2]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
 
-
-\button[type=check]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww} \button[type=help]
-\define[s1="\{A,C\}", s2="\{1,2,4\}", s3="\{B,C,D\}", s4="\{3,5,6\}",
-        s5="\empty", s6="\empty", s7="\{C\}", s8="\empty"]
+Wie viele Abbildungen von A nach B gibt es?   \text[s1]
+\button[type=check]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww}
+\define[s1="81"]\
+\container[wrong]{\
+Für jeden Punkt \m{a \in  A} gibt es drei Möglichkeiten diesen Punkt nach \m{B} abzubilden.
+Die vier verschiedenen Punkte von \m{A} kann man unabhängig voneinander beliebig nach
+\m{B} abbilden. Es gibt also insgesamt \m{3⁴ = 81} Möglichkeiten.
+}

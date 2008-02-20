@@ -219,9 +219,6 @@ public class VTMeta extends VTContainer  {
 		else if(tagname.compareTo("pi") == 0) {
 			return new VTLabel("π", 0, 0);
 		}
-		else if(tagname.compareTo("pi") == 0) {
-			return new VTLabel("π", 0, 0);
-		}
 		else if(tagname.compareTo("rightarrow") == 0) {
 			return new VTLabel("→", 0, 0);
 		}

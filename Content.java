@@ -2,6 +2,11 @@ package applets.Abbildungen_I04_2VerschiedeneAbb;
 
 import java.awt.Point;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+
+import applets.Abbildungen_I04_2VerschiedeneAbb.PZuweisung.Connection;
 
 public class Content {
 
@@ -12,32 +17,42 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(560, 454);
+		applet.setSize(560, 554);
 	}
 
 	public void run() {
-		PZuweisungExtended2 zuweisung = new PZuweisungExtended2(applet);
-/*		zuweisung.oval1back.label = "X";
-		zuweisung.oval1a.label = "U";
-		zuweisung.oval1b.label = "V";
-		zuweisung.oval2.label = "Y";
-		//zuweisung.dotANames = Arrays.asList(new String[] {"A","B","C","D","E","F"});
-		//zuweisung.dotsCountA = zuweisung.dotANames.size();
-		//zuweisung.dotsCountB = zuweisung.dotsCountA + 5; */
-		zuweisung.editable = false;
-		zuweisung.reset();
-		//zuweisung.addSurjectivConnections();
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(0), (Point)zuweisung.dotsB.get(0)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(1), (Point)zuweisung.dotsB.get(0)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(2), (Point)zuweisung.dotsB.get(2)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(3), (Point)zuweisung.dotsB.get(1)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(4), (Point)zuweisung.dotsB.get(2)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(5), (Point)zuweisung.dotsB.get(3)));
+		PZuweisung zuw1 = new PZuweisung(applet);
+		zuw1.dotsCountA = 4;
+		zuw1.dotsCountB = 3;
+		zuw1.dotBNames = Arrays.asList(new String[] {"a","b","c","d","e","f"});
+		zuw1.reset();
 		
-//		PGraph graph = new PGraph(applet, 600, 300);
+		PZuweisung zuw2 = new PZuweisung(applet) {
+
+			public boolean isCorrect() {
+				if(!existsConnectionForAllDotsA() || !copySrc.existsConnectionForAllDotsA())
+					return false;
+				
+				return !connectionsAreEqual(copySrc);
+			}
+			
+			public String getResultMsg() {
+				if(!copySrc.existsConnectionForAllDotsA())
+					return "f ist nicht vollständig definiert";
+				if(!existsConnectionForAllDotsA())
+					return "g ist nicht vollständig definiert";
+				
+				if(connectionsAreEqual(copySrc))
+					return "f ist gleich g";
+
+				return "das ist korrekt, f ist ungleich g";
+			}
+		};
+		zuw2.copyFrom(zuw1, false);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("zuweisung", 10, 5, 600, 250, zuweisung)
+				new VTImage("zuw1", 10, 5, 600, 200, zuw1),
+				new VTImage("zuw2", 10, 5, 600, 200, zuw2)
 		});
 		
 	}

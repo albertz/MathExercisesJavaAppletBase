@@ -385,7 +385,7 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		Var var = vtmeta.getVar("s" + selId);
-		if(var != null) return var.value.compareToIgnoreCase(selected) == 0;
+		if(var != null) return var.value.trim().compareToIgnoreCase(selected.trim()) == 0;
 
 		switch(selId) {
 		default: return false;
