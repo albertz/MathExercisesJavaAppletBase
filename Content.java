@@ -24,7 +24,7 @@ public class Content {
 		PZuweisung zuw1 = new PZuweisung(applet);
 		zuw1.dotsCountA = 4;
 		zuw1.dotsCountB = 3;
-		zuw1.dotBNames = Arrays.asList(new String[] {"a","b","c","d","e","f"});
+		//zuw1.dotBNames = Arrays.asList(new String[] {"a","b","c","d","e","f"});
 		zuw1.reset();
 		
 		PZuweisung zuw2 = new PZuweisung(applet) {
