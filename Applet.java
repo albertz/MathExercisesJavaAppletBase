@@ -178,6 +178,10 @@ public class Applet extends JApplet {
 					if (wrongAction != null)
 						wrongAction.run();
 				}
+				JComponent comp = (JComponent) getComponentByName("c" + startIndex + "_correct");
+				if (comp != null) comp.setVisible(correct);
+				comp = (JComponent) getComponentByName("c" + startIndex + "_wrong");
+				if (comp != null) comp.setVisible(!correct);
 			}
 		};
 	}
@@ -345,6 +349,7 @@ public class Applet extends JApplet {
 
 		resetResultLabels();
 		resetSelectorColors();
+		resetResultContainers();
 		
 		jContentPane.repaint();
 	}
@@ -397,6 +402,20 @@ public class Applet extends JApplet {
 			public boolean meet(Component comp) {
 				if (comp.getName() != null && comp.getName().startsWith("res")) {
 					((JLabel) comp).setText("");
+				}
+				return true;
+			}
+		});
+	}
+
+	public void resetResultContainers() {
+		ForEachComponent(new ComponentWalker() {
+			public boolean meet(Component comp) {
+				if (
+						comp.getName() != null
+						&& comp.getName().startsWith("c")
+						&& (comp.getName().endsWith("_wrong") || comp.getName().endsWith("_correct"))) {
+					comp.setVisible(false);
 				}
 				return true;
 			}

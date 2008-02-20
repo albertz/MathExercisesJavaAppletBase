@@ -9,7 +9,7 @@ Zeichnen Sie eine andere Abbildung \m{g : A \rightarrow  B}, die von \m{f} versc
 Wie viele Abbildungen von A nach B gibt es?   \text[s1]
 \button[type=check]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww}
 \define[s1="81"]\
-\container[wrong]{\
+\container[c1_wrong]{\
 Für jeden Punkt \m{a \in  A} gibt es drei Möglichkeiten diesen Punkt nach \m{B} abzubilden.
 Die vier verschiedenen Punkte von \m{A} kann man unabhängig voneinander beliebig nach
 \m{B} abbilden. Es gibt also insgesamt \m{3⁴ = 81} Möglichkeiten.

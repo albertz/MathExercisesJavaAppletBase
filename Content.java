@@ -17,7 +17,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(560, 554);
+		applet.setSize(560, 678);
 	}
 
 	public void run() {

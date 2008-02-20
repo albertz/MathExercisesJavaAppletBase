@@ -168,8 +168,9 @@ public class VTMeta extends VTContainer  {
 			return new VTSelector(name, items, 0, 0, action);
 		}
 		else if(tagname.compareTo("container") == 0) {
-			return baseparam;
-			//return new VTContainer(0, 0, new VisualThing[] { baseparam });
+			//baseparam.getComponent().setName();
+			//return baseparam;
+			return new VTContainer(getExtParamVar(extparam, "name", true), 0, 0, new VisualThing[] { baseparam });
 		}
 		else if(tagname.compareTo("object") == 0) {
 			return getExternThing(extparam);
