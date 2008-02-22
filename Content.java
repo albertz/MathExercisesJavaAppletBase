@@ -15,11 +15,11 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(560, 678);
+		applet.setSize(509, 469);
 	}
 
 	public void run() {
-		PZuweisung zuw1 = new PZuweisung(applet);
+/*		PZuweisung zuw1 = new PZuweisung(applet);
 		zuw1.dotsCountA = 4;
 		zuw1.dotsCountB = 3;
 		//zuw1.dotBNames = Arrays.asList(new String[] {"a","b","c","d","e","f"});
@@ -47,10 +47,10 @@ public class Content {
 			}
 		};
 		zuw2.copyFrom(zuw1, false);
-		
+*/		
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("zuw1", 10, 5, 600, 200, zuw1),
-				new VTImage("zuw2", 10, 5, 600, 200, zuw2)
+//				new VTImage("zuw1", 10, 5, 600, 200, zuw1),
+//				new VTImage("zuw2", 10, 5, 600, 200, zuw2)
 		});
 		
 	}
