@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I04_2VerschiedeneAbb;
+package applets.Abbildungen_I08_KompositionBereiche;
 
 class Var {
 	public String name = "";

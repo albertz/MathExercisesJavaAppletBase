@@ -1,15 +1,21 @@
-Definieren Sie eine Abbildung \m{f : A \rightarrow  B}, indem Sie von jedem Punkt von \m{A} einen
-Pfeil auf einen Punkt von \m{B} ziehen.
-\object[zuw1]
-Zeichnen Sie eine andere Abbildung \m{g : A \rightarrow  B}, die von \m{f} verschieden ist.
-\object[zuw2]
-\button[type=check,source=zuw2]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+Geben Sie einen naheliegenden Bildbereich an für die Abbildungsvorschrift
+  \m{f(x) = x⁴}
+Geben Sie einen naheliegenden Definitionsbereich an für die Abbildungsvorschrift
+  \m{f(x) = \sqrt (x - 1)}
 
-Wie viele Abbildungen von A nach B gibt es?   \text[s3]
-\button[type=check,index=3]   \label[res3]{wwwwwwwwwwwwwwwwwwwwww}
-\define[s3="81"]\
-\container[c3_wrong]{\
-Für jeden Punkt \m{a \in  A} gibt es drei Möglichkeiten diesen Punkt nach \m{B} abzubilden.
-Die vier verschiedenen Punkte von \m{A} kann man unabhängig voneinander beliebig nach
-\m{B} abbilden. Es gibt also insgesamt \m{3⁴ = 81} Möglichkeiten.
-}
+Gegeben seien die Abbildungen
+  \m{f: \R  \rightarrow  \[-1,1\], x \rightarrow  sin(x)}
+  \m{g: \R  \rightarrow  \[0,\infty\], x \rightarrow  \sqrt x}
+  \m{h: \[0,\infty\] \rightarrow  \[0,2\], x \rightarrow  \frac^{2}_{1 + w²}}
+
+Welche dieser Abbildungen lassen sich hintereinander schalten?
+                          Hintereinander schaltbar        Abbildungsvorschrift
+  \m{f \circ  g}          Ja                Nein
+  \m{g \circ  f}          Ja                Nein
+  \m{f \circ  h}           Ja                Nein
+  \m{h \circ  g}           Ja                Nein
+  \m{g \circ  h}           Ja                Nein
+  \m{h \circ  g}           Ja                Nein
+
+\button[type=check]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww}  \button[type=help]
+\define[s3="81"]

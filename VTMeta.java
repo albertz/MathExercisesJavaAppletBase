@@ -1,4 +1,4 @@
-package applets.Abbildungen_I04_2VerschiedeneAbb;
+package applets.Abbildungen_I08_KompositionBereiche;
 
 import java.awt.Color;
 import java.util.LinkedList;
@@ -279,6 +279,9 @@ public class VTMeta extends VTContainer  {
 		}
 		else if(tagname.compareTo("cup") == 0) {
 			return new VTLabel("∪", 0, 0);
+		}
+		else if(tagname.compareTo("circ") == 0) {
+			return new VTLabel("∘", 0, 0);
 		}
 		else if(tagname.compareTo("cdot") == 0) {
 			return new VTLabel("∙", 0, 0);

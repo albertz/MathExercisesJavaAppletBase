@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I04_2VerschiedeneAbb;
+package applets.Abbildungen_I08_KompositionBereiche;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
