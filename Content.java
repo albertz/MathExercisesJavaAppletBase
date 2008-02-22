@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import applets.Abbildungen_I04_2VerschiedeneAbb.PZuweisung.Connection;
-
 public class Content {
 
 	Applet applet;
