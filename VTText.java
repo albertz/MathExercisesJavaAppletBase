@@ -1,12 +1,8 @@
-/**
- * 
- */
-package applets.Abbildungen_I08_KompositionBereiche;
+package applets.Abbildungen_I03_Abbildungen;
 
 import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-
 import javax.swing.JTextField;
 
 public class VTText extends VisualThing {
@@ -18,7 +14,16 @@ public class VTText extends VisualThing {
 		this.changeListener = changeListener;
 	}
 
+	public VTText(String name, int stepX, int stepY, int width, Runnable changeListener) {
+		this.name = name;
+		this.stepX = stepX;
+		this.stepY = stepY;
+		this.width = width;
+		this.changeListener = changeListener;
+	}
+	
 	private int stepX, stepY;
+	private int width = 40;
 	private String name = null;
 	private JTextField text = null;
 	private Runnable changeListener = null;
@@ -30,11 +35,10 @@ public class VTText extends VisualThing {
 			if (changeListener != null)
 				text.addKeyListener(new KeyListener() {
 					public void keyPressed(KeyEvent e) {}
-					public void keyReleased(KeyEvent e) {}
-
-					public void keyTyped(KeyEvent e) {
+					public void keyReleased(KeyEvent e) {
 						changeListener.run();
 					}
+					public void keyTyped(KeyEvent e) {}
 				});
 		}
 		return text;
@@ -57,7 +61,7 @@ public class VTText extends VisualThing {
 	}
 	
 	public int getWidth() {
-		return 40;
+		return width;
 	}
 
 	public int getHeight() {

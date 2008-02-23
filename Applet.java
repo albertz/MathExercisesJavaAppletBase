@@ -1,4 +1,4 @@
-package applets.Abbildungen_I08_KompositionBereiche;
+package applets.Abbildungen_I03_Abbildungen;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -294,14 +294,14 @@ public class Applet extends JApplet {
 		return getPackageName().replace(".", "/");
 	}
 
-	final Runnable updater = new Runnable() {
+	Runnable updater = new Runnable() {
 		public void run() {
 			resetSelectorColors();
 			resetResultLabels();
 		}
 	};
 	
-	private void updateDefaultVisualThings() {
+	public void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 
 		content.run();

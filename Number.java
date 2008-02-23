@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I08_KompositionBereiche;
+package applets.Abbildungen_I03_Abbildungen;
 
 class Number {
 	public int number = 0;

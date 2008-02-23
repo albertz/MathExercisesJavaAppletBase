@@ -1,4 +1,4 @@
-package applets.Abbildungen_I08_KompositionBereiche;
+package applets.Abbildungen_I03_Abbildungen;
 
 import java.awt.Color;
 import java.util.LinkedList;
@@ -8,7 +8,7 @@ public class VTMeta extends VTContainer  {
 	
 	private final Applet applet;
 	private VisualThing[] extern; // extern things for \object
-	private Runnable updater; // used by selector and text
+	public Runnable updater; // used by selector and text
 	private List vars = new LinkedList();
 	
 	public VTMeta(Applet applet, String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
@@ -132,9 +132,12 @@ public class VTMeta extends VTContainer  {
 			return Applet.newVTLimes(0, 0, lowerparam);
 		}
 		else if(tagname.compareTo("text") == 0) {
-			Runnable action = updater;
 			String name = getExtParamVar(extparam, "name", true);
-			return new VTText(name, 0, 0, action);
+			String widthStr = getExtParamVar(extparam, "width");
+			if(widthStr.length() == 0)
+				return new VTText(name, 0, 0, updater);
+			else
+				return new VTText(name, 0, 0, Integer.parseInt(widthStr), updater);
 		}
 		else if(tagname.compareTo("button") == 0) {
 			int index = (int) Applet.parseNum(getExtParamVar(extparam, "index"));
@@ -162,10 +165,9 @@ public class VTMeta extends VTContainer  {
 			return new VTLabel(name, getTextOutOfVisualThing(baseparam), 0, 0);
 		}
 		else if(tagname.compareTo("selector") == 0) {
-			Runnable action = updater;
 			String[] items = getStringArrayFromString(getTextOutOfVisualThing(baseparam));
 			String name = getExtParamVar(extparam, "name", true);
-			return new VTSelector(name, items, 0, 0, action);
+			return new VTSelector(name, items, 0, 0, updater);
 		}
 		else if(tagname.compareTo("container") == 0) {
 			//baseparam.getComponent().setName();

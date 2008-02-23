@@ -1,39 +1,22 @@
-Geben Sie einen naheliegenden Bildbereich an für die Abbildungsvorschrift:
-  \m{f(x) = x⁴}       Bildbereich: \selector[s1]{
-  										"\empty", "\{0\}", "\Q", "\[-1,\infty\]",
-  										"\[-\infty,0\]", "\[0,\infty\]", "\[1,\infty\]", "\R"}
-  
-Geben Sie einen naheliegenden Definitionsbereich an für die Abbildungsvorschrift:
-  \m{f(x) = \sqrt (x - 1)}       Definitionsbereich: \selector[s2]{
-  										"\empty", "\{0\}", "\Q", "\[-1,\infty\]",
-  										"\[-\infty,0\]", "\[0,\infty\]", "\[1,\infty\]", "\R"}
+\m{ U := \{ a, b, c \},  V := \{ x, y \}}
+Listen Sie alle möglichen Abbildungen \m{U \rightarrow  V} auf. ( Beispiel: "xxx, yyy, xyx, ..." )
+\text[s1, width=400]  Anzahl: \label[num]{0             }
+    \label[res_parse]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
 
-Gegeben seien die Abbildungen
-  \m{f: \R  \rightarrow  \[-1,1\], x \rightarrow  sin(x)}
-  \m{g: \[0,\infty\] \rightarrow  \[0,\infty\], x \rightarrow  \sqrt x}
-  \m{h: \[0,\infty\] \rightarrow  \[0,2\], x \rightarrow  \frac^{2}_{1 + x²}}
+\button[type=check,source=checker]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\container[c1_wrong]{\
+Da die Abbildung durch die obere Zeile in diesem Ausdruck eindeutig
+festgelegt ist, braucht man also nur abzuzählen, wie viele Tripel es
+mit Einträgen x oder y gibt. Da jede Komponente zwei Möglichkeiten
+hat erhält man insgesamt 2\cdot 2\cdot 2 = 2³ = 8 Möglichkeiten.
+}
 
-Welche dieser Abbildungen lassen sich hintereinander schalten?
-  \m{f \circ  g}  ist \selector[s3]{"definiert", "undefiniert"},    Abbildung \
-  \selector[s9]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"} \rightarrow  \selector[s15]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"}
-  \m{g \circ  f}  ist \selector[s4]{"definiert", "undefiniert"},    Abbildung \
-  \selector[s10]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"} \rightarrow  \selector[s16]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"}
-  \m{f \circ  h}  ist \selector[s5]{"definiert", "undefiniert"},    Abbildung \
-  \selector[s11]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"} \rightarrow  \selector[s17]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"}
-  \m{h \circ  g}  ist \selector[s6]{"definiert", "undefiniert"},    Abbildung \
-  \selector[s12]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"} \rightarrow  \selector[s18]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"}
-  \m{g \circ  h}  ist \selector[s7]{"definiert", "undefiniert"},    Abbildung \
-  \selector[s13]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"} \rightarrow  \selector[s19]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"}
-  \m{h \circ  f}  ist \selector[s8]{"definiert", "undefiniert"},    Abbildung \
-  \selector[s14]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"} \rightarrow  \selector[s20]{"", "\R", "\[-1,1\]", "\[0,\infty\]", "\[0,2\]"}
-
-\button[type=check]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww}  \button[type=help]
-\define[
-s1="\[0,\infty\]", s2="\[1,\infty\]",
-s3="definiert",  s9="\[0,\infty\]",  s15="\[-1,1\]",
-s4="definiert",  s10="\R",  s16="\[0,\infty\]",
-s5="definiert",  s11="\[0,\infty\]",  s17="\[-1,1\]",
-s6="definiert",  s12="\[0,\infty\]",  s18="\[0,2\]",
-s7="definiert",  s13="\[0,\infty\]",  s19="\[0,\infty\]",
-s8="undefiniert",  s14="",  s20=""
-]
+Was würde man erhalten, wenn etwa V drei Elemente hätte?  \text[s3]
+\button[type=check,index=3]   \label[res3]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\define[s3=27]\
+\container[c3_wrong]{\
+Da die Abbildung durch die obere Zeile in diesem Ausdruck eindeutig
+festgelegt ist, braucht man also nur abzuzählen, wie viele Tripel es
+mit Einträgen x oder y gibt. Da jede Komponente zwei Möglichkeiten
+hat erhält man insgesamt 3\cdot 3\cdot 3 = 3³ = 27 Möglichkeiten.
+}

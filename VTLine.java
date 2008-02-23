@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I08_KompositionBereiche;
+package applets.Abbildungen_I03_Abbildungen;
 
 public class VTLine extends VTLabel {
 

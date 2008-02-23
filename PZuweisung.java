@@ -1,4 +1,4 @@
-package applets.Abbildungen_I08_KompositionBereiche;
+package applets.Abbildungen_I03_Abbildungen;
 
 import java.awt.Color;
 import java.awt.Graphics;
