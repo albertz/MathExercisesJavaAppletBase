@@ -257,7 +257,7 @@ public class Applet extends JApplet {
 	public Runnable createCheckButtonListener(int index, CorrectCheck check) {
 		return createCheckButtonListener(index, check, null, null);
 	}
-
+		
 	private void setResultLabel(int index, boolean correct) {
 		if (correct) {
 			((JLabel) getComponentByName("res" + index))
@@ -328,6 +328,8 @@ public class Applet extends JApplet {
 		for (int i = 0; i < n; i++)
 			res += str;
 		return res;
+	}
+	
 	public InputStream getResource(String fileName) throws Exception {
 		InputStream res = null;
 		
@@ -349,8 +351,6 @@ public class Applet extends JApplet {
 
 		System.err.println("ERROR: FileNotFound: $workspace/" + fileName);
 		throw new Exception("ERROR: FileNotFound: " + fileName);
-	}
-		
 	}
 
 	public void removeAllVisualThings(JPanel panel) {
