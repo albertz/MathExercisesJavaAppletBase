@@ -1,4 +1,4 @@
-package applets.Abbildungen_I60_Part1_UrbildFGrafik;
+package applets.Abbildungen_I03_Abbildungen;
 
 import java.io.File;
 import java.io.FileFilter;
