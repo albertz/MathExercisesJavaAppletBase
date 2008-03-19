@@ -14,8 +14,8 @@ public class VTFrac extends VTContainer {
 	
 	public VTFrac(int stepX, int stepY, String top, String down, boolean withLine) {
 		this(stepX, stepY,
-				new VTLabel(top, 0, 0, "Courier"),
-				new VTLabel(down, 0, 0, "Courier"),
+				new VTLabel(top, 0, 0, "monospace"),
+				new VTLabel(down, 0, 0, "monospace"),
 				withLine);
 	}
 	

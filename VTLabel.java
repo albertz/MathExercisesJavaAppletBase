@@ -16,13 +16,14 @@ public class VTLabel extends VisualThing {
 		this.text = text;
 		this.stepX = stepX;
 		this.stepY = stepY;
-		this.fontName = fontName;
+		setFontName(fontName);
 	}
 
 	public VTLabel(String text, int stepX, int stepY) {
 		this.text = text;
 		this.stepX = stepX;
 		this.stepY = stepY;
+		setFontName("default");
 	}
 
 	public VTLabel(String name, String text, int stepX, int stepY) {
@@ -30,12 +31,13 @@ public class VTLabel extends VisualThing {
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;
+		setFontName("default");
 	}
 
 	private int stepX, stepY;
 	private String name = null;
 	private String text;
-	private String fontName = "";
+	private Font font = null;
 	private Color color = Color.black;
 	private JLabel label = null;
 
@@ -50,13 +52,23 @@ public class VTLabel extends VisualThing {
 	}
 	
 	public void setFontName(String fontName) {
-		this.fontName = fontName;
-		if(label != null)
-			label.setFont(new Font(fontName, 0, 12));
+		if(fontName.compareToIgnoreCase("default") == 0)
+			font = Applet.defaultFont;
+		else if(fontName.compareToIgnoreCase("monospace") == 0)
+			font = Applet.monospaceFont;
+		else
+			font = Applet.defaultFont;
+			
+		if(label != null) {
+			label.setFont(font);
+			label.setText(text); // to recalculate the size
+		}
 	}
 	
 	public String getFontName() {
-		return fontName;
+		if(font == Applet.defaultFont) return "default";
+		if(font == Applet.monospaceFont) return "monospace";
+		return "default";
 	}
 
 	public Color getColor() {
@@ -76,8 +88,8 @@ public class VTLabel extends VisualThing {
 			label = new JLabel();
 			if (name != null)
 				label.setName(name);
+			label.setFont(font);
 			label.setText(text);
-			label.setFont(new Font(fontName, 0, 12));
 			label.setForeground(color);
 			label.setOpaque(false);
 			//label.setBackground(Color.cyan);

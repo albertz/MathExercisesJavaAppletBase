@@ -30,6 +30,7 @@ public class VTSelector extends VisualThing {
 		if (selector == null) {
 			selector = new JComboBox();
 			selector.setName(name);
+			selector.setFont(Applet.defaultFont);
 			if (changeListener != null)
 				selector.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent e) {

@@ -7,8 +7,13 @@ import javax.swing.JLabel;
 import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontFormatException;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -23,6 +28,9 @@ public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
 	private Content content = new Content(this);
+
+	public static Font monospaceFont; 
+	public static Font defaultFont;
 	
 	/**
 	 * This is the xxx default constructor
@@ -30,34 +38,94 @@ public class Applet extends JApplet {
 	public Applet() {
 		super();
 	}
-
+	
 	/**
 	 * This method initializes this
 	 * 
 	 * @return void
 	 */
 	public void init() {
+		try {
+			defaultFont = Font.createFont(Font.TRUETYPE_FONT, getResource("DejaVuSans.ttf")).deriveFont(12.0f);
+			monospaceFont = Font.createFont(Font.TRUETYPE_FONT, getResource("DejaVuSansCondensed.ttf")).deriveFont(12.0f);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		//testLocalFonts();
+		
 		content.init();
 		this.setContentPane(getJContentPane());
 	}
 
+	public static void testLocalFonts() {
+		for(FileIterator i = new FileIterator(
+				
+				new File("/usr/share/"),
+				
+				new FileFilter() {
+
+					public boolean accept(File pathname) {
+						if(pathname.isDirectory()) return true;
+						return 
+							pathname.getName().toLowerCase().endsWith(".pfb")
+							|| pathname.getName().toLowerCase().endsWith(".ttf");
+					}
+			
+		}); i.hasNext(); ) {
+			File f = (File) i.next();
+			if(f.isFile()) {
+				int type = Font.TRUETYPE_FONT;
+				if(f.getName().toLowerCase().endsWith(".pfb")) type = Font.TYPE1_FONT;
+				Font font;
+				try {
+					font = Font.createFont(type, f);
+					if(isFontSupported(font)) {
+						System.out.println("Font " + font.getName() + " (" + f.getName() + ") is supported!");
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		}		
+				
+		if(isFontSupported(new Font("Monospace", 0, 1))) {
+			System.out.println("Font Monospace is supported!");
+		}
+	}
+	
+	public static boolean isFontSupported(Font font) {
+		String displayChars =
+			"⊂∩≠⁻¹→" +
+			"→ ↦ ∞ ∈ ℝ π ℤ ℕ ℚ" +
+			"≤ ⇒ ∉ ∅ ⊆ ∩ ∪" +
+			"∙ × ÷ ± — ≠ √" +
+			"θ ≈ ⁻¹⁰⁴ •";
+		int c = font.canDisplayUpTo(displayChars);
+		if(c == -1)
+			return true;
+		if(c > 0) // don't inform about fonts which have already problems with the first symbol
+			System.out.println("HINT: font " + font.getName() + " cannot display char " + displayChars.charAt(c));
+		return false;		
+	}
+	
 	public static VisualThing newVTLimes(int stepX, int stepY, String var, String c) {
 		return new VTFrac(stepX, stepY,
-				new VTLabel("lim", 0, 0, "Courier"),
-				new VTLabel(var + " → " + c, 0, 0, "Courier"),
+				new VTLabel("lim", 0, 0, "monospace"),
+				new VTLabel(var + " → " + c, 0, 0, "monospace"),
 				false);
 	}
 
 	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing sub) {
 		return new VTFrac(stepX, stepY,
-				new VTLabel("lim", 0, 0, "Courier"), sub, false);
+				new VTLabel("lim", 0, 0, "monospace"), sub, false);
 	}
 	
 	public static VisualThing newVTLimes(int stepX, int stepY, VisualThing var, VisualThing c) {
 		return new VTFrac(stepX, stepY,
-				new VTLabel("lim", 0, 0, "Courier"),
+				new VTLabel("lim", 0, 0, "monospace"),
 				new VTContainer(0, 0, new VisualThing[] {
-						var, new VTLabel("→", 0, 0, "Courier"), c
+						var, new VTLabel("→", 0, 0, "monospace"), c
 				}),
 				false);
 	}
@@ -260,6 +328,29 @@ public class Applet extends JApplet {
 		for (int i = 0; i < n; i++)
 			res += str;
 		return res;
+	public InputStream getResource(String fileName) throws Exception {
+		InputStream res = null;
+		
+		try {
+			res = getClass().getClassLoader().getResourceAsStream(fileName);
+		} catch (Exception e) {}
+		if(res != null) return res;
+
+		try {
+			res = new FileInputStream("content.vtmeta");
+		} catch (Exception e) {}
+		if(res != null) return res;
+		
+		try {
+			String path = "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath(); 
+			res = new FileInputStream(path + "/" + fileName);
+		} catch (Exception e) {}
+		if(res != null) return res;
+
+		System.err.println("ERROR: FileNotFound: $workspace/" + fileName);
+		throw new Exception("ERROR: FileNotFound: " + fileName);
+	}
+		
 	}
 
 	public void removeAllVisualThings(JPanel panel) {
@@ -306,35 +397,15 @@ public class Applet extends JApplet {
 
 		content.run();
 		
-		String content = "";
-		InputStream res = getClass().getClassLoader().getResourceAsStream("content.vtmeta");
-		InputStreamReader file = null;
-		if(res != null) file = new InputStreamReader(res);
-		if(file == null) {
-			try {
-				file = new FileReader("content.vtmeta");
-			} catch (FileNotFoundException e) {
-			}
-		}		
-		if(file == null) {
-			try {
-				String path = "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath(); 
-				file = new FileReader(path + "/content.vtmeta");
-			} catch (FileNotFoundException e) {
-				System.err.println("ERROR: FileNotFound: $workspace/content.vtmeta");
-			}
-		}		
-		if(file == null)
-			System.err.println("ERROR: FileNotFound: content.vtmeta");
-		else {
+		String contentStr = "";
+		try {
+			InputStreamReader file = new InputStreamReader(getResource("content.vtmeta"), "utf8");
+
 			try {
 				int c;
 				while(-1 != (c = file.read())) {
-					content += (char)c;
+					contentStr += (char)c;
 				}
-			}
-			catch (IOException e) {
-				System.err.println("ERROR: IO: content.vtmeta");
 			}
 			finally {
 				try {
@@ -343,9 +414,12 @@ public class Applet extends JApplet {
 					e.printStackTrace();
 				}
 			}
+					
+		} catch (Exception e1) {
+			e1.printStackTrace();
 		}
-		
-		addVisualThings(jContentPane, vtmeta.getThingsByContentStr(content));
+
+		addVisualThings(jContentPane, vtmeta.getThingsByContentStr(contentStr));
 
 		resetResultLabels();
 		resetSelectorColors();

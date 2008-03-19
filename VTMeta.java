@@ -1,8 +1,11 @@
 package applets.Abbildungen_I03_Abbildungen;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.util.LinkedList;
 import java.util.List;
+
 
 public class VTMeta extends VTContainer  {
 	
@@ -178,7 +181,8 @@ public class VTMeta extends VTContainer  {
 			return getExternThing(extparam);
 		}
 		else if(tagname.compareTo("m") == 0) {
-			return resetAllColors(resetAllFonts(baseparam, "Courier"), Color.blue); 
+//			return resetAllColors(baseparam, Color.blue); 
+			return resetAllColors(resetAllFonts(baseparam, "monospace"), Color.blue); 
 		}
 		else if(tagname.compareTo("define") == 0) {
 			class DefineParamWalker implements ExtParamWalker {
