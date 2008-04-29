@@ -261,7 +261,7 @@ public class Applet extends JApplet {
 	private void setResultLabel(int index, boolean correct) {
 		if (correct) {
 			((JLabel) getComponentByName("res" + index))
-					.setForeground(Color.GREEN);
+					.setForeground(new Color(0,200,0));
 			((JLabel) getComponentByName("res" + index))
 					.setText("alles ist richtig!");
 		} else {
@@ -275,7 +275,7 @@ public class Applet extends JApplet {
 	private void setResultLabel(int index, boolean correct, String msg) {
 		if (correct) {
 			((JLabel) getComponentByName("res" + index))
-					.setForeground(Color.GREEN);
+					.setForeground(new Color(0,200,0));
 			((JLabel) getComponentByName("res" + index))
 					.setText(msg);
 		} else {
@@ -301,7 +301,7 @@ public class Applet extends JApplet {
 							.getSelectedItem()
 							: ((JTextField) comp).getText();
 					boolean correct = isCorrect(i, selected);
-					comp.setBackground(correct ? Color.GREEN : Color.RED);
+					comp.setBackground(correct ? new Color(0,200,0) : Color.RED);
 				}
 			}
 		};
