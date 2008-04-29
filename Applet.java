@@ -339,7 +339,7 @@ public class Applet extends JApplet {
 		if(res != null) return res;
 
 		try {
-			res = new FileInputStream("content.vtmeta");
+			res = new FileInputStream(fileName);
 		} catch (Exception e) {}
 		if(res != null) return res;
 		
