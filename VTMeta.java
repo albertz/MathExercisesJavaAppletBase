@@ -302,7 +302,7 @@ public class VTMeta extends VTContainer  {
 			return new VTLabel("±", 0, 0);
 		}
 		else if(tagname.compareTo("dash") == 0) {
-			return new VTLabel("—", 0, 0);
+			return new VTLabel("―", 0, 0);
 		}
 		else if(tagname.compareTo("neq") == 0) {
 			return new VTLabel("≠", 0, 0);

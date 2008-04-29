@@ -99,7 +99,7 @@ public class Applet extends JApplet {
 			"⊂∩≠⁻¹→" +
 			"→ ↦ ∞ ∈ ℝ π ℤ ℕ ℚ" +
 			"≤ ⇒ ∉ ∅ ⊆ ∩ ∪" +
-			"∙ × ÷ ± — ≠ √" +
+			"∙ × ÷ ± ― ≠ √" +
 			"θ ≈ ⁻¹⁰⁴ •";
 		int c = font.canDisplayUpTo(displayChars);
 		if(c == -1)
