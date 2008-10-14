@@ -68,7 +68,7 @@ public class VTButton extends VisualThing {
 
 	public int getWidth() {
 		getComponent();
-		return button.getFontMetrics(button.getFont()).stringWidth(text) + 40;
+		return button.getFontMetrics(button.getFont()).stringWidth(text) + 50;
 	}
 
 	public int getHeight() {
