@@ -66,7 +66,7 @@ public class VTSelector extends VisualThing {
 			max = Math.max(max, selector.getFontMetrics(selector.getFont())
 					.stringWidth(items[i]));
 
-		return max + 40;
+		return max + 50;
 	}
 
 	public int getHeight() {
