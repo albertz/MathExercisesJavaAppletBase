@@ -41,7 +41,7 @@ public abstract class VisualThing {
 	 * Debug-string
 	 */
 	public String getDebugString() {
-		return this.getClass().getSimpleName() + "("
+		return this.getClass().getName() + "("
 			+ getStepX() + "," + getStepY() + ","
 			+ getWidth() + "," + getHeight()
 			+ getDebugStringExtra() + ")";

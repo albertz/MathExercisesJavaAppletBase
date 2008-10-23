@@ -382,7 +382,7 @@ public class Applet extends JApplet {
 	}
 	
 	public String getPackageAsPath() {
-		return getPackageName().replace(".", "/");
+		return getPackageName().replace('.', '/');
 	}
 
 	Runnable updater = new Runnable() {
@@ -444,8 +444,8 @@ public class Applet extends JApplet {
 
 	public static double parseNum(String txt) {
 		try {
-			txt = txt.replace(",", ".");
-			txt = txt.replace(" ", "");
+			txt = txt.replace(',', '.');
+			txt = txt.replaceAll(" ", "");
 			return Double.parseDouble(txt);
 		} catch (NumberFormatException e) {
 			return -666;
