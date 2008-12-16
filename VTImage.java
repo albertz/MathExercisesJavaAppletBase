@@ -1,9 +1,14 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+
+
+
+
+
 
 public class VTImage extends VisualThing implements Applet.CorrectCheck {
 

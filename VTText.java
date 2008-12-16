@@ -1,9 +1,18 @@
-package applets.Abbildungen_I03_Abbildungen;
+/**
+ * 
+ */
+package applets.Z_prim_1;
 
 import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+
 import javax.swing.JTextField;
+
+
+
+
+
 
 public class VTText extends VisualThing {
 
@@ -35,10 +44,11 @@ public class VTText extends VisualThing {
 			if (changeListener != null)
 				text.addKeyListener(new KeyListener() {
 					public void keyPressed(KeyEvent e) {}
-					public void keyReleased(KeyEvent e) {
+					public void keyReleased(KeyEvent e) {}
+
+					public void keyTyped(KeyEvent e) {
 						changeListener.run();
 					}
-					public void keyTyped(KeyEvent e) {}
 				});
 		}
 		return text;

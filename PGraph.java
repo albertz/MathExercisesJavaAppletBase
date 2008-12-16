@@ -1,10 +1,14 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.util.Timer;
 import java.util.TimerTask;
+
+
+
+
 
 class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	// Funktionsplotter / Graphzeichner

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 class Number {
 	public int number = 0;

@@ -1,4 +1,4 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -22,6 +22,14 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComboBox;
+
+
+
+
+
+
+
+
 
 
 public class Applet extends JApplet {
@@ -257,7 +265,7 @@ public class Applet extends JApplet {
 	public Runnable createCheckButtonListener(int index, CorrectCheck check) {
 		return createCheckButtonListener(index, check, null, null);
 	}
-		
+
 	private void setResultLabel(int index, boolean correct) {
 		if (correct) {
 			((JLabel) getComponentByName("res" + index))
@@ -329,29 +337,6 @@ public class Applet extends JApplet {
 			res += str;
 		return res;
 	}
-	
-	public InputStream getResource(String fileName) throws Exception {
-		InputStream res = null;
-		
-		try {
-			res = getClass().getClassLoader().getResourceAsStream(fileName);
-		} catch (Exception e) {}
-		if(res != null) return res;
-
-		try {
-			res = new FileInputStream(fileName);
-		} catch (Exception e) {}
-		if(res != null) return res;
-		
-		try {
-			String path = "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath(); 
-			res = new FileInputStream(path + "/" + fileName);
-		} catch (Exception e) {}
-		if(res != null) return res;
-
-		System.err.println("ERROR: FileNotFound: $workspace/" + fileName);
-		throw new Exception("ERROR: FileNotFound: " + fileName);
-	}
 
 	public void removeAllVisualThings(JPanel panel) {
 		panel.removeAll();
@@ -362,6 +347,7 @@ public class Applet extends JApplet {
 				public void run() {
 					resetSelectorColors();
 					resetResultLabels();
+					resetResultContainers();
 				}
 			});
 	
@@ -385,14 +371,38 @@ public class Applet extends JApplet {
 		return getPackageName().replace('.', '/');
 	}
 
-	Runnable updater = new Runnable() {
+	final Runnable updater = new Runnable() {
 		public void run() {
 			resetSelectorColors();
 			resetResultLabels();
+			resetResultContainers();
 		}
 	};
 	
-	public void updateDefaultVisualThings() {
+	public InputStream getResource(String fileName) throws Exception {
+		InputStream res = null;
+		
+		try {
+			res = getClass().getClassLoader().getResourceAsStream(fileName);
+		} catch (Exception e) {}
+		if(res != null) return res;
+
+		try {
+			res = new FileInputStream(fileName);
+		} catch (Exception e) {}
+		if(res != null) return res;
+		
+		try {
+			String path = "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath(); 
+			res = new FileInputStream(path + "/" + fileName);
+		} catch (Exception e) {}
+		if(res != null) return res;
+
+		System.err.println("ERROR: FileNotFound: $workspace/" + fileName);
+		throw new Exception("ERROR: FileNotFound: " + fileName);
+	}
+		
+	private void updateDefaultVisualThings() {
 		removeAllVisualThings(jContentPane);
 
 		content.run();
@@ -427,6 +437,22 @@ public class Applet extends JApplet {
 		
 		jContentPane.repaint();
 	}
+
+
+	public void resetResultContainers() {
+		ForEachComponent(new ComponentWalker() {
+			public boolean meet(Component comp) {
+				if (
+						comp.getName() != null
+						&& comp.getName().startsWith("c")
+						&& (comp.getName().endsWith("_wrong") || comp.getName().endsWith("_correct"))) {
+					comp.setVisible(false);
+				}
+				return true;
+			}
+		});
+	}
+
 
 	/**
 	 * This method initializes jContentPane
@@ -464,7 +490,7 @@ public class Applet extends JApplet {
 	
 	public boolean isCorrect(int selId, String selected) {
 		Var var = vtmeta.getVar("s" + selId);
-		if(var != null) return var.value.trim().compareToIgnoreCase(selected.trim()) == 0;
+		if(var != null) return var.value.compareToIgnoreCase(selected) == 0;
 
 		switch(selId) {
 		default: return false;
@@ -476,20 +502,6 @@ public class Applet extends JApplet {
 			public boolean meet(Component comp) {
 				if (comp.getName() != null && comp.getName().startsWith("res")) {
 					((JLabel) comp).setText("");
-				}
-				return true;
-			}
-		});
-	}
-
-	public void resetResultContainers() {
-		ForEachComponent(new ComponentWalker() {
-			public boolean meet(Component comp) {
-				if (
-						comp.getName() != null
-						&& comp.getName().startsWith("c")
-						&& (comp.getName().endsWith("_wrong") || comp.getName().endsWith("_correct"))) {
-					comp.setVisible(false);
 				}
 				return true;
 			}

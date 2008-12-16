@@ -1,4 +1,4 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -7,11 +7,37 @@ import java.util.LinkedList;
 import java.util.List;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 public class VTMeta extends VTContainer  {
 	
 	private final Applet applet;
 	private VisualThing[] extern; // extern things for \object
-	public Runnable updater; // used by selector and text
+	private Runnable updater; // used by selector and text
 	private List vars = new LinkedList();
 	
 	public VTMeta(Applet applet, String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
@@ -135,12 +161,13 @@ public class VTMeta extends VTContainer  {
 			return Applet.newVTLimes(0, 0, lowerparam);
 		}
 		else if(tagname.compareTo("text") == 0) {
+			Runnable action = updater;
 			String name = getExtParamVar(extparam, "name", true);
 			String widthStr = getExtParamVar(extparam, "width");
 			if(widthStr.length() == 0)
-				return new VTText(name, 0, 0, updater);
+				return new VTText(name, 0, 0, action);
 			else
-				return new VTText(name, 0, 0, Integer.parseInt(widthStr), updater);
+				return new VTText(name, 0, 0, Integer.parseInt(widthStr), action);
 		}
 		else if(tagname.compareTo("button") == 0) {
 			int index = (int) Applet.parseNum(getExtParamVar(extparam, "index"));
@@ -168,14 +195,15 @@ public class VTMeta extends VTContainer  {
 			return new VTLabel(name, getTextOutOfVisualThing(baseparam), 0, 0);
 		}
 		else if(tagname.compareTo("selector") == 0) {
+			Runnable action = updater;
 			String[] items = getStringArrayFromString(getTextOutOfVisualThing(baseparam));
 			String name = getExtParamVar(extparam, "name", true);
-			return new VTSelector(name, items, 0, 0, updater);
+			return new VTSelector(name, items, 0, 0, action);
 		}
 		else if(tagname.compareTo("container") == 0) {
-			//baseparam.getComponent().setName();
-			//return baseparam;
 			return new VTContainer(getExtParamVar(extparam, "name", true), 0, 0, new VisualThing[] { baseparam });
+			//return baseparam;
+			//return new VTContainer(0, 0, new VisualThing[] { baseparam });
 		}
 		else if(tagname.compareTo("object") == 0) {
 			return getExternThing(extparam);
@@ -222,6 +250,9 @@ public class VTMeta extends VTContainer  {
 		}
 		else if(tagname.compareTo("mu") == 0) {
 			return new VTLabel("μ", 0, 0);
+		}
+		else if(tagname.compareTo("pi") == 0) {
+			return new VTLabel("π", 0, 0);
 		}
 		else if(tagname.compareTo("pi") == 0) {
 			return new VTLabel("π", 0, 0);
@@ -285,9 +316,6 @@ public class VTMeta extends VTContainer  {
 		}
 		else if(tagname.compareTo("cup") == 0) {
 			return new VTLabel("∪", 0, 0);
-		}
-		else if(tagname.compareTo("circ") == 0) {
-			return new VTLabel("∘", 0, 0);
 		}
 		else if(tagname.compareTo("cdot") == 0) {
 			return new VTLabel("∙", 0, 0);

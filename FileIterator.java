@@ -1,9 +1,14 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.util.Arrays;
 import java.util.Iterator;
+
+
+
+
+
 
 public class FileIterator implements Iterator, Iterable {
 	private final Iterator files;

@@ -1,4 +1,4 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -12,6 +12,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JLabel;
+
+
+
+
+
+
+
 
 class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	

@@ -1,4 +1,4 @@
-package applets.Abbildungen_I03_Abbildungen;
+package applets.Z_prim_1;
 
 import java.awt.Color;
 import java.awt.Graphics;
@@ -12,9 +12,20 @@ import java.util.List;
 import java.util.Random;
 import javax.swing.JLabel;
 
+
+
+
+
+
+
+
 class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
-		
-	static class Oval {
+	
+	/**
+	 * 
+	 */
+	private final Applet applet;
+	class Oval {
 		public Oval(Point p, int w, int h, Color c, String label) {
 			this.p = p;
 			this.w = w;
@@ -61,7 +72,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 	}
 	
-	static class Connection {
+	class Connection {
 		public Point src;
 		public Point dst;
 		
@@ -79,9 +90,6 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 	}
 	
-	// generelle Eigenschaften
-	// in Content können diese gesetzt werden
-	// danach reset() aufrufen zum aktuallisieren
 	public Oval oval1 = new Oval(new Point(20, 20), 200, 150, new Color(123, 123, 123), "A");
 	public Oval oval2 = new Oval(new Point(300, 20), 200, 150, new Color(200, 100, 123), "B");
 	public Collection dotsA = new LinkedList(), dotsB = new LinkedList();
@@ -93,11 +101,6 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	public List dotBNames = null;
 	public boolean dotANames_showalways = true;
 	public boolean dotBNames_showalways = true;
-
-	// only needed for repaint-call
-	protected final Applet applet;
-	// used for isCorrect and getResultText
-	protected PZuweisung copySrc = null;
 	
 	public void paint(Graphics g) {
 		oval1.paint(g);
@@ -213,37 +216,6 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 		return false;
 	}
-
-	public boolean existsConnection(Point a) {
-		for(Iterator i = connections.iterator(); i.hasNext(); ) {
-			Connection p = (Connection) i.next();
-			if(p.src.distance(a) == 0)
-				return true;
-		}
-		return false;
-	}
-
-	public boolean existsConnectionForAllDotsA() {
-		for(Iterator i = dotsA.iterator(); i.hasNext(); ) {
-			Point p = (Point) i.next();
-			if(!existsConnection(p))
-				return false;
-		}
-		return true;
-	}
-	
-	public boolean connectionsAreEqual(PZuweisung other) {
-		if(other.connections.size() != connections.size())
-			return false;
-		
-		for(Iterator i = connections.iterator(); i.hasNext(); ) {
-			Connection p = (Connection) i.next();
-			if(!other.existsConnection(p.src, p.dst))
-				return false;
-		}
-		
-		return true;
-	}
 	
 	public boolean isCorrect() {
 		Collection dotsA_copy = new LinkedList(dotsA);
@@ -278,8 +250,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			return "das ist richtig!";
 	}
 	
-	// helper function, turns point p by angle a
-	protected static Point turn(Point p, double a) {
+	protected Point turn(Point p, double a) {
 		double x = Math.cos(a);
 		double y = Math.sin(a);
 		return new Point((int)(x * p.x + y * p.y), (int)(-y * p.x + x * p.y));
@@ -302,7 +273,10 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		
 		this.applet.repaint();
 	}
-		
+	
+	// used for isCorrect and getResultText
+	private PZuweisung copySrc = null;
+	
 	public void copyReversedFrom(PZuweisung src, boolean withConn) {
 		copySrc = src;
 		oval1.label = src.oval2.label;
@@ -337,38 +311,6 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		this.applet.repaint();
 	}			
 	
-	public void copyFrom(PZuweisung src, boolean withConn) {
-		copySrc = src;
-		oval1.label = src.oval1.label;
-		oval2.label = src.oval2.label;
-		dotANames = src.dotANames;
-		dotBNames = src.dotBNames;
-		dotsA = new LinkedList(src.dotsA);
-		dotsB = new LinkedList(src.dotsB);
-		makeCopyOfPoints(dotsA);
-		makeCopyOfPoints(dotsB);
-		dotsCountA = dotsA.size();
-		dotsCountB = dotsB.size();
-		selectedDotA = null;
-		overDotA = null;
-		overDotB = null;
-		connections.clear();
-		
-		if(withConn) {
-			for(Iterator i = src.connections.iterator(); i.hasNext(); ) {
-				Connection con = (Connection) i.next();
-				int src_i = getPointIndex(src.dotsA, con.src);
-				int dst_i = getPointIndex(src.dotsB, con.dst); 
-				Connection new_con = new Connection();
-				new_con.src = getPointByIndex(dotsA, src_i);
-				new_con.dst = getPointByIndex(dotsB, dst_i);
-				connections.add(new_con);
-			}
-		}
-		
-		this.applet.repaint();
-	}
-	
 	protected void makeCopyOfPoints(Collection col) {
 		Collection col_copy = new LinkedList(col);
 		col.clear();
@@ -377,7 +319,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			col.add(p.clone());
 		}
 	}
-		
+	
 	protected void fixXPos(Collection col, int d) {
 		for(Iterator i = col.iterator(); i.hasNext(); ) {
 			Point p = (Point) i.next();
@@ -443,6 +385,5 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	public void mousePressed(MouseEvent e) {}
 	public void mouseReleased(MouseEvent e) {}
 	public void mouseDragged(MouseEvent e) {}
-
 
 }
