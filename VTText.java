@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Z_prim_1;
+package applets.ganze$und$natuerliche$Zahlen_prim_1;
 
 import java.awt.Component;
 import java.awt.event.KeyEvent;

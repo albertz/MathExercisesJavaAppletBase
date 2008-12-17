@@ -1,4 +1,4 @@
-package applets.Z_prim_1;
+package applets.ganze$und$natuerliche$Zahlen_prim_1;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -398,6 +398,12 @@ public class Applet extends JApplet {
 		} catch (Exception e) {}
 		if(res != null) return res;
 
+		try {
+			String path = "../Lehreinheiten/" + getPackageNameBase().replace('$', ' ') + "/Code/" + getPackageAsPath(); 
+			res = new FileInputStream(path + "/" + fileName);
+		} catch (Exception e) {}
+		if(res != null) return res;
+				
 		System.err.println("ERROR: FileNotFound: $workspace/" + fileName);
 		throw new Exception("ERROR: FileNotFound: " + fileName);
 	}
