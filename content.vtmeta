@@ -12,7 +12,7 @@ e) \m{84  = 2^}\selector[s25]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot 
 f) \m{60  = 2^}\selector[s31]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s32]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s33]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s34]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s35]{"0", "1", "2"}\m{  \cdot  13^}\selector[s36]{"0", "1", "2"}
 
 
-\button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=1]
+\button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=1]
 \define[s1="2", s2="2", s3="0", s4="0", s5="0", s6="0",
         s7="0", s8="2", s9="0", s10="0", s11="1", s12="0", 
         s13="3", s14="0", s15="0", s16="1", s17="0", s18="0",
