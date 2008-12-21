@@ -1,4 +1,4 @@
-package applets.ganze$und$natuerliche$Zahlen_betrag;
+package applets.ganze$und$natuerliche$Zahlen_Primzahlen;
 
 import java.awt.Component;
 import java.awt.Graphics;

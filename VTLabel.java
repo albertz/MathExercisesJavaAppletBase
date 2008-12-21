@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.ganze$und$natuerliche$Zahlen_betrag;
+package applets.ganze$und$natuerliche$Zahlen_Primzahlen;
 
 import java.awt.Color;
 import java.awt.Component;

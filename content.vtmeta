@@ -1,19 +1,21 @@
-Bestimmen Sie 
-a) \m{|-4|  =} \text[s1].
+Bestimmen Sie die Primfaktorzerlegung der folgenden Zahlen.
+a) \m{36  = 2^}\selector[s1]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s2]{"0", "1", "2", "3", "4"}\m{  \cdot  5^}\selector[s3]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s4]{"0", "1", "2"}\m{  \cdot  11^}\selector[s5]{"0", "1", "2"}\m{  \cdot  13^}\selector[s6]{"0", "1", "2"}
 
-b) \m{|6|   =} \text[s2].
+b) \m{99  = 2^}\selector[s7]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot  3^}\selector[s8]{"0","1", "2", "3", "4", "5"}\m{  \cdot  5^}\selector[s9]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s10]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s11]{"0", "1", "2"}\m{  \cdot  13^}\selector[s12]{"0", "1", "2"}
 
-c) \m{|0|   =} \text[s3].
+c) \m{56  = 2^}\selector[s13]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s14]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s15]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s16]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s17]{"0", "1", "2"}\m{  \cdot  13^}\selector[s18]{"0", "1", "2"}
 
-d) \m{|-3-7|  =} \text[s4].
+d) \m{78  = 2^}\selector[s19]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot  3^}\selector[s20]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s21]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s22]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s23]{"0", "1", "2"}\m{  \cdot  13^}\selector[s24]{"0", "1", "2"}
 
-e) \m{|8+1|  =} \text[s5].
+e) \m{84  = 2^}\selector[s25]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot  3^}\selector[s26]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s27]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s28]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s29]{"0", "1", "2"}\m{  \cdot  13^}\selector[s30]{"0", "1", "2"}
 
-f) \m{|-2+5|  =} \text[s6].
-
-g) \m{|4-9|   =} \text[s7].
+f) \m{60  = 2^}\selector[s31]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s32]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s33]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s34]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s35]{"0", "1", "2"}\m{  \cdot  13^}\selector[s36]{"0", "1", "2"}
 
 
-
-\button[type=check, index=1]   \label[res1]{wwwwwwwww} \button[type=help,index=1]
-\define[s1="4", s2="6", s3="0", s4="10", s5="9", s6="3", s7="5"] 
+\button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=1]
+\define[s1="2", s2="2", s3="0", s4="0", s5="0", s6="0",
+        s7="0", s8="2", s9="0", s10="0", s11="1", s12="0", 
+        s13="3", s14="0", s15="0", s16="1", s17="0", s18="0",
+        s19="1", s20="1", s21="0", s22="0", s23="0", s24="1",
+        s25="2", s26="1", s27="0", s28="1", s29="0", s30="0",
+        s31="2", s32="1", s33="1", s34="0", s35="0", s36="0"] 
