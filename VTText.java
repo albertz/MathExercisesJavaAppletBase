@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.ganze$und$natuerliche$Zahlen_prim_2;
+package applets.ganze$und$natuerliche$Zahlen_betrag;
 
 import java.awt.Component;
 import java.awt.event.KeyEvent;

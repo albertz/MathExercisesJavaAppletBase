@@ -1,4 +1,4 @@
-package applets.ganze$und$natuerliche$Zahlen_prim_2;
+package applets.ganze$und$natuerliche$Zahlen_betrag;
 
 import java.io.File;
 import java.io.FileFilter;

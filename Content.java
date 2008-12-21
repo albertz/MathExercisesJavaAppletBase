@@ -1,4 +1,4 @@
-package applets.ganze$und$natuerliche$Zahlen_prim_2;
+package applets.ganze$und$natuerliche$Zahlen_betrag;
 
 import java.awt.Point;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(610, 300);
+		applet.setSize(340, 400);
 	}
 
 	public void run() {
