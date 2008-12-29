@@ -1,21 +1,13 @@
-Bestimmen Sie die Primfaktorzerlegung der folgenden Zahlen.
-a) \m{36  = 2^}\selector[s1]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s2]{"0", "1", "2", "3", "4"}\m{  \cdot  5^}\selector[s3]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s4]{"0", "1", "2"}\m{  \cdot  11^}\selector[s5]{"0", "1", "2"}\m{  \cdot  13^}\selector[s6]{"0", "1", "2"}
+Bestimmen Sie das kleinste gemeinsame Vielfache (kgV)
 
-b) \m{99  = 2^}\selector[s7]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot  3^}\selector[s8]{"0","1", "2", "3", "4", "5"}\m{  \cdot  5^}\selector[s9]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s10]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s11]{"0", "1", "2"}\m{  \cdot  13^}\selector[s12]{"0", "1", "2"}
+a) der Zahlen \m{6} und \m{8}. Es gilt \m{kgV(6, 8) = }\text[s1, width=30].
+b) der Zahlen \m{4} und \m{8}. Es gilt \m{kgV(4, 8) = }\text[s2, width=30].
+c) der Zahlen \m{9} und \m{12}. Es gilt \m{kgV(9, 12) = }\text[s3, width=30].
+d) der Zahlen \m{21} und \m{98}. Es gilt \m{kgV(21, 98) = }\text[s4, width=30].
+e) der Zahlen \m{15} und \m{250}. Es gilt \m{kgV(15, 250) = }\text[s5, width=30].
+f) der Zahlen \m{7},\m{9} und \m{12}. Es gilt \m{kgV(7, 9, 12) = }\text[s6, width=30].
 
-c) \m{56  = 2^}\selector[s13]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s14]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s15]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s16]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s17]{"0", "1", "2"}\m{  \cdot  13^}\selector[s18]{"0", "1", "2"}
-
-d) \m{78  = 2^}\selector[s19]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot  3^}\selector[s20]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s21]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s22]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s23]{"0", "1", "2"}\m{  \cdot  13^}\selector[s24]{"0", "1", "2"}
-
-e) \m{84  = 2^}\selector[s25]{"0", "1", "2", "3", "4", "5", "6", "7"}\m{  \cdot  3^}\selector[s26]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s27]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s28]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s29]{"0", "1", "2"}\m{  \cdot  13^}\selector[s30]{"0", "1", "2"}
-
-f) \m{60  = 2^}\selector[s31]{"0", "1", "2", "3", "4", "5", "6"}\m{  \cdot  3^}\selector[s32]{"0","1", "2", "3", "4"}\m{  \cdot  5^}\selector[s33]{"0", "1", "2", "3"}\m{  \cdot  7^}\selector[s34]{"0", "1", "2", "3"}\m{  \cdot  11^}\selector[s35]{"0", "1", "2"}\m{  \cdot  13^}\selector[s36]{"0", "1", "2"}
-
-
-\button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=1]
-\define[s1="2", s2="2", s3="0", s4="0", s5="0", s6="0",
-        s7="0", s8="2", s9="0", s10="0", s11="1", s12="0", 
-        s13="3", s14="0", s15="0", s16="1", s17="0", s18="0",
-        s19="1", s20="1", s21="0", s22="0", s23="0", s24="1",
-        s25="2", s26="1", s27="0", s28="1", s29="0", s30="0",
-        s31="2", s32="1", s33="1", s34="0", s35="0", s36="0"] 
+\button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwww} \button[type=help,index=1]
+\define[s1="24", s2="16", 
+s3="36", s4="294", 
+s5="750", s6="84"] 

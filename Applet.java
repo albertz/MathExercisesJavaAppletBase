@@ -1,4 +1,4 @@
-package applets.ganze$und$natuerliche$Zahlen_Primzahlen;
+package applets.ganze$und$natuerliche$Zahlen_4_kgVsimpel;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

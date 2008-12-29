@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.ganze$und$natuerliche$Zahlen_Primzahlen;
+package applets.ganze$und$natuerliche$Zahlen_4_kgVsimpel;
 
 import java.awt.Component;
 import java.awt.Point;
