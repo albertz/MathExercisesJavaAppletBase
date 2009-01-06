@@ -10,4 +10,4 @@ f) der Zahlen \m{7},\m{9} und \m{12}. Es gilt \m{kgV(7, 9, 12) = }\text[s6, widt
 \button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwww} \button[type=help,index=1]
 \define[s1="24", s2="16", 
 s3="36", s4="294", 
-s5="750", s6="84"] 
+s5="750", s6="252"] 
