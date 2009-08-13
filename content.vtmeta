@@ -1,6 +1,7 @@
 Hallo Welt.
 \m{Das ist der mathemodus.}
 
+\object[graph]
 
 Geben Sie folgende Mengen an:
 \m{f(U)      = } \selector[s1]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
@@ -11,23 +12,3 @@ Geben Sie folgende Mengen an:
         s7="\{C\}", s8="\empty"]
         
 \container[c1_correct]{Richtig.}
-\container[c1_wrong]{Ganz falsch.
-
-Geben Sie folgende Mengen an:
-\m{f(U)      = } \text[s11, width=300] \
-        \m{f⁻¹(W) =} \selector[s12]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-\m{f(V)      = } \selector[s13]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(Z) =} \selector[s14]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-\m{f(U \cap  V)  = } \selector[s15]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(W \cap  Z)=} \selector[s16]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-\m{f(U) \cap  f(V) = } \selector[s17]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
-        \m{f⁻¹(W) \cap  f⁻¹(Z)=} \selector[s18]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
-
-
-\button[type=check,index=11]   \label[res11]{wwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=11]
-\define[s11="hallo", s12="\{1,2,4\}", s13="\{B,C,D\}", s14="\{3,5,6\}",
-        s15="\empty", s16="\empty", 
-        s17="\{C\}", s18="\empty"]
-        
-        }
-        

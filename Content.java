@@ -3,12 +3,7 @@ package applets.Trigonometrie_SinCos_variable;
 import java.awt.Point;
 import java.util.Arrays;
 
-
-
-
-
-
-
+import applets.Trigonometrie_SinCos_variable.PGraph.Function2D;
 
 
 
@@ -17,30 +12,36 @@ import java.util.Arrays;
 public class Content {
 
 	Applet applet;
+	PGraph.Point sinParams = new PGraph.Point(0, 1);
+	PGraph.Point cosParams = new PGraph.Point(0, 1);
 	
 	public Content(Applet applet) {
 		this.applet = applet;		
 	}
 	
 	public void init() {
-		applet.setSize(560, 454);
+		applet.setSize(700, 454);
 	}
 
 	public void run() {
-		PZuweisungExtended2 zuweisung = new PZuweisungExtended2(applet);
+		PGraph graph = new PGraph(applet, 660, 300);
+		graph.functions.add(
+			new Function2D() {
+				public double get(double x) {
+					return sinParams.y * Math.sin(x + sinParams.x);
+				}});
 
-		zuweisung.editable = false;
-		zuweisung.reset();
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(0), (Point)zuweisung.dotsB.get(0)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(1), (Point)zuweisung.dotsB.get(0)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(2), (Point)zuweisung.dotsB.get(2)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(3), (Point)zuweisung.dotsB.get(1)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(4), (Point)zuweisung.dotsB.get(2)));
-		zuweisung.connections.add(new PZuweisungExtended2.Connection((Point)zuweisung.dotsA.get(5), (Point)zuweisung.dotsB.get(3)));
+		graph.functions.add(
+				new Function2D() {
+					public double get(double x) {
+						return cosParams.y * Math.cos(x + cosParams.x);
+					}});
 		
-	
+		graph.dragablePoints.add(sinParams);
+		graph.dragablePoints.add(cosParams);
+		
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("zuweisung", 10, 5, 600, 250, zuweisung)
+				new VTImage("graph", 10, 5, graph.getW(), graph.getH(), graph)
 		});
 		
 	}

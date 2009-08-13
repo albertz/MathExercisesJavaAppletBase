@@ -3,6 +3,8 @@ package applets.Trigonometrie_SinCos_variable;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -16,6 +18,9 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	private final Applet applet;
 	private int W, H;
 	
+	public List<Function2D> functions = new LinkedList<Function2D>();
+	
+	/*
 	public Function2D function = new Function2D() {
 		public double get(double x) {
 			if(-1 <= x && x <= 1)
@@ -26,9 +31,10 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 				return 1/(x*x) - 2;
 		}
 	};
+	*/
 	
 	public double x_l = -8, x_r = 8;
-	public double y_u = -2, y_o = 1;
+	public double y_u = -1, y_o = 1;
 	public int xspace_l = 30, xspace_r = 30;
 	public int yspace_u = 30, yspace_o = 30;
 	
@@ -52,6 +58,14 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	protected int simulationX2Ypos = 0;
 	protected int simulationX2Ydir = -1; // 1 = pos; -1 = neg
 	protected Timer simulationX2Ytimer = null;
+	
+	static public class Point {
+		double x, y;
+		public Point() {}
+		public Point(double _x, double _y) { x = _x; y = _y; }
+	};
+	
+	public List<Point> dragablePoints = new LinkedList<Point>();
 	
 	public void setXYValuesInversFrom(PGraph src) {
 		x_l = src.y_u;
@@ -87,10 +101,14 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		//drawSimulationX2Y(g);
 		drawStateMsg(g);
 		
-		// Funktion
+		// Funktionen
 		g.setColor(Color.BLUE);
-		drawFunction(g);
-
+		for(Function2D function : functions)
+			drawFunction(g, function);
+		
+		// Punkte
+		for(Point p : dragablePoints)
+			drawPoint(g, p);
 	}
 	
 	protected void stopSimulationX2Y() {
@@ -113,7 +131,9 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}, 0, 50);
 	}
 	
-	protected void drawSimulationX2Y(Graphics g) {
+	
+	
+	protected void drawSimulationX2Y(Graphics g, Function2D function) {
 		int s = (int)Math.signum(function.get(selectedX));
 		int f_x = transformY(function.get(selectedX));
 		int x = transformX(selectedX);
@@ -129,6 +149,11 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 		g.setColor(new Color(255, 123, 50, 200));
 		g.fillOval(x - 3, y - 3, 6, 6);
+	}
+	
+	protected void drawPoint(Graphics g, Point p) {
+		g.setColor(new Color(255, 123, 50, 200));
+		g.fillOval((int)p.x - 3, (int)p.y - 3, 6, 6);
 	}
 	
 	protected String getStateMsg() {
@@ -215,7 +240,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 	}
 	
-	protected void drawFunction(Graphics g) {
+	protected void drawFunction(Graphics g, Function2D function) {
 		double step = (x_r - x_l) / 200;
 		int last_y = transformY(function.get(x_l));
 		int y;
@@ -349,7 +374,10 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			applet.repaint();
 		} */
 		doSelectionXPos(e.getX(), false);
-		doSelectionYPos(transformY(function.get(selectedX)), false);
+		for(Function2D function : functions) {
+			doSelectionYPos(transformY(function.get(selectedX)), false);
+			break;
+		}
 		applet.repaint();
 	}
 	public void mouseEntered(MouseEvent e) {}
