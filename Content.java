@@ -19,6 +19,7 @@ public class Content {
 	Applet applet;
 	PGraph.Point sinParams = new PGraph.Point(Math.PI/2, 1);
 	PGraph.Point cosParams = new PGraph.Point(0, 1);
+	PGraph graph;
 	
 	public Content(Applet applet) {
 		this.applet = applet;		
@@ -33,7 +34,7 @@ public class Content {
 	}
 	
 	public void run() {
-		PGraph graph = new PGraph(applet, 660, 300);
+		graph = new PGraph(applet, 660, 300);
 		graph.axeXStep = Math.PI/2;
 		graph.axeXTextStep = 4;
 		graph.axeXMult = 0.25 * 2;
@@ -69,7 +70,10 @@ public class Content {
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.getW(), graph.getH(), graph)
-		});
+		});	
+	}
 	
+	void postinit() {
+		graph.OnDragablePointMoved.actionPerformed(null);		
 	}
 }

@@ -441,6 +441,8 @@ public class Applet extends JApplet {
 		resetSelectorColors();
 		resetResultContainers();
 		
+		content.postinit();
+		
 		jContentPane.repaint();
 	}
 
