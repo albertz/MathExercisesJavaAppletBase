@@ -1,8 +1,13 @@
 package applets.Trigonometrie_SinCos_variable;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
@@ -19,6 +24,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	private int W, H;
 	
 	public List<Function2D> functions = new LinkedList<Function2D>();
+	public List<Color> functionColors = new LinkedList<Color>();
 	
 	/*
 	public Function2D function = new Function2D() {
@@ -63,9 +69,15 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		double x, y;
 		public Point() {}
 		public Point(double _x, double _y) { x = _x; y = _y; }
+		public Point diff(Point p) { return new Point(x - p.x, y - p.y); }
+		public double abs() { return Math.sqrt(x*x + y*y); }
+		public double distance(Point p) { return diff(p).abs(); }
+		public Point transform(PGraph g) { return new Point(g.transformX(x), g.transformY(y)); }
+		public Point retransform(PGraph g) { return new Point(g.retransformX(Math.round(x)), g.retransformY(Math.round(y))); }
 	};
 	
 	public List<Point> dragablePoints = new LinkedList<Point>();
+	public ActionListener OnDragablePointMoved;
 	
 	public void setXYValuesInversFrom(PGraph src) {
 		x_l = src.y_u;
@@ -102,9 +114,12 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		drawStateMsg(g);
 		
 		// Funktionen
-		g.setColor(Color.BLUE);
-		for(Function2D function : functions)
+		Iterator<Color> ci = functionColors.iterator();
+		for(Function2D function : functions) {
+			Color c = ci.hasNext() ? ci.next() : null;
+			if(c != null) g.setColor(c); else g.setColor(Color.BLUE);
 			drawFunction(g, function);
+		}
 		
 		// Punkte
 		for(Point p : dragablePoints)
@@ -153,7 +168,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	
 	protected void drawPoint(Graphics g, Point p) {
 		g.setColor(new Color(255, 123, 50, 200));
-		g.fillOval((int)p.x - 3, (int)p.y - 3, 6, 6);
+		g.fillOval(transformX(p.x) - 3, transformY(p.y) - 3, 6, 6);
 	}
 	
 	protected String getStateMsg() {
@@ -260,11 +275,11 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		return H - yspace_u - (int) ((y - y_u) * (H - yspace_o - yspace_u) / (y_o - y_u));
 	}
 	
-	public double retransformX(int x) {
-		return x_l + (double)(x - xspace_l) * (x_r - x_l) / (W - xspace_r - xspace_l);
+	public double retransformX(long l) {
+		return x_l + (double)(l - xspace_l) * (x_r - x_l) / (W - xspace_r - xspace_l);
 	}
 	
-	public double retransformY(int y) {
+	public double retransformY(long y) {
 		return y_u + (double)(H - yspace_u - y) * (y_o - y_u) / (H - yspace_o - yspace_u);
 	}
 	
@@ -363,10 +378,27 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		selectedY = y;
 	}
 	
+	protected Point findNearPoint(Collection<Point> points, Point near) {
+		for(Point p : points) {
+			if(p.transform(this).distance(near.transform(this)) <= 4) return p;
+		}
+		return null;
+	}
+	
 	public void mouseClicked(MouseEvent e) {
 //		mouseMoved(e);
 //		state++; state %= 3;
+		if(draggedPoint == null) {
+			Point retransformedPoint = new Point(retransformX(e.getX()), retransformY(e.getY()));
+			Point p = findNearPoint(dragablePoints, retransformedPoint);
+			draggedPoint = p;
+		}
+		else {
+			draggedPoint = null;
+		}
 	}
+	
+	Point draggedPoint = null;
 	public void mouseMoved(MouseEvent e) {
 /*		if(state < 2) {
 			doSelectionXRange(state, e.getX());
@@ -378,13 +410,39 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			doSelectionYPos(transformY(function.get(selectedX)), false);
 			break;
 		}
+
+		{
+			Point retransformedPoint = new Point(retransformX(e.getX()), retransformY(e.getY()));
+			if(true /*e.getButton() == MouseEvent.BUTTON1*/ ) {
+				if(draggedPoint != null) {
+					draggedPoint.x = retransformedPoint.x;
+					draggedPoint.y = retransformedPoint.y;
+					if(OnDragablePointMoved != null)
+						OnDragablePointMoved.actionPerformed(new ActionEvent(this, 0, ""));
+				}
+				else {
+					Point p = findNearPoint(dragablePoints, retransformedPoint);
+					if(p != null) {
+						e.getComponent().setCursor(new Cursor(Cursor.HAND_CURSOR));
+					}
+					else {
+						e.getComponent().setCursor(null);
+					}				
+				}
+			}				
+		}
+		
 		applet.repaint();
 	}
 	public void mouseEntered(MouseEvent e) {}
 	public void mouseExited(MouseEvent e) {}
 	public void mousePressed(MouseEvent e) {}
-	public void mouseReleased(MouseEvent e) {}
-	public void mouseDragged(MouseEvent e) {}
+	public void mouseReleased(MouseEvent e) {
+		//mouseMoved(e);
+	}
+	public void mouseDragged(MouseEvent e) {
+		//mouseMoved(e);
+	}
 
 	public int getH() {
 		return H;
