@@ -1,4 +1,4 @@
-package applets.ganze$und$natuerliche$Zahlen_4_kgVsimpel;
+package applets.Trigonometrie_SinCos_variable;
 
 import java.awt.Point;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(380, 280);
+		applet.setSize(560, 454);
 	}
 
 	public void run() {

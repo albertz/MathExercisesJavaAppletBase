@@ -1,13 +1,33 @@
-Bestimmen Sie das kleinste gemeinsame Vielfache (kgV)
+Hallo Welt.
+\m{Das ist der mathemodus.}
 
-a) der Zahlen \m{6} und \m{8}. Es gilt \m{kgV(6, 8) = }\text[s1, width=30].
-b) der Zahlen \m{4} und \m{8}. Es gilt \m{kgV(4, 8) = }\text[s2, width=30].
-c) der Zahlen \m{9} und \m{12}. Es gilt \m{kgV(9, 12) = }\text[s3, width=30].
-d) der Zahlen \m{21} und \m{98}. Es gilt \m{kgV(21, 98) = }\text[s4, width=30].
-e) der Zahlen \m{15} und \m{250}. Es gilt \m{kgV(15, 250) = }\text[s5, width=30].
-f) der Zahlen \m{7},\m{9} und \m{12}. Es gilt \m{kgV(7, 9, 12) = }\text[s6, width=30].
 
-\button[type=check, index=1]   \label[res1]{wwwwwwwwwwwwwwww} \button[type=help,index=1]
-\define[s1="24", s2="16", 
-s3="36", s4="294", 
-s5="750", s6="252"] 
+Geben Sie folgende Mengen an:
+\m{f(U)      = } \selector[s1]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
+
+\button[type=check,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=1]
+\define[s1="\empty", s2="\{1,2,4\}", s3="\{B,C,D\}", s4="\{3,5,6\}",
+        s5="\empty", s6="\empty", 
+        s7="\{C\}", s8="\empty"]
+        
+\container[c1_correct]{Richtig.}
+\container[c1_wrong]{Ganz falsch.
+
+Geben Sie folgende Mengen an:
+\m{f(U)      = } \text[s11, width=300] \
+        \m{f⁻¹(W) =} \selector[s12]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
+\m{f(V)      = } \selector[s13]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
+        \m{f⁻¹(Z) =} \selector[s14]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
+\m{f(U \cap  V)  = } \selector[s15]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
+        \m{f⁻¹(W \cap  Z)=} \selector[s16]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
+\m{f(U) \cap  f(V) = } \selector[s17]{"\empty", "\{A\}", "\{B\}", "\{C\}", "\{D\}", "\{A,B\}", "\{A,C\}", "\{B,C\}", "\{A,B,C\}", "\{B,C,D\}"}\
+        \m{f⁻¹(W) \cap  f⁻¹(Z)=} \selector[s18]{"\empty", "\{1\}", "\{3\}", "\{6\}", "\{1,3\}", "\{2,5\}", "\{1,2,3\}", "\{1,2,4\}", "\{1,2,6\}", "\{3,4,6\}", "\{3,5,6\}", "\{4,5,6\}"}
+
+
+\button[type=check,index=11]   \label[res11]{wwwwwwwwwwwwwwwwwwwwww} \button[type=help,index=11]
+\define[s11="hallo", s12="\{1,2,4\}", s13="\{B,C,D\}", s14="\{3,5,6\}",
+        s15="\empty", s16="\empty", 
+        s17="\{C\}", s18="\empty"]
+        
+        }
+        

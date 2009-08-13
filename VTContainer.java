@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.ganze$und$natuerliche$Zahlen_4_kgVsimpel;
+package applets.Trigonometrie_SinCos_variable;
 
 import java.awt.Component;
 import java.awt.Point;

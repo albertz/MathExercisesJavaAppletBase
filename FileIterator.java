@@ -1,4 +1,4 @@
-package applets.ganze$und$natuerliche$Zahlen_4_kgVsimpel;
+package applets.Trigonometrie_SinCos_variable;
 
 import java.io.File;
 import java.io.FileFilter;
