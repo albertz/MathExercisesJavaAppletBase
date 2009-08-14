@@ -1,4 +1,4 @@
-package applets.Trigonometrie_SinCos_variable;
+package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
 
 import java.awt.Color;
 import java.awt.Point;
@@ -7,10 +7,6 @@ import java.awt.event.ActionListener;
 import java.util.Arrays;
 
 import javax.swing.JLabel;
-
-import applets.Trigonometrie_SinCos_variable.PGraph.Function2D;
-
-
 
 
 
@@ -41,14 +37,14 @@ public class Content {
 		graph.axeXPostText = "π";
 		
 		graph.functions.add(
-				new Function2D() {
+				new PGraph.Function2D() {
 					public double get(double x) {
 						return sinParams.y * Math.sin(x - sinParams.x + Math.PI/2);
 					}});
 		graph.functionColors.add(Color.BLUE);
 		
 		graph.functions.add(
-				new Function2D() {
+				new PGraph.Function2D() {
 					public double get(double x) {
 						return cosParams.y * Math.cos(x - cosParams.x);
 					}});

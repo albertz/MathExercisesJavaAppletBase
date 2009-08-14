@@ -1,4 +1,4 @@
-package applets.Trigonometrie_SinCos_variable;
+package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
 
 import java.io.File;
 import java.io.FileFilter;

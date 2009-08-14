@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Trigonometrie_SinCos_variable;
+package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
 
 class Var {
 	public String name = "";

@@ -1,4 +1,4 @@
-package applets.Trigonometrie_SinCos_variable;
+package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
 
 import java.awt.Color;
 import java.awt.Font;
