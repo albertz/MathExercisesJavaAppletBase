@@ -13,8 +13,9 @@ import javax.swing.JLabel;
 public class Content {
 
 	Applet applet;
-	PGraph.Point sinParams = new PGraph.Point(Math.PI/2, 1);
-	PGraph.Point cosParams = new PGraph.Point(0, 1);
+	PGraph.Point zParams = new PGraph.Point(1, 1);
+	PGraph.Point conjzParams = new PGraph.Point(1, -1);
+	PGraph.Point abszParams = new PGraph.Point(Math.sqrt(2), 0);	
 	PGraph graph;
 	
 	public Content(Applet applet) {
@@ -22,7 +23,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(700, 454);
+		applet.setSize(440, 550);
 	}
 
 	protected String Round(double x) {
@@ -30,37 +31,33 @@ public class Content {
 	}
 	
 	public void run() {
-		graph = new PGraph(applet, 660, 300);
-		graph.axeXStep = Math.PI/2;
-		graph.axeXTextStep = 4;
-		graph.axeXMult = 0.25 * 2;
-		graph.axeXPostText = "π";
+		graph = new PGraph(applet, 400, 400);
+		graph.x_l = -4;
+		graph.x_r = 4;
+		graph.y_o = 4;
+		graph.y_u = -4;
 		
-		graph.functions.add(
-				new PGraph.Function2D() {
-					public double get(double x) {
-						return sinParams.y * Math.sin(x - sinParams.x + Math.PI/2);
-					}});
-		graph.functionColors.add(Color.BLUE);
+		graph.dragablePoints.add(new PGraph.GraphPoint(zParams, Color.RED, true, true));
+		graph.dragablePoints.add(new PGraph.GraphPoint(conjzParams, Color.BLUE, true, false));		
+		graph.dragablePoints.add(new PGraph.GraphPoint(abszParams, Color.BLACK, true, false));
 		
-		graph.functions.add(
-				new PGraph.Function2D() {
-					public double get(double x) {
-						return cosParams.y * Math.cos(x - cosParams.x);
-					}});
-		graph.functionColors.add(Color.GREEN);
-		
-		graph.dragablePoints.add(sinParams);
-		graph.dragablePoints.add(cosParams);
 		graph.OnDragablePointMoved =
 				new ActionListener() {
-					public void actionPerformed(ActionEvent e) {						   
-						((JLabel) applet.getComponentByName("f1"))
-						.setText("f(x) = " + Round(sinParams.y) + "∙sin(x + " + Round(- (sinParams.x - Math.PI/2) / Math.PI) + "π)");
-						((JLabel) applet.getComponentByName("f2"))
-						.setText("g(x) = " + Round(cosParams.y) + "∙cos(x + " + Round(- (cosParams.x - Math.PI/2) / Math.PI) + "π)");
-						((JLabel) applet.getComponentByName("f1")).setForeground(Color.BLUE);
-						((JLabel) applet.getComponentByName("f2")).setForeground(Color.GREEN);
+					public void actionPerformed(ActionEvent e) {
+						conjzParams.x = zParams.x;
+						conjzParams.y = -zParams.y;
+						abszParams.x = zParams.abs();
+						
+						((JLabel) applet.getComponentByName("z"))
+						.setText("z = " + Round(zParams.x) + " + " + Round(zParams.y) + "i");
+						((JLabel) applet.getComponentByName("conjz"))
+						.setText("conj z = " + Round(conjzParams.x) + " + " + Round(conjzParams.y) + "i");
+						((JLabel) applet.getComponentByName("absz"))
+						.setText("|z| = " + Round(abszParams.x));
+
+						((JLabel) applet.getComponentByName("z")).setForeground(Color.RED);
+						((JLabel) applet.getComponentByName("conjz")).setForeground(Color.BLUE);
+						((JLabel) applet.getComponentByName("absz")).setForeground(Color.BLACK);
 					}
 				};
 		

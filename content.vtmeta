@@ -1,7 +1,8 @@
-Klicken Sie auf einen der Punkte und bewegen Sie ihn. Ein weiterer Klick fixiert
-ihn an der aktuellen Stelle. Unten finden Sie die jeweilige Funktionsvorschrift.
+Klicken Sie auf den roten Punkt und bewegen Sie so die Zahl \m{z} in
+der komplexen Ebene.
 
 \object[graph]
 
-\label[f1]{--------------------------------------------------------}
-\label[f2]{--------------------------------------------------------}
+\label[z]{--------------------------------------------------------}
+\label[conjz]{--------------------------------------------------------}
+\label[absz]{--------------------------------------------------------}
