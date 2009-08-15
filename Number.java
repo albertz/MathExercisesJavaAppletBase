@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
+package applets.Komplexe$Zahlen_Polarkoordinaten;
 
 class Number {
 	public int number = 0;

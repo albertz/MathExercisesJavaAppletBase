@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
+package applets.Komplexe$Zahlen_Polarkoordinaten;
 
 import java.awt.Color;
 import java.awt.Component;

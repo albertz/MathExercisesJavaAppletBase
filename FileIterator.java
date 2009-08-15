@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_KonjugiertKomplexeZahlen;
+package applets.Komplexe$Zahlen_Polarkoordinaten;
 
 import java.io.File;
 import java.io.FileFilter;
