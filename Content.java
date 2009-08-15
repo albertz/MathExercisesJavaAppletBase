@@ -14,8 +14,6 @@ public class Content {
 
 	Applet applet;
 	PGraph.Point zParams = new PGraph.Point(1, 1);
-	PGraph.Point conjzParams = new PGraph.Point(1, -1);
-	PGraph.Point abszParams = new PGraph.Point(Math.sqrt(2), 0);	
 	PGraph graph;
 	
 	public Content(Applet applet) {
@@ -23,7 +21,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(440, 550);
+		applet.setSize(440, 530);
 	}
 
 	protected String Round(double x) {
@@ -36,28 +34,23 @@ public class Content {
 		graph.x_r = 4;
 		graph.y_o = 4;
 		graph.y_u = -4;
+		graph.showPolarcircles = true;
 		
 		graph.dragablePoints.add(new PGraph.GraphPoint(zParams, Color.RED, true, true));
-		graph.dragablePoints.add(new PGraph.GraphPoint(conjzParams, Color.BLUE, true, false));		
-		graph.dragablePoints.add(new PGraph.GraphPoint(abszParams, Color.BLACK, true, false));
 		
 		graph.OnDragablePointMoved =
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						conjzParams.x = zParams.x;
-						conjzParams.y = -zParams.y;
-						abszParams.x = zParams.abs();
+						double abs = zParams.abs();
+						double angle = Math.atan2(zParams.y, zParams.x) / Math.PI;
 						
 						((JLabel) applet.getComponentByName("z"))
 						.setText("z = " + Round(zParams.x) + " + " + Round(zParams.y) + "i");
-						((JLabel) applet.getComponentByName("conjz"))
-						.setText("conj z = " + Round(conjzParams.x) + " + " + Round(conjzParams.y) + "i");
-						((JLabel) applet.getComponentByName("absz"))
-						.setText("|z| = " + Round(abszParams.x));
+						((JLabel) applet.getComponentByName("polarz"))
+						.setText("z = " + Round(abs) + "∙( cos(" + Round(angle) + "π) + i∙sin(" + Round(angle) + "π) )");
 
 						((JLabel) applet.getComponentByName("z")).setForeground(Color.RED);
-						((JLabel) applet.getComponentByName("conjz")).setForeground(Color.BLUE);
-						((JLabel) applet.getComponentByName("absz")).setForeground(Color.BLACK);
+						((JLabel) applet.getComponentByName("polarz")).setForeground(Color.RED);
 					}
 				};
 		

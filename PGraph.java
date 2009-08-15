@@ -47,6 +47,8 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	public double selectedX1 = 0, selectedX2 = 0;
 	public double selectedX = 0;
 	public double selectedY = -100;
+	
+	public boolean showPolarcircles = false;
 
 	protected int simulationX2Ypos = 0;
 	protected int simulationX2Ydir = -1; // 1 = pos; -1 = neg
@@ -108,6 +110,11 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		
 		drawAchsen(g);
 		drawAchsentext(g);
+		
+		if(showPolarcircles) {
+			drawPolarcircles(g);
+		}
+		
 		drawSelectionXPos(g);
 		drawSelectionYPos(g);
 		drawSelectionXRange(g);
@@ -171,6 +178,25 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		g.fillOval(x - 3, y - 3, 6, 6);
 	}
 	
+	protected void drawPolarcircles(Graphics g) {
+		g.setColor(new Color(100,100,100,100));
+		
+		int x = transformX(0), y = transformY(0);
+		if(x < xspace_l) x = xspace_l;
+		if(x > W - xspace_r) x = W - xspace_r;
+		if(y < yspace_o) y = yspace_o;
+		if(y > H - yspace_u) y = H - yspace_u;
+
+		double i = 0;
+		double S = Math.sqrt(2);
+		for(; -i/S >= x_l || i/S <= x_r || -i/S >= y_u || i/S <= y_o; i += axeXStep) {
+			if(i == 0) continue;
+			g.drawOval(
+					transformX(-i), transformY(i),
+					transformX(i) - transformX(-i), transformY(-i) - transformY(i));			
+		}
+	}
+	
 	protected void drawPoint(Graphics g, Color c, Point p) {
 		g.setColor(c);
 		g.fillOval(transformX(p.x) - 3, transformY(p.y) - 3, 6, 6);
@@ -184,6 +210,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		g.drawLine(transformX(start.x)+1, transformY(start.y)-1, transformX(p.x)+1, transformY(p.y)-1);
 		g.drawLine(transformX(start.x)-1, transformY(start.y)-1, transformX(p.x)-1, transformY(p.y)-1);
 
+		g.fillOval(transformX(p.x) - 2, transformY(p.y) - 2, 5, 5);		
 	}
 
 	protected String getStateMsg() {
