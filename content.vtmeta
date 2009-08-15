@@ -1,5 +1,7 @@
-\m{\label[reqz]{------------------------------------------------------}}
-\m{Re(z) =} \text[s1]{}
-\m{Im(z) =} \text[s2]{}
-\button[type=check,source=checker,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
-\button[type=next]{nächste Aufgabe}	
+Klicken Sie auf das Ende des roten Pfeils und bewegen Sie so
+die Zahl \m{z} in der komplexen Ebene.
+
+\object[graph]
+
+\label[z]{--------------------------------------------------------}
+\label[polarz]{--------------------------------------------------------}

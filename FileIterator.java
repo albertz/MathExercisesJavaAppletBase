@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoord_PolarZuEbene;
+package applets.Komplexe$Zahlen_Polarkoord_Multiplikation;
 
 import java.io.File;
 import java.io.FileFilter;

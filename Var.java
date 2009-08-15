@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Komplexe$Zahlen_Polarkoord_PolarZuEbene;
+package applets.Komplexe$Zahlen_Polarkoord_Multiplikation;
 
 class Var {
 	public String name = "";
