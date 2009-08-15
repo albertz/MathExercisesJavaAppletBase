@@ -1,8 +1,15 @@
-Klicken Sie auf das Ende einer der roten Pfeile und bewegen Sie so
-die Zahlen \m{z1} und \m{z2} in der komplexen Ebene.
+Klicken Sie auf das Ende des roten Pfeiles und bewegen Sie so
+die Zahl \m{z} in der komplexen Ebene.
 
 \object[graph]
+\m{n =} \text[s1] \button[type=check,source=next]{aktuallisieren}
+\label[z]{--------------------------------------------------------------------------------------}
+\label[potz]{--------------------------------------------------------------------------------------}
 
-\label[z1]{--------------------------------------------------------------------------------------}
-\label[z2]{-------------------------------------------------------------------------------------}
-\label[multz]{--------------------------------------------------------------------------------------}
+
+
+
+
+
+
+\label[res1]{--}
