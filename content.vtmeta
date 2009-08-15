@@ -1,8 +1,5 @@
-Klicken Sie auf das Ende einer der roten Pfeile und bewegen Sie so
-die Zahlen \m{z1} und \m{z2} in der komplexen Ebene.
-
-\object[graph]
-
-\label[z1]{--------------------------------------------------------------------------------------}
-\label[z2]{-------------------------------------------------------------------------------------}
-\label[multz]{--------------------------------------------------------------------------------------}
+\m{\label[reqz]{------------------------------------------------------}}
+\m{Re(z) =} \text[s1]{}
+\m{Im(z) =} \text[s2]{}
+\button[type=check,source=checker,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\button[type=next]{nächste Aufgabe}	

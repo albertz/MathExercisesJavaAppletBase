@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Komplexe$Zahlen_Polarkoord_Multiplikation;
+package applets.Komplexe$Zahlen_Polarkoord_MultiplikationAufg;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
