@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Komplexe$Zahlen_Polarkoordinaten;
+package applets.Komplexe$Zahlen_Polarkoord_AuswahlAufg;
 
 import java.awt.Color;
 import java.awt.Component;

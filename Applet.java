@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoordinaten;
+package applets.Komplexe$Zahlen_Polarkoord_AuswahlAufg;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

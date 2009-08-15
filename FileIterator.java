@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoordinaten;
+package applets.Komplexe$Zahlen_Polarkoord_AuswahlAufg;
 
 import java.io.File;
 import java.io.FileFilter;
