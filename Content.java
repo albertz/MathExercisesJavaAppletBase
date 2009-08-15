@@ -8,12 +8,13 @@ import java.util.Random;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
 
-
 public class Content {
 
 	Applet applet;
-	PGraph.Point zParams = new PGraph.Point(Math.sqrt(2), Math.sqrt(2));
-	PGraph.Point wantedPoint = new PGraph.Point(0,0);
+	PGraph.Point z1Params = new PGraph.Point(Math.sqrt(2), Math.sqrt(2));
+	PGraph.Point z2Params = new PGraph.Point(0, 1);
+	PGraph.Point multParams = new PGraph.Point(-Math.sqrt(2), Math.sqrt(2));	
+	PGraph.Point selection = new PGraph.Point(Math.sqrt(2), Math.sqrt(2));
 	PGraph graph;
 	
 	public Content(Applet applet) {
@@ -21,7 +22,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(297, 164);
+		applet.setSize(436, 581);
 	}
 
 	void postinit() {
@@ -29,17 +30,46 @@ public class Content {
 	}
 	
 	public void next(int index) {
-		wantedPoint = randomChoiceFrom(graph.gridPolarPoints());
+		do {
+			z1Params = randomChoiceFrom(graph.gridPolarPoints());
+			z2Params = randomChoiceFrom(graph.gridPolarPoints());
+		} while(z1Params.abs() + z2Params.abs() > 5);
+		updateMult();
 		showText();
 		((JLabel) applet.getComponentByName("res1")).setText("");		
 	}
 	
-	protected void showText() {						
-		double abs = wantedPoint.abs();
-		double angle = Math.atan2(wantedPoint.y, wantedPoint.x) * 180.0 / Math.PI;
+	protected void updateMult() {
+		multParams.x = z1Params.x * z2Params.x - z1Params.y * z2Params.y;
+		multParams.y = z1Params.x * z2Params.y + z1Params.y * z2Params.x;	
+	}
+	
+	protected void showText() {		
+		double abs1 = z1Params.abs();
+		double angle1 = Math.atan2(z1Params.y, z1Params.x) / Math.PI;
+		double abs2 = z2Params.abs();
+		double angle2 = Math.atan2(z2Params.y, z2Params.x) / Math.PI;		
+		double absM = multParams.abs();
+		double angleM = Math.atan2(multParams.y, multParams.x) / Math.PI;
 		
-		((JLabel) applet.getComponentByName("reqz"))
-		.setText("z = " + Round(abs) + "∙( cos(" + Round(angle) + "°) + i∙sin(" + Round(angle) + "°) )");
+		((JLabel) applet.getComponentByName("z1"))
+		.setText(
+				"z1 = " + Round(z1Params.x) + " + " + Round(z1Params.y) + "i" +
+				" = " + Round(abs1) + "∙( cos(" + Round(angle1) + "π) + i∙sin(" + Round(angle1) + "π) )");
+
+		((JLabel) applet.getComponentByName("z2"))
+		.setText(
+				"z2 = " + Round(z2Params.x) + " + " + Round(z2Params.y) + "i" +
+				" = " + Round(abs2) + "∙( cos(" + Round(angle2) + "π) + i∙sin(" + Round(angle2) + "π) )");
+
+		/*((JLabel) applet.getComponentByName("multz"))
+		.setText(
+				"z1 * z2 = " + Round(multParams.x) + " + " + Round(multParams.y) + "i" +
+				" = " + Round(absM) + "∙( cos(" + Round(angleM) + "π) + i∙sin(" + Round(angleM) + "π) )");*/
+
+		((JLabel) applet.getComponentByName("z1")).setForeground(Color.RED);
+		((JLabel) applet.getComponentByName("z2")).setForeground(Color.RED);
+		//((JLabel) applet.getComponentByName("multz")).setForeground(Color.BLUE);
 		
 		((JLabel) applet.getComponentByName("res1")).setText("");						
 	}
@@ -53,15 +83,7 @@ public class Content {
 		int i = new Random().nextInt(ar.length);
 		return ar[i];
 	}
-	
-	protected void updateZ() {
-		try {
-			zParams.x = new Double(((JTextField) applet.getComponentByName("s1")).getText()).doubleValue();
-			zParams.y = new Double(((JTextField) applet.getComponentByName("s2")).getText()).doubleValue();
-		}
-		catch(Exception e) {}
-	}
-	
+		
 	public void run() {
 		// brauchen wir nur für next() für graph.gridPolarPoints()
 		graph = new PGraph(applet, 400, 400);
@@ -69,7 +91,19 @@ public class Content {
 		graph.x_r = 4;
 		graph.y_o = 4;
 		graph.y_u = -4;
+		graph.showPolarcircles = true;
 		
+		//graph.dragablePoints.add(new PGraph.GraphPoint(z1Params, Color.RED, true, true));
+		//graph.dragablePoints.add(new PGraph.GraphPoint(z2Params, Color.RED, true, true));
+		graph.dragablePoints.add(new PGraph.GraphPoint(selection, Color.BLUE, true, true));
+		
+		graph.OnDragablePointMoved =
+				new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						((JLabel) applet.getComponentByName("res1")).setText("");					
+					}
+				};
+				
 		Applet.CorrectCheck checker = new Applet.CorrectCheck() {
 
 			public String getResultMsg() {
@@ -77,14 +111,14 @@ public class Content {
 			}
 
 			public boolean isCorrect() {
-				updateZ();
-				return wantedPoint.distance(zParams) < 0.1;
+				return selection.distance(multParams) < 0.1;
 			}
 			
 		};
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTDummyObject("checker", 0, 0, checker),
+				new VTImage("graph", 10, 5, graph.getW(), graph.getH(), graph)
 		});	
 	}
 	

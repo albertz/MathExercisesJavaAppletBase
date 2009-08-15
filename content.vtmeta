@@ -1,5 +1,8 @@
-\m{\label[reqz]{------------------------------------------------------}}
-\m{Re(z) =} \text[s1]{}
-\m{Im(z) =} \text[s2]{}
+\label[z1]{---------------------------------------------------------------------------------}
+\label[z2]{---------------------------------------------------------------------------------}
+Klicken Sie auf das Ende des blauen Pfeils und wählen
+Sie so die Zahl \m{z1 ∙ z2} in der komplexen Ebene aus.
+\object[graph]
+
 \button[type=check,source=checker,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
 \button[type=next]{nächste Aufgabe}	
