@@ -70,6 +70,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		public Color color = new Color(255, 123, 50, 200);
 		public boolean dragable = true;
 		public boolean asVector = false;
+		public boolean snapToGrid = true;
 		public GraphPoint() {}
 		public GraphPoint(Point point, Color color, boolean asVector, boolean dragable) {
 			this.point = point;
@@ -193,8 +194,35 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			if(i == 0) continue;
 			g.drawOval(
 					transformX(-i), transformY(i),
-					transformX(i) - transformX(-i), transformY(-i) - transformY(i));			
+					transformX(i) - transformX(-i), transformY(-i) - transformY(i));
+			
+			for(double angle = 0; angle < 2 * Math.PI; angle += 2 * Math.PI / 24) {
+				g.drawLine(
+						transformX(0), transformY(0),
+						transformX(i * Math.cos(angle)), transformY(i * Math.sin(angle)));
+			}
 		}
+	}
+
+	protected Collection<Point> gridPolarPoints() {
+		LinkedList<Point> points = new LinkedList<Point>();
+		
+		int x = transformX(0), y = transformY(0);
+		if(x < xspace_l) x = xspace_l;
+		if(x > W - xspace_r) x = W - xspace_r;
+		if(y < yspace_o) y = yspace_o;
+		if(y > H - yspace_u) y = H - yspace_u;
+
+		double i = 0;
+		double S = Math.sqrt(2);
+		for(; -i/S >= x_l || i/S <= x_r || -i/S >= y_u || i/S <= y_o; i += axeXStep) {			
+			for(double angle = 0; angle < 2 * Math.PI; angle += 2 * Math.PI / 24) {
+				points.add(new Point(i * Math.cos(angle), i * Math.sin(angle)));
+				if(i == 0) break;
+			}
+		}
+		
+		return points;
 	}
 	
 	protected void drawPoint(Graphics g, Color c, Point p) {
@@ -430,6 +458,17 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		return null;
 	}
 	
+	protected Point findNearestPoint(Collection<Point> points, Point near) {
+		Point p = null;
+		for(Point q : points) {
+			if(p == null)
+				p = q;
+			else if(q.transform(this).distance(near.transform(this)) <= p.transform(this).distance(near.transform(this)))
+				p = q;
+		}
+		return p;
+	}
+
 	public void mouseClicked(MouseEvent e) {
 //		mouseMoved(e);
 //		state++; state %= 3;
@@ -460,8 +499,10 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			Point retransformedPoint = new Point(retransformX(e.getX()), retransformY(e.getY()));
 			if(true /*e.getButton() == MouseEvent.BUTTON1*/ ) {
 				if(draggedPoint != null) {
-					draggedPoint.point.x = retransformedPoint.x;
-					draggedPoint.point.y = retransformedPoint.y;
+					Point p = retransformedPoint;
+					if(draggedPoint.snapToGrid) p = findNearestPoint(gridPolarPoints(), p);
+					draggedPoint.point.x = p.x;
+					draggedPoint.point.y = p.y;
 					if(OnDragablePointMoved != null)
 						OnDragablePointMoved.actionPerformed(new ActionEvent(this, 0, ""));
 				}
@@ -474,7 +515,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 						e.getComponent().setCursor(null);
 					}				
 				}
-			}				
+			}			
 		}
 		
 		applet.repaint();
