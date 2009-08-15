@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Random;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
 
 
 public class Content {
@@ -20,7 +21,27 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(440, 610);
+		applet.setSize(297, 164);
+	}
+
+	void postinit() {
+		next(0);
+	}
+	
+	public void next(int index) {
+		wantedPoint = randomChoiceFrom(graph.gridPolarPoints());
+		showText();
+		((JLabel) applet.getComponentByName("res1")).setText("");		
+	}
+	
+	protected void showText() {						
+		double abs = wantedPoint.abs();
+		double angle = Math.atan2(wantedPoint.y, wantedPoint.x) * 180.0 / Math.PI;
+		
+		((JLabel) applet.getComponentByName("reqz"))
+		.setText("z = " + Round(abs) + "∙( cos(" + Round(angle) + "°) + i∙sin(" + Round(angle) + "°) )");
+		
+		((JLabel) applet.getComponentByName("res1")).setText("");						
 	}
 
 	protected String Round(double x) {
@@ -33,33 +54,22 @@ public class Content {
 		return ar[i];
 	}
 	
+	protected void updateZ() {
+		try {
+			zParams.x = new Double(((JTextField) applet.getComponentByName("s1")).getText()).doubleValue();
+			zParams.y = new Double(((JTextField) applet.getComponentByName("s2")).getText()).doubleValue();
+		}
+		catch(Exception e) {}
+	}
+	
 	public void run() {
+		// brauchen wir nur für next() für graph.gridPolarPoints()
 		graph = new PGraph(applet, 400, 400);
 		graph.x_l = -4;
 		graph.x_r = 4;
 		graph.y_o = 4;
 		graph.y_u = -4;
-		graph.showPolarcircles = true;
 		
-		graph.dragablePoints.add(new PGraph.GraphPoint(zParams, Color.BLUE, true, true));
-		
-		graph.OnDragablePointMoved =
-				new ActionListener() {
-					public void actionPerformed(ActionEvent e) {						
-						((JLabel) applet.getComponentByName("z"))
-						.setText("z = " + Round(zParams.x) + " + " + Round(zParams.y) + "i");
-						((JLabel) applet.getComponentByName("z")).setForeground(Color.BLUE);
-
-						double abs = wantedPoint.abs();
-						double angle = Math.atan2(wantedPoint.y, wantedPoint.x) / Math.PI;
-						
-						((JLabel) applet.getComponentByName("reqz"))
-						.setText("z = " + Round(abs) + "∙( cos(" + Round(angle) + "π) + i∙sin(" + Round(angle) + "π) )");
-						
-						((JLabel) applet.getComponentByName("res1")).setText("");						
-					}
-				};
-
 		Applet.CorrectCheck checker = new Applet.CorrectCheck() {
 
 			public String getResultMsg() {
@@ -67,34 +77,15 @@ public class Content {
 			}
 
 			public boolean isCorrect() {
-				return wantedPoint.transform(graph).distance(zParams.transform(graph)) < 0.1;
+				updateZ();
+				return wantedPoint.distance(zParams) < 0.1;
 			}
 			
 		};
 		
-		// very bad hack (to use CorrectCheck as action)
-		Applet.CorrectCheck next = new Applet.CorrectCheck() {
-			public String getResultMsg() { return ""; }
-
-			public boolean isCorrect() {
-				do {
-					wantedPoint = randomChoiceFrom(graph.gridPolarPoints());
-				} while(wantedPoint.abs() > 4);
-				graph.OnDragablePointMoved.actionPerformed(null);
-				((JLabel) applet.getComponentByName("res1")).setText("");				
-				return true;
-			}
-			
-		};
-
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("graph", 10, 5, graph.getW(), graph.getH(), graph),
 				new VTDummyObject("checker", 0, 0, checker),
-				new VTDummyObject("next", 0, 0, next)				
 		});	
 	}
 	
-	void postinit() {
-		graph.OnDragablePointMoved.actionPerformed(null);		
-	}
 }

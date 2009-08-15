@@ -1,16 +1,5 @@
-Klicken Sie auf das Ende des blauen Pfeils und bewegen Sie so
-die Zahl \m{z} in der komplexen Ebene.
-
-\object[graph]
-
-\label[z]{--------------------------------------------------------}
-
-Wählen Sie aus:
-\m{\label[reqz]{------------------------------------------------------}}  \button[type=check,source=next,index=42]{nächste Aufgabe}	
+\m{\label[reqz]{------------------------------------------------------}}
+\m{Re(z) =} \text[s1]{}
+\m{Im(z) =} \text[s2]{}
 \button[type=check,source=checker,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
-
-
-
-
-\label[res42]{}
-
+\button[type=next]{nächste Aufgabe}	

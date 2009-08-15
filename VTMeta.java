@@ -9,30 +9,6 @@ import java.util.List;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 public class VTMeta extends VTContainer  {
 	
 	private final Applet applet;
@@ -186,6 +162,12 @@ public class VTMeta extends VTContainer  {
 				else
 					action = this.applet.createCheckButtonListener(index);
 				if(text == "") text = "überprüfen";
+			}
+			else if(getExtParamVar(extparam, "type").compareToIgnoreCase("next") == 0) {
+				final int fixed_index = index;
+				action = new Runnable() {
+					public void run() { applet.content.next(fixed_index); }
+				};
 			}
 			String name = getExtParamVar(extparam, "name");
 			return new VTButton(name, text, 0, 0, action);

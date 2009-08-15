@@ -35,7 +35,7 @@ import javax.swing.JComboBox;
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
-	private Content content = new Content(this);
+	public Content content = new Content(this);
 
 	public static Font monospaceFont; 
 	public static Font defaultFont;
