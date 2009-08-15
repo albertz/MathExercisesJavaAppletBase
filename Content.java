@@ -30,13 +30,14 @@ public class Content {
 	}
 	
 	public void next(int index) {
+		selection.x = Math.sqrt(2); selection.y = Math.sqrt(2);
 		do {
 			z1Params = randomChoiceFrom(graph.gridPolarPoints());
 			z2Params = randomChoiceFrom(graph.gridPolarPoints());
-		} while(z1Params.abs() + z2Params.abs() > 5);
+		} while(z1Params.abs() * z2Params.abs() > 5);
 		updateMult();
 		showText();
-		((JLabel) applet.getComponentByName("res1")).setText("");		
+		((JLabel) applet.getComponentByName("res1")).setText("");
 	}
 	
 	protected void updateMult() {
@@ -46,21 +47,21 @@ public class Content {
 	
 	protected void showText() {		
 		double abs1 = z1Params.abs();
-		double angle1 = Math.atan2(z1Params.y, z1Params.x) / Math.PI;
+		double angle1 = Math.atan2(z1Params.y, z1Params.x) * 180 / Math.PI;
 		double abs2 = z2Params.abs();
-		double angle2 = Math.atan2(z2Params.y, z2Params.x) / Math.PI;		
+		double angle2 = Math.atan2(z2Params.y, z2Params.x) * 180 / Math.PI;		
 		double absM = multParams.abs();
-		double angleM = Math.atan2(multParams.y, multParams.x) / Math.PI;
+		double angleM = Math.atan2(multParams.y, multParams.x) * 180 / Math.PI;
 		
 		((JLabel) applet.getComponentByName("z1"))
 		.setText(
 				"z1 = " + Round(z1Params.x) + " + " + Round(z1Params.y) + "i" +
-				" = " + Round(abs1) + "∙( cos(" + Round(angle1) + "π) + i∙sin(" + Round(angle1) + "π) )");
-
+				" = " + Round(abs1) + "∙( cos(" + Round(angle1) + "°) + i∙sin(" + Round(angle1) + "°) )");
+		
 		((JLabel) applet.getComponentByName("z2"))
 		.setText(
 				"z2 = " + Round(z2Params.x) + " + " + Round(z2Params.y) + "i" +
-				" = " + Round(abs2) + "∙( cos(" + Round(angle2) + "π) + i∙sin(" + Round(angle2) + "π) )");
+				" = " + Round(abs2) + "∙( cos(" + Round(angle2) + "°) + i∙sin(" + Round(angle2) + "°) )");
 
 		/*((JLabel) applet.getComponentByName("multz"))
 		.setText(
@@ -111,6 +112,7 @@ public class Content {
 			}
 
 			public boolean isCorrect() {
+				//System.out.println(selection.x + ";" + selection.y + " --- " + multParams.x + ";" + multParams.y);	
 				return selection.distance(multParams) < 0.1;
 			}
 			
