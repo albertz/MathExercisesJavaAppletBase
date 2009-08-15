@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Komplexe$Zahlen_Polarkoord_MultiplikationAufg;
+package applets.Komplexe$Zahlen_Polarkoord_Potenzen;
 
 
 

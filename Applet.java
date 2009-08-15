@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoord_MultiplikationAufg;
+package applets.Komplexe$Zahlen_Polarkoord_Potenzen;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -35,7 +35,7 @@ import javax.swing.JComboBox;
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
-	public Content content = new Content(this);
+	private Content content = new Content(this);
 
 	public static Font monospaceFont; 
 	public static Font defaultFont;
