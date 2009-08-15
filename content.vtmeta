@@ -1,7 +1,16 @@
-Klicken Sie auf das Ende des roten Pfeils und bewegen Sie so
+Klicken Sie auf das Ende des blauen Pfeils und bewegen Sie so
 die Zahl \m{z} in der komplexen Ebene.
 
 \object[graph]
 
 \label[z]{--------------------------------------------------------}
-\label[polarz]{--------------------------------------------------------}
+
+Wählen Sie aus:
+\m{\label[reqz]{------------------------------------------------------}}  \button[type=check,source=next,index=42]{nächste Aufgabe}	
+\button[type=check,source=checker,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+
+
+
+
+\label[res42]{}
+
