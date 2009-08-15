@@ -1,7 +1,8 @@
-Klicken Sie auf das Ende des roten Pfeils und bewegen Sie so
-die Zahl \m{z} in der komplexen Ebene.
+Klicken Sie auf das Ende einer der roten Pfeile und bewegen Sie so
+die Zahlen \m{z1} und \m{z2} in der komplexen Ebene.
 
 \object[graph]
 
-\label[z]{--------------------------------------------------------}
-\label[polarz]{--------------------------------------------------------}
+\label[z1]{--------------------------------------------------------------------------------------}
+\label[z2]{-------------------------------------------------------------------------------------}
+\label[multz]{--------------------------------------------------------------------------------------}

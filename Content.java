@@ -13,7 +13,9 @@ import javax.swing.JLabel;
 public class Content {
 
 	Applet applet;
-	PGraph.Point zParams = new PGraph.Point(1, 1);
+	PGraph.Point z1Params = new PGraph.Point(Math.sqrt(2), Math.sqrt(2));
+	PGraph.Point z2Params = new PGraph.Point(0, 1);
+	PGraph.Point multParams = new PGraph.Point(-Math.sqrt(2), Math.sqrt(2));	
 	PGraph graph;
 	
 	public Content(Applet applet) {
@@ -21,7 +23,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(440, 530);
+		applet.setSize(440, 550);
 	}
 
 	protected String Round(double x) {
@@ -36,21 +38,42 @@ public class Content {
 		graph.y_u = -4;
 		graph.showPolarcircles = true;
 		
-		graph.dragablePoints.add(new PGraph.GraphPoint(zParams, Color.RED, true, true));
+		graph.dragablePoints.add(new PGraph.GraphPoint(z1Params, Color.RED, true, true));
+		graph.dragablePoints.add(new PGraph.GraphPoint(z2Params, Color.RED, true, true));
+		graph.dragablePoints.add(new PGraph.GraphPoint(multParams, Color.BLUE, true, true));
 		
 		graph.OnDragablePointMoved =
 				new ActionListener() {
 					public void actionPerformed(ActionEvent e) {
-						double abs = zParams.abs();
-						double angle = Math.atan2(zParams.y, zParams.x) / Math.PI;
+						double abs1 = z1Params.abs();
+						double angle1 = Math.atan2(z1Params.y, z1Params.x) / Math.PI;
+						double abs2 = z2Params.abs();
+						double angle2 = Math.atan2(z2Params.y, z2Params.x) / Math.PI;
 						
-						((JLabel) applet.getComponentByName("z"))
-						.setText("z = " + Round(zParams.x) + " + " + Round(zParams.y) + "i");
-						((JLabel) applet.getComponentByName("polarz"))
-						.setText("z = " + Round(abs) + "∙( cos(" + Round(angle) + "π) + i∙sin(" + Round(angle) + "π) )");
+						multParams.x = z1Params.x * z2Params.x - z1Params.y * z2Params.y;
+						multParams.y = z1Params.x * z2Params.y + z1Params.y * z2Params.x;
+						
+						double absM = multParams.abs();
+						double angleM = Math.atan2(multParams.y, multParams.x) / Math.PI;
+						
+						((JLabel) applet.getComponentByName("z1"))
+						.setText(
+								"z1 = " + Round(z1Params.x) + " + " + Round(z1Params.y) + "i" +
+								" = " + Round(abs1) + "∙( cos(" + Round(angle1) + "π) + i∙sin(" + Round(angle1) + "π) )");
 
-						((JLabel) applet.getComponentByName("z")).setForeground(Color.RED);
-						((JLabel) applet.getComponentByName("polarz")).setForeground(Color.RED);
+						((JLabel) applet.getComponentByName("z2"))
+						.setText(
+								"z2 = " + Round(z2Params.x) + " + " + Round(z2Params.y) + "i" +
+								" = " + Round(abs2) + "∙( cos(" + Round(angle2) + "π) + i∙sin(" + Round(angle2) + "π) )");
+
+						((JLabel) applet.getComponentByName("multz"))
+						.setText(
+								"z1 * z2 = " + Round(multParams.x) + " + " + Round(multParams.y) + "i" +
+								" = " + Round(absM) + "∙( cos(" + Round(angleM) + "π) + i∙sin(" + Round(angleM) + "π) )");
+
+						((JLabel) applet.getComponentByName("z1")).setForeground(Color.RED);
+						((JLabel) applet.getComponentByName("z2")).setForeground(Color.RED);
+						((JLabel) applet.getComponentByName("multz")).setForeground(Color.BLUE);
 					}
 				};
 		
