@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoord_AuswahlAufg;
+package applets.Komplexe$Zahlen_Polarkoord_PolarZuEbene;
 
 import java.awt.Component;
 import java.awt.Graphics;
