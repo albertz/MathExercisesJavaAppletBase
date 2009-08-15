@@ -40,7 +40,7 @@ public class Content {
 		
 		graph.dragablePoints.add(new PGraph.GraphPoint(z1Params, Color.RED, true, true));
 		graph.dragablePoints.add(new PGraph.GraphPoint(z2Params, Color.RED, true, true));
-		graph.dragablePoints.add(new PGraph.GraphPoint(multParams, Color.BLUE, true, true));
+		graph.dragablePoints.add(new PGraph.GraphPoint(multParams, Color.BLUE, true, false));
 		
 		graph.OnDragablePointMoved =
 				new ActionListener() {
