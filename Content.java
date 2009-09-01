@@ -93,14 +93,13 @@ public class Content {
 			public String getResultMsg() { return ""; }
 
 			public boolean isCorrect() {
-				graph.OnDragablePointMoved.actionPerformed(null);
 				String ns = ((JTextField) applet.getComponentByName("s1")).getText();
 				try {
 					n = new Integer(ns).intValue();
 				}
 				catch(Exception e) {}
 				((JTextField) applet.getComponentByName("s1")).setText("" + n);
-				updateMult();
+				graph.OnDragablePointMoved.actionPerformed(null);
 				applet.repaint();
 				return true;
 			}
