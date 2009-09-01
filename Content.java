@@ -70,7 +70,7 @@ public class Content {
 						((JLabel) applet.getComponentByName("z"))
 						.setText(
 								"z = " + Round(z1Params.x) + " + " + Round(z1Params.y) + "i" +
-								" = " + Round(abs1) + "∙( cos(" + Round(angle1) + "π) + i∙sin(" + Round(angle1) + "π) )");
+								" = " + Round(abs1) + "∙( cos(" + Math.round(angle1*12) + "/12 π) + i∙sin(" + Math.round(angle1*12) + "/12 π) )");
 
 						/*((JLabel) applet.getComponentByName("z2"))
 						.setText(
@@ -80,7 +80,7 @@ public class Content {
 						((JLabel) applet.getComponentByName("potz"))
 						.setText(
 								"z ^ " + n + " = " + Round(multParams.x) + " + " + Round(multParams.y) + "i" +
-								" = " + Round(absM) + "∙( cos(" + Round(angleM) + "π) + i∙sin(" + Round(angleM) + "π) )");
+								" = " + Round(absM) + "∙( cos(" + Math.round(angleM*12) + "/12 π) + i∙sin(" + Math.round(angleM) + "/12 π) )");
 
 						((JLabel) applet.getComponentByName("z")).setForeground(Color.RED);
 						//((JLabel) applet.getComponentByName("z2")).setForeground(Color.RED);

@@ -204,6 +204,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 	}
 
+
 	protected Collection<Point> gridPolarPoints() {
 		LinkedList<Point> points = new LinkedList<Point>();
 		
@@ -216,8 +217,10 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		double i = 0;
 		double S = Math.sqrt(2);
 		for(; -i/S >= x_l || i/S <= x_r || -i/S >= y_u || i/S <= y_o; i += axeXStep) {			
-			for(double angle = 0; angle < 2 * Math.PI; angle += 2 * Math.PI / 24) {
-				points.add(new Point(i * Math.cos(angle), i * Math.sin(angle)));
+			for(double angle = 0; angle < 2 * Math.PI - 0.01; angle += 2 * Math.PI / 24) {
+				Point p = new Point(i * Math.cos(angle), i * Math.sin(angle));
+				if(p.x < x_l || p.x > x_r || p.y > y_o || p.y < y_u) continue;
+				points.add(p);
 				if(i == 0) break;
 			}
 		}
