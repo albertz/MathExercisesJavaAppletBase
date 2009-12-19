@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoord_Potenzen;
+package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
 import java.awt.Cursor;
@@ -12,7 +12,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
-
 
 
 
@@ -203,7 +202,6 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			}
 		}
 	}
-
 
 	protected Collection<Point> gridPolarPoints() {
 		LinkedList<Point> points = new LinkedList<Point>();

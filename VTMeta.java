@@ -1,34 +1,10 @@
-package applets.Komplexe$Zahlen_Polarkoord_Potenzen;
+package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.util.LinkedList;
 import java.util.List;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -186,6 +162,12 @@ public class VTMeta extends VTContainer  {
 				else
 					action = this.applet.createCheckButtonListener(index);
 				if(text == "") text = "überprüfen";
+			}
+			else if(getExtParamVar(extparam, "type").compareToIgnoreCase("next") == 0) {
+				final int fixed_index = index;
+				action = new Runnable() {
+					public void run() { applet.content.next(fixed_index); }
+				};
 			}
 			String name = getExtParamVar(extparam, "name");
 			return new VTButton(name, text, 0, 0, action);

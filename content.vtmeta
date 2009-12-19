@@ -1,15 +1,8 @@
-Klicken Sie auf das Ende des roten Pfeiles und bewegen Sie so
-die Zahl \m{z} in der komplexen Ebene.
-
+\label[z1]{--------------------------------------------------------------------------------------------------------------}
+\label[z2]{--------------------------------------------------------------------------------------------------------------}
+Klicken Sie auf das Ende des blauen Pfeils und wählen
+Sie so die Zahl \m{z1 ∙ z2} in der komplexen Ebene aus.
 \object[graph]
-\m{n =} \text[s1] \button[type=check,source=next]{aktuallisieren}
-\label[z]{---------------------------------------------------------------------------------------------------------}
-\label[potz]{-------------------------------------------------------------------------------------------------------------}
 
-
-
-
-
-
-
-\label[res1]{--}
+\button[type=check,source=checker,index=1]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\button[type=next]{nächste Aufgabe}	

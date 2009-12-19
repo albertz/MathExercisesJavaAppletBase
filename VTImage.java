@@ -1,4 +1,4 @@
-package applets.Komplexe$Zahlen_Polarkoord_Potenzen;
+package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
 
 import java.awt.Component;
 import java.awt.Graphics;
