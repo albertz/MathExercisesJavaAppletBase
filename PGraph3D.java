@@ -2,6 +2,7 @@ package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Polygon;
 import java.awt.event.MouseEvent;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -10,12 +11,42 @@ import java.util.Set;
 
 public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck {
 
+	static float EPS = 0.001f;
+	
 	static public abstract class DynFloat {
 		public float get() throws Exception { throw new Exception("DynFloat::get() not defined"); }
+
+		public boolean isValid() {
+			try {
+				get();
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
 	}
 
 	static public abstract class DynVector3D {
 		public float get(int i) throws Exception { throw new Exception("DynVector3D::get() not defined"); }
+		
+		public boolean isValid() {
+			try {
+				for(int i = 0; i < 3; ++i) get(i);
+				return true;
+			} catch(Exception e) {
+				return false;
+			}
+		}
+		
+		public float abs() throws Exception { return (float) Math.sqrt(get(0) * get(0) + get(1) * get(1) + get(2) * get(2)); }
+		
+		public Point3D fixed() {
+			try {
+				return new Point3D(this);
+			} catch(Exception e) {
+				return null;
+			}
+		}
 		
 		public DynVector3D crossProduct(final DynVector3D v) {
 			final DynVector3D t = this;
@@ -85,30 +116,55 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	
 	static public class Viewport {
 		Graphics g;
+		Float eyeHeight = new Float(1.0f);
+		Vector3D eyeDir = new Vector3D(1,0,0);
+		Plane eyePlane = new Plane(eyeHeight, eyeDir);
+		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(new Float(2.0f));
+		float scaleFactor = 1;
 		
 		public void setGraphics(Graphics g) { this.g = g; setColor(Color.black); }
 		public void setColor(Color c) { g.setColor(c); }
 		
-		protected java.awt.Point translate(Point3D p) throws Exception {
+		protected java.awt.Point translate(Point3D p) {
+			Line eyeLine = new Line();
+			eyeLine.point = eyePoint;
+			eyeLine.vector = p.diff(eyeLine.point);
 			
+			Point eyePtAbs = eyePlane.intersectionPoint(eyeLine);
+			Line xAxeAbs = eyePlane.intersectionLine(Plane.zPlane);
+			
+			Point3D eyePt = eyePtAbs.point.diff(eyePlane.basePoint()).fixed();
+			Vector3D xAxe = xAxeAbs.vector.fixed();
+			Vector3D yAxe = eyePlane.normal.crossProduct(xAxe).fixed();
+			
+			java.awt.Point tp = new java.awt.Point();
+			try {
+				tp.x = (int) xAxe.dotProduct( eyePt ).get();
+				tp.y = (int) yAxe.dotProduct( eyePt ).get();
+			} catch (Exception e) {
+				// should not happen
+				e.printStackTrace();
+			}
+			return tp;
 		}
 		
 		public void drawPoint(Point3D p) {
-			try {
-				java.awt.Point tp = translate(p);
-				g.fillOval(tp.x, tp.y, 2, 2);
-			} catch (Exception e) {}
+			java.awt.Point tp = translate(p);
+			g.fillOval(tp.x, tp.y, 2, 2);
 		}
 		
 		public void drawArrow(Point3D p, Vector3D v) {
 			// TODO:...
-			try {
-				drawPolygon( new Point3D[] {p, new Point3D(p.sum(v))} );
-			} catch (Exception e) {}
+			drawPolygon( new Point3D[] {p, p.sum(v).fixed()} );
 		}
 		
 		public void drawPolygon(Point3D[] p) {
-			
+			Polygon tpoly = new Polygon();
+			for(int i = 0; i < p.length; ++i) {
+				java.awt.Point tp = translate(p[i]);
+				tpoly.addPoint(tp.x, tp.y);
+			}
+			g.fillPolygon(tpoly);
 		}
 		
 	}
@@ -131,7 +187,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			} catch (Exception e) {}
 		};
 		
-		public DynVector3D intersectionPoint(final Line l) {
+		public boolean isValid() {
+			try {
+				return point.isValid() && vector.abs() > EPS;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+		
+		public Point intersectionPoint(final Line l) {
+			// TODO: this way doesn't cover all cases!
+			
 			final Line t = this;
 			// [ v1, -v2 ] * (t1 t2) = p2 - p1  ->  p1 + t1 v1 ( = p2 + t2 v2 ) is intersection point
 			final DynMatrix2D m = new DynMatrix2D() {
@@ -143,26 +209,40 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 			final DynVector3D pointDiff = l.point.diff( point );
 			
-			return new DynVector3D() {
+			Point p = new Point();
+			p.point = new DynVector3D() {
 				public float get(int i) throws Exception {
 					final pair<DynFloat> ts = m.solve(new pair<DynFloat>(new Float(pointDiff.get(0)), new Float(pointDiff.get(1))));
 
 					// we must check now
 					float check = vector.get(2) * ts.x.get() - l.vector.get(2) * ts.y.get() - (l.point.get(2) - point.get(2));
-					if(Math.abs(check) > 0.001) throw new Exception("no solution");
+					if(Math.abs(check) > EPS) throw new Exception("no solution");
 					
 					return t.point.sum( t.vector.product(ts.x) ).get(i);
 				}
 			};
+			return p;
 		}
 	}
 	
-	public class VectorArrow extends Line {
+	static public class VectorArrow extends Line {
 		public void draw(Viewport v) {
 			v.setColor(color);
 			try {
 				v.drawArrow( new Point3D(point), new Point3D(point.sum(vector)) );
 			} catch (Exception e) {}
+		}
+	}
+	
+	static public class Point implements Object3D {
+		DynVector3D point;
+		Color color;
+		
+		public void draw(Viewport v) {
+			if(point.isValid()) { 
+				v.setColor(color);
+				v.drawPoint(point.fixed());
+			}
 		}
 	}
 	
@@ -184,7 +264,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				public float get() throws Exception {
 					float top = v.x.get() * t.get(1,1) - t.get(0,1) * v.y.get();
 					float bottom = t.det().get();
-					if(bottom != 0) return top / bottom;
+					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for x");
 				}
 			};
@@ -192,7 +272,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				public float get() throws Exception {
 					float top = t.get(0,0) * v.x.get() - v.y.get() * t.get(1,0);
 					float bottom = t.det().get();
-					if(bottom != 0) return top / bottom;
+					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for y");
 				}
 			};
@@ -208,6 +288,13 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Plane() {}
 		public Plane(DynFloat height, DynVector3D normal) { this.height = height; this.normal = normal; }
 
+		DynVector3D basePoint() {
+			Line normalLine = new Line();
+			normalLine.point = new Point3D();
+			normalLine.vector = normal;
+			return intersectionPoint(normalLine).point;
+		}
+		
 		static public Plane xPlane = new Plane(new Float(0), new Vector3D(1,0,0));
 		static public Plane yPlane = new Plane(new Float(0), new Vector3D(0,1,0));
 		static public Plane zPlane = new Plane(new Float(0), new Vector3D(0,0,1));
@@ -218,6 +305,24 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			
 			Line[] lines = new Line[3];
 			for(int i = 0; i < 3; ++i) lines[i] = basePlanes[i].intersectionLine(this);
+			
+			Point3D[] points = new Point3D[3];
+			for(int i = 0; i < 3; ++i) points[i] = lines[i].intersectionPoint(lines[ (i+1) % 3 ]).point.fixed();
+
+			List<Point3D> pointList = new LinkedList<Point3D>();
+			for(int i = 0; i < 3; ++i) {
+				Point3D p = points[i];
+				if(p != null) pointList.add(p);
+				else {
+					Point3D[] otherps = new Point3D[2];
+					for(int j = 0; j < 2; ++j) otherps[j] = points[ (i+j) % 3 ];
+					for(int j = 0; j < 2; ++j) if(otherps[j] == null) return; // the whole plane seems invalid
+					// somewhat pulled out of thin air
+					for(int j = 0; j < 2; ++j) pointList.add( otherps[j].sum( basePlanes[(i+j) % 3].normal.product(new Float(5.0f)) ).fixed() );
+				}
+			}
+			
+			v.drawPolygon( pointList.toArray((Point3D[])null) );
 		}
 		
 		public Line intersectionLine(Plane other) {
@@ -235,6 +340,23 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			final pair<DynFloat> c = nn.solve(heights); 
 			l.point = normal.product(c.x).sum( other.normal.product(c.y) );
 			return l;
+		}
+		
+		public Point intersectionPoint(final Line line) {
+			Point p = new Point();
+			p.point = new DynVector3D() {
+				public float get(int i) throws Exception {
+					float nv = normal.dotProduct(line.vector).get();
+					float hnp = height.get() - normal.dotProduct(line.point).get();
+					if(Math.abs(nv) < EPS) {
+						if(Math.abs(hnp) < EPS) throw new Exception("Plane::intersectionPoint of line: line is on plane");
+						else throw new Exception("Plane::intersectionPoint of line: there is no intersection point");
+					}
+					float t = nv / hnp;
+					return line.point.sum( line.vector.product(new Float(t)) ).get(i);
+				}
+			};
+			return p;
 		}
 	}
 	
