@@ -359,7 +359,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return p;
 		}
 	}
+		
+	public int W;
+	public int H;
 	
+	public PGraph3D(Applet applet, int w, int h) {
+		W = w;
+		H = h;
+	}
+
 	public Set<Object3D> objects = new HashSet<Object3D>();
 	
 	public void paint(Graphics g) {
