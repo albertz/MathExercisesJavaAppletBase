@@ -114,16 +114,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public float get() { return x; }
 	}
 	
-	static public class Viewport {
+	public class Viewport {
 		Graphics g;
+		Float eyeDistanceFactor = new Float(2.0f);
 		Float eyeHeight = new Float(1.0f);
-		Vector3D eyeDir = new Vector3D(1,0,0);
+		Vector3D eyeDir = new Vector3D(-1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
-		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(new Float(2.0f));
-		float scaleFactor = 1;
+		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
+		float scaleFactor = 5;
 		
 		public void setGraphics(Graphics g) { this.g = g; setColor(Color.black); }
-		public void setColor(Color c) { g.setColor(c); }
+		public void setColor(Color c) { g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100)); }
 		
 		protected java.awt.Point translate(Point3D p) {
 			Line eyeLine = new Line();
@@ -139,12 +140,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			
 			java.awt.Point tp = new java.awt.Point();
 			try {
-				tp.x = (int) xAxe.dotProduct( eyePt ).get();
-				tp.y = (int) yAxe.dotProduct( eyePt ).get();
+				tp.x = (int) ( xAxe.dotProduct( eyePt ).get() * scaleFactor );
+				tp.y = (int) ( yAxe.dotProduct( eyePt ).get() * scaleFactor );
 			} catch (Exception e) {
 				// should not happen
 				e.printStackTrace();
 			}
+			
+			tp.x += W/2;
+			tp.y += H/2;
 			return tp;
 		}
 		
@@ -155,7 +159,13 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void drawArrow(Point3D p, Vector3D v) {
 			// TODO:...
-			drawPolygon( new Point3D[] {p, p.sum(v).fixed()} );
+			drawLine(p, v);
+		}
+		
+		public void drawLine(Point3D p, Vector3D v) {
+			java.awt.Point tp1 = translate(p);
+			java.awt.Point tp2 = translate(p.sum(v).fixed());
+			g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
 		}
 		
 		public void drawPolygon(Point3D[] p) {
@@ -169,7 +179,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 	}
 	
-	Viewport viewport;
+	Viewport viewport = new Viewport();
 	
 	static public interface Object3D {
 		public void draw(Viewport v);
@@ -178,13 +188,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	static public class Line implements Object3D {
 		DynVector3D point;
 		DynVector3D vector;
-		Color color;
+		Color color = Color.black;
+		
+		public Line() {}
+		public Line(DynVector3D p, DynVector3D v, Color c) { point = p; vector = v; color = c; }  
 		
 		public void draw(Viewport v) {
-			v.setColor(color);
-			try {
-				v.drawPolygon( new Point3D[] { new Point3D(point), new Point3D(point.sum(vector)) } );
-			} catch (Exception e) {}
+			if(point.isValid() && vector.isValid()) {
+				v.setColor(color);
+				v.drawLine( point.fixed(), vector.fixed() );
+			}
 		};
 		
 		public boolean isValid() {
@@ -226,17 +239,20 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	static public class VectorArrow extends Line {
+		public VectorArrow() { super();	}
+		public VectorArrow(DynVector3D p, DynVector3D v, Color c) { super(p, v, c); }
+
 		public void draw(Viewport v) {
-			v.setColor(color);
-			try {
-				v.drawArrow( new Point3D(point), new Point3D(point.sum(vector)) );
-			} catch (Exception e) {}
+			if(point.isValid() && vector.isValid()) {
+				v.setColor(color);
+				v.drawArrow( point.fixed(), vector.fixed() );
+			}
 		}
 	}
 	
 	static public class Point implements Object3D {
 		DynVector3D point;
-		Color color;
+		Color color = Color.black;
 		
 		public void draw(Viewport v) {
 			if(point.isValid()) { 
@@ -283,10 +299,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	static public class Plane implements Object3D {
 		DynFloat height;
 		DynVector3D normal;
-		Color color;
+		Color color = Color.black;
 		
 		public Plane() {}
 		public Plane(DynFloat height, DynVector3D normal) { this.height = height; this.normal = normal; }
+		public Plane(DynFloat height, DynVector3D normal, Color c) { this.height = height; this.normal = normal; color = c; }
 
 		DynVector3D basePoint() {
 			Line normalLine = new Line();
@@ -306,6 +323,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			Line[] lines = new Line[3];
 			for(int i = 0; i < 3; ++i) lines[i] = basePlanes[i].intersectionLine(this);
 			
+			// just for easier debugging
+			for(int i = 0; i < 3; ++i) lines[i].point = lines[i].point.fixed(); 
+			for(int i = 0; i < 3; ++i) lines[i].vector = lines[i].vector.fixed(); 
+			
 			Point3D[] points = new Point3D[3];
 			for(int i = 0; i < 3; ++i) points[i] = lines[i].intersectionPoint(lines[ (i+1) % 3 ]).point.fixed();
 
@@ -315,14 +336,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				if(p != null) pointList.add(p);
 				else {
 					Point3D[] otherps = new Point3D[2];
-					for(int j = 0; j < 2; ++j) otherps[j] = points[ (i+j) % 3 ];
+					for(int j = 0; j < 2; ++j) otherps[j] = points[ (i+j+1) % 3 ];
 					for(int j = 0; j < 2; ++j) if(otherps[j] == null) return; // the whole plane seems invalid
 					// somewhat pulled out of thin air
 					for(int j = 0; j < 2; ++j) pointList.add( otherps[j].sum( basePlanes[(i+j) % 3].normal.product(new Float(5.0f)) ).fixed() );
 				}
 			}
 			
-			v.drawPolygon( pointList.toArray((Point3D[])null) );
+			v.drawPolygon( pointList.toArray(new Point3D[] {}) );
 		}
 		
 		public Line intersectionLine(Plane other) {
@@ -386,16 +407,55 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public void mouseExited(MouseEvent e) {
 	}
 	
+	static protected java.awt.Point pointFromEvent(MouseEvent e) {
+		return new java.awt.Point(e.getX(), e.getY());
+	}
+	
+	protected Point3D pointOnEyeGlobe(java.awt.Point p) {
+		/*
+		Float eyeDistanceFactor = new Float(2.0f);
+		Float eyeHeight = new Float(1.0f);
+		Vector3D eyeDir = new Vector3D(-1,0,0);
+		Plane eyePlane = new Plane(eyeHeight, eyeDir);
+		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
+		float scaleFactor = 5;
+		 */
+		
+		float x = (p.x - W/2) / viewport.scaleFactor;
+		float y = (p.y - H/2) / viewport.scaleFactor;
+		
+		double a = Math.sqrt(x*x + y*y); 
+		if(a > 1.0) {
+			x /= a;
+			y /= a;
+		}
+			
+		Point3D globePos = new Point3D();
+		globePos.x[0] = x;
+		globePos.x[1] = y;
+		globePos.x[2] = (float) Math.sqrt(1 - x*x - y*y);
+		
+		
+	}
+	
+	java.awt.Point oldMousePoint = null;
+	
 	public void mousePressed(MouseEvent e) {
+		oldMousePoint = pointFromEvent(e);
 	}
 	
 	public void mouseReleased(MouseEvent e) {
+		mouseMoved(e);
+		oldMousePoint = null;
 	}
 	
 	public void mouseDragged(MouseEvent e) {
 	}
 	
 	public void mouseMoved(MouseEvent e) {
+		
+		pointFromEvent(e);
+		
 	}
 	
 	public String getResultMsg() {
