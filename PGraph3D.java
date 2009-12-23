@@ -100,6 +100,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Vector3D() {}
 		public Vector3D(float a, float b, float c) { x[0] = a; x[1] = b; x[2] = c; }
 		public float get(int i) { return x[i % 3]; }
+		public void set(Vector3D v) { for(int i = 0; i < 3; ++i) x[i] = v.x[i]; }
 	}
 	
 	static public class Point3D extends Vector3D {
@@ -380,11 +381,53 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return p;
 		}
 	}
+	
+	static public class Matrix3D {
+		Vector3D[] v = new Vector3D[] { new Vector3D(), new Vector3D(), new Vector3D() };
+		public Matrix3D() {}
+		public Matrix3D(float f) { for(int i = 0; i < 3; ++i) v[i].x[i] = f; }
 		
+		public Matrix3D sum(Matrix3D m) {
+			Matrix3D res = new Matrix3D();
+			for(int i = 0; i < 3; ++i)
+				for(int j = 0; j < 3; ++j)
+					res.v[i].x[j] = v[i].x[j] + m.v[i].x[j];
+			return res;
+		}
+		
+		public Matrix3D product(Matrix3D m) {
+			Matrix3D res = new Matrix3D();
+			for(int i = 0; i < 3; ++i)
+				for(int j = 0; j < 3; ++j)
+					for(int k = 0; k < 3; ++k)
+						res.v[i].x[j] += v[k].x[j] * m.v[i].x[k];
+			return res;
+		}
+
+		public Matrix3D product(float f) {
+			Matrix3D res = new Matrix3D();
+			for(int i = 0; i < 3; ++i)
+				for(int j = 0; j < 3; ++j)
+					res.v[i].x[j] = v[i].x[j] * f;
+			return res;
+		}
+		
+		public Vector3D product(Vector3D v) {
+			Vector3D res = new Vector3D();
+			for(int i = 0; i < 3; ++i)
+				for(int j = 0; j < 3; ++j)
+					res.x[i] = this.v[i].x[j] * v.x[j];
+			return res;
+		}
+		
+	}
+	
+	private Applet applet;
 	public int W;
 	public int H;
 	
 	public PGraph3D(Applet applet, int w, int h) {
+		this.applet = applet;
 		W = w;
 		H = h;
 	}
@@ -429,13 +472,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			x /= a;
 			y /= a;
 		}
-			
+		
+		float z = 1 - x*x - y*y;
+		if(z < 0) z = 0; else z = (float) Math.sqrt(z);
+		
 		Point3D globePos = new Point3D();
 		globePos.x[0] = x;
-		globePos.x[1] = y;
-		globePos.x[2] = (float) Math.sqrt(1 - x*x - y*y);
-		
-		
+		globePos.x[1] = z; 
+		globePos.x[2] = y;
+	
+		return globePos;
 	}
 	
 	java.awt.Point oldMousePoint = null;
@@ -453,9 +499,34 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mouseMoved(MouseEvent e) {
+		if(oldMousePoint == null) return;
 		
-		pointFromEvent(e);
+		Point3D globePos = pointOnEyeGlobe( pointFromEvent(e) );
+		float x = globePos.x[0];
+		float y = globePos.x[2];
 		
+		// calculate rotation matrix which rotates (0,-1,0) -> globePos
+		Matrix3D rotateM = new Matrix3D();
+		rotateM.v[0].x[0] = (float) Math.sqrt(1 - x*x);
+		rotateM.v[1].x[0] = -x;
+		if(Math.abs(rotateM.v[0].x[0]) < EPS) { // x == 0
+			rotateM.v[0].x[2] = x;
+			rotateM.v[1].x[2] = rotateM.v[0].x[0];
+			rotateM.v[2].x[1] = 1;
+		}
+		else {
+			// TODO: possible to optimise (I leave it for now for debugging)
+			rotateM.v[0].x[2] = -y*x / rotateM.v[0].x[0];
+			rotateM.v[1].x[2] = -y;
+			rotateM.v[2].x[2] = - (float) Math.sqrt( (1-x*x-y*y) / (1-x*x) );
+			rotateM.v[0].x[1] = - rotateM.v[2].x[2] * x;
+			rotateM.v[1].x[1] = (float) Math.sqrt(1 - x*x - y*y);
+			rotateM.v[2].x[1] = - y / rotateM.v[0].x[0];
+		}
+		
+		viewport.eyeDir.set( rotateM.product( viewport.eyeDir ) );
+		
+		applet.repaint();
 	}
 	
 	public String getResultMsg() {
