@@ -107,8 +107,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public float x[] = new float[3];
 		public Vector3D() {}
 		public Vector3D(float a, float b, float c) { x[0] = a; x[1] = b; x[2] = c; }
+		public Vector3D(double[] ds) { for(int i = 0; i < 3; ++i) x[i] = (float) ds[i]; }
+
 		public float get(int i) { return x[i % 3]; }
 		public void set(Vector3D v) { for(int i = 0; i < 3; ++i) x[i] = v.x[i]; }
+
+		public String asString() {
+			float r = 10;
+			return "(" + Math.round(x[0]*r)/r + "," + Math.round(x[1]*r)/r + "," + Math.round(x[2]*r)/r + ")";
+		}
 	}
 	
 	static public class Point3D extends Vector3D {
@@ -126,26 +133,56 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public class Viewport {
 		Graphics g;
 		Float eyeDistanceFactor = new Float(2.0f);
-		Float eyeHeight = new Float(1.0f);
-		Vector3D eyeDir = new Vector3D(0,1,0);
+		Float eyeHeight = new Float(10.0f);
+		Vector3D eyeDir = new Vector3D(0,-1,0);
+		Vector3D xAxeDir = new Vector3D(1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
 		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
 		float scaleFactor = 5;
 		
+		public void rotate(Matrix3D rotateMatrix) {
+			eyeDir.set( rotateMatrix.product( eyeDir ).norminated().fixed() );
+			xAxeDir.set( rotateMatrix.product( xAxeDir ).norminated().fixed() );
+		}
+		
 		public void setGraphics(Graphics g) { this.g = g; setColor(Color.black); }
 		public void setColor(Color c) { g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), 100)); }
 		
-		protected java.awt.Point translate(Point3D p) {
+		public float maxSize() {
+			 return (float) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
+		}
+				
+		private float getEyePlane_PointDistance(Point3D p) {
+			Point3D eyePlanePoint = getEyePlanePoint(p);
+			Point3D relativeP = p.diff(eyePlanePoint).fixed();
+			//Point3D relativeEye = eyePoint.diff(eyePlanePoint).fixed();
+			
+			try {
+				float linP = eyePlane.normal.dotProduct(relativeP).get();
+				//float linEye = eyePlane.normal.dotProduct(relativeEye).get();
+				return linP;
+				
+			} catch (Exception e1) {
+				e1.printStackTrace();
+			}
+			
+			return 0;
+		}
+		
+		private Point3D getEyePlanePoint(Point3D p) {
 			Line eyeLine = new Line();
 			eyeLine.point = eyePoint;
-			eyeLine.vector = p.diff(eyeLine.point);
+			eyeLine.vector = p.diff(eyeLine.point);		
+			return eyePlane.intersectionPoint(eyeLine).point.fixed();
+		}
+
+		private java.awt.Point translate(Point3D p) throws Exception {
+			Point3D eyePtAbs = getEyePlanePoint(p);
+			if(eyePtAbs == null) throw new Exception("translate: plane point bad");
 			
-			Point eyePtAbs = eyePlane.intersectionPoint(eyeLine);
-			Line xAxeAbs = eyePlane.intersectionLine(Plane.zPlane);
-			
-			Point3D eyePt = eyePtAbs.point.diff(eyePlane.basePoint()).fixed();
-			Vector3D xAxe = xAxeAbs.vector.fixed();
-			Vector3D yAxe = xAxe.crossProduct(eyePlane.normal).fixed();
+			Point3D eyePt = eyePtAbs.diff(eyePlane.basePoint()).fixed();
+			Vector3D xAxe = xAxeDir;
+			Vector3D yAxe = xAxe.crossProduct(eyePlane.normal).norminated().fixed();
 			
 			java.awt.Point tp = new java.awt.Point();
 			try {
@@ -161,8 +198,44 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return tp;
 		}
 		
+		private void setColorAtDepth(float d) {
+			Color c = g.getColor();
+			g.setColor(new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) ((1 - d) * 255)));
+		}
+		
+		private boolean setColorAtPoints(Point3D[] ps) throws Exception {
+			float nearest = maxSize();
+			for(int i = 0; i < ps.length; ++i) {
+				float dist = getEyePlane_PointDistance(ps[i]);
+				if(dist < 0) return false;
+				nearest = Math.min(nearest, dist);
+			}
+			setColorAtDepth(nearest / (2 * maxSize()));
+			return true;
+		}
+		
+		private void drawLine_LowLevel(Point3D p1, Point3D p2) throws Exception {
+			if(!setColorAtPoints(new Point3D[] {p1, p2})) return;
+			java.awt.Point tp1 = translate(p1);
+			java.awt.Point tp2 = translate(p2);
+			g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);			
+		}
+		
 		public void drawPoint(Point3D p) {
-			java.awt.Point tp = translate(p);
+			try {
+				if(!setColorAtPoints(new Point3D[] {p})) return;
+			} catch (Exception e) {
+				// should not happen
+				e.printStackTrace();
+				return;
+			}
+			java.awt.Point tp;
+			try {
+				tp = translate(p);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return;
+			}
 			g.fillOval(tp.x, tp.y, 2, 2);
 		}
 		
@@ -172,18 +245,31 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public void drawLine(Point3D p, Vector3D v) {
-			java.awt.Point tp1 = translate(p);
-			java.awt.Point tp2 = translate(p.sum(v).fixed());
-			g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
+			try {
+				int splitNum = 1 + (int) (20.0f * Math.min(v.abs(), maxSize()) / maxSize());
+				for(int i = 0; i < splitNum; ++i)
+					drawLine_LowLevel(
+							p.sum(v.product(new Float((float)(i) / splitNum))).fixed(),
+							p.sum(v.product(new Float((float)(i+1) / splitNum))).fixed()
+							);
+			} catch (Exception e) {
+				// should not happen
+				e.printStackTrace();
+			}
 		}
 		
 		public void drawPolygon(Point3D[] p) {
-			Polygon tpoly = new Polygon();
-			for(int i = 0; i < p.length; ++i) {
-				java.awt.Point tp = translate(p[i]);
-				tpoly.addPoint(tp.x, tp.y);
+			try {
+				if(!setColorAtPoints(p)) return;
+				Polygon tpoly = new Polygon();
+				for(int i = 0; i < p.length; ++i) {
+					java.awt.Point tp = translate(p[i]);
+					tpoly.addPoint(tp.x, tp.y);
+				}
+				g.fillPolygon(tpoly);
+			} catch (Exception e1) {
+				e1.printStackTrace();
 			}
-			g.fillPolygon(tpoly);
 		}
 		
 	}
@@ -375,10 +461,9 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return l;
 		}
 		
-		public Point intersectionPoint(final Line line) {
-			Point p = new Point();
-			p.point = new DynVector3D() {
-				public float get(int i) throws Exception {
+		public DynFloat intersectionPoint_LineFactor(final Line line) {
+			return new DynFloat() {
+				public float get() throws Exception {
 					float nv = normal.dotProduct(line.vector).get();
 					float hnp = height.get() - normal.dotProduct(line.point).get();
 					if(Math.abs(nv) < EPS) {
@@ -386,9 +471,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 						else throw new Exception("Plane::intersectionPoint of line: there is no intersection point");
 					}
 					float t = nv / hnp;
-					return line.point.sum( line.vector.product(new Float(t)) ).get(i);
-				}
+					return t;
+				}	
 			};
+		}
+		
+		public Point intersectionPoint(final Line line) {
+			final DynFloat t = intersectionPoint_LineFactor(line);
+			Point p = new Point();
+			p.point = line.point.sum( line.vector.product(t) );
 			return p;
 		}
 	}
@@ -459,6 +550,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		// for now
 		//g.setColor(Color.CYAN);
 		//g.fillOval(W/2, H/2, 5, 5);
+		g.setColor(Color.orange);
+		
+		try {
+			for(int i = 0; i < TeacupPoints.length; ++i) {
+				viewport.drawPoint(new Point3D(new Vector3D(TeacupPoints[i]).product(new Float(10.0f))));
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		g.setColor(Color.orange);
+		g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString(), 0, 10);
 	}
 	
 	public void mouseClicked(MouseEvent e) {
@@ -490,7 +593,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		x /= viewport.eyeDistanceFactor.x;
 		z /= viewport.eyeDistanceFactor.x;
 		
-		float maxsize = (float) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
+		float maxsize = viewport.maxSize();
 
 		double a = Math.sqrt(x*x + z*z); 
 		if(a > maxsize) {
@@ -560,8 +663,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			
 			pair<DynFloat> cossin_a = m.solve( new pair<DynFloat>(new Float(-x), new Float(-z)) );
 
-			// negate angle a
-			sin_a = - cossin_a.y.get();
+			sin_a = cossin_a.y.get();
 			cos_a = 1.0f - cossin_a.x.get();
 		} catch (Exception e1) {
 			// should not happen
@@ -593,10 +695,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
 		Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
 		
-		Matrix3D rotateM1 = getRotateMatrixForPoint(globePosOld, false);
-		Matrix3D rotateM2 = getRotateMatrixForPoint(globePosNew, true);
+		Matrix3D rotateM1 = getRotateMatrixForPoint(globePosOld, true);
+		Matrix3D rotateM2 = getRotateMatrixForPoint(globePosNew, false);
 				
-		viewport.eyeDir.set( rotateM2.product( rotateM1.product( viewport.eyeDir ) ) .norminated().fixed() );
+		viewport.rotate(rotateM1);
+		viewport.rotate(rotateM2);
 		
 		oldMousePoint = pointFromEvent(e);
 
@@ -611,4 +714,263 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		return false;
 	}
 
+	
+	
+	static double[][] TeacupPoints =
+	{
+	        {0.409091,0.772727,0.0},
+	        {0.409091,0.772727,-0.229091},
+	        {0.229091,0.772727,-0.409091},
+	        {0.0,0.772727,-0.409091},
+	        {0.409091,0.886364,0.0},
+	        {0.409091,0.886364,-0.229091},
+	        {0.229091,0.886364,-0.409091},
+	        {0.0,0.886364,-0.409091},
+	        {0.454545,0.886364,0.0},
+	        {0.454545,0.886364,-0.254545},
+	        {0.254545,0.886364,-0.454545},
+	        {0.0,0.886364,-0.454545},
+	        {0.454545,0.772727,0.0},
+	        {0.454545,0.772727,-0.254545},
+	        {0.254545,0.772727,-0.454545},
+	        {0.0,0.772727,-0.454545},
+	        {-0.229091,0.772727,-0.409091},
+	        {-0.409091,0.772727,-0.229091},
+	        {-0.409091,0.772727,0.0},
+	        {-0.229091,0.886364,-0.409091},
+	        {-0.409091,0.886364,-0.229091},
+	        {-0.409091,0.886364,0.0},
+	        {-0.254545,0.886364,-0.454545},
+	        {-0.454545,0.886364,-0.254545},
+	        {-0.454545,0.886364,0.0},
+	        {-0.254545,0.772727,-0.454545},
+	        {-0.454545,0.772727,-0.254545},
+	        {-0.454545,0.772727,0.0},
+	        {-0.409091,0.772727,0.229091},
+	        {-0.229091,0.772727,0.409091},
+	        {0.0,0.772727,0.409091},
+	        {-0.409091,0.886364,0.229091},
+	        {-0.229091,0.886364,0.409091},
+	        {0.0,0.886364,0.409091},
+	        {-0.454545,0.886364,0.254545},
+	        {-0.254545,0.886364,0.454545},
+	        {0.0,0.886364,0.454545},
+	        {-0.454545,0.772727,0.254545},
+	        {-0.254545,0.772727,0.454545},
+	        {0.0,0.772727,0.454545},
+	        {0.229091,0.772727,0.409091},
+	        {0.409091,0.772727,0.229091},
+	        {0.229091,0.886364,0.409091},
+	        {0.409091,0.886364,0.229091},
+	        {0.254545,0.886364,0.454545},
+	        {0.454545,0.886364,0.254545},
+	        {0.254545,0.772727,0.454545},
+	        {0.454545,0.772727,0.254545},
+	        {0.454545,0.545455,0.0},
+	        {0.454545,0.545455,-0.254545},
+	        {0.254545,0.545455,-0.454545},
+	        {0.0,0.545455,-0.454545},
+	        {0.454545,0.272727,0.0},
+	        {0.454545,0.272727,-0.254545},
+	        {0.254545,0.272727,-0.454545},
+	        {0.0,0.272727,-0.454545},
+	        {0.318182,0.0454545,0.0},
+	        {0.318182,0.0454545,-0.178182},
+	        {0.178182,0.0454545,-0.318182},
+	        {0.0,0.0454545,-0.318182},
+	        {-0.254545,0.545455,-0.454545},
+	        {-0.454545,0.545455,-0.254545},
+	        {-0.454545,0.545455,0.0},
+	        {-0.254545,0.272727,-0.454545},
+	        {-0.454545,0.272727,-0.254545},
+	        {-0.454545,0.272727,0.0},
+	        {-0.178182,0.0454545,-0.318182},
+	        {-0.318182,0.0454545,-0.178182},
+	        {-0.318182,0.0454545,0.0},
+	        {-0.454545,0.545455,0.254545},
+	        {-0.254545,0.545455,0.454545},
+	        {0.0,0.545455,0.454545},
+	        {-0.454545,0.272727,0.254545},
+	        {-0.254545,0.272727,0.454545},
+	        {0.0,0.272727,0.454545},
+	        {-0.318182,0.0454545,0.178182},
+	        {-0.178182,0.0454545,0.318182},
+	        {0.0,0.0454545,0.318182},
+	        {0.254545,0.545455,0.454545},
+	        {0.454545,0.545455,0.254545},
+	        {0.254545,0.272727,0.454545},
+	        {0.454545,0.272727,0.254545},
+	        {0.178182,0.0454545,0.318182},
+	        {0.318182,0.0454545,0.178182},
+	        {0.545455,0.0454545,0.0},
+	        {0.545455,0.0454545,-0.305455},
+	        {0.305455,0.0454545,-0.545455},
+	        {0.0,0.0454545,-0.545455},
+	        {0.727273,0.136364,0.0},
+	        {0.727273,0.136364,-0.407273},
+	        {0.407273,0.136364,-0.727273},
+	        {0.0,0.136364,-0.727273},
+	        {0.909091,0.136364,0.0},
+	        {0.909091,0.136364,-0.509091},
+	        {0.509091,0.136364,-0.909091},
+	        {0.0,0.136364,-0.909091},
+	        {-0.305455,0.0454545,-0.545455},
+	        {-0.545455,0.0454545,-0.305455},
+	        {-0.545455,0.0454545,0.0},
+	        {-0.407273,0.136364,-0.727273},
+	        {-0.727273,0.136364,-0.407273},
+	        {-0.727273,0.136364,0.0},
+	        {-0.509091,0.136364,-0.909091},
+	        {-0.909091,0.136364,-0.509091},
+	        {-0.909091,0.136364,0.0},
+	        {-0.545455,0.0454545,0.305455},
+	        {-0.305455,0.0454545,0.545455},
+	        {0.0,0.0454545,0.545455},
+	        {-0.727273,0.136364,0.407273},
+	        {-0.407273,0.136364,0.727273},
+	        {0.0,0.136364,0.727273},
+	        {-0.909091,0.136364,0.509091},
+	        {-0.509091,0.136364,0.909091},
+	        {0.0,0.136364,0.909091},
+	        {0.305455,0.0454545,0.545455},
+	        {0.545455,0.0454545,0.305455},
+	        {0.407273,0.136364,0.727273},
+	        {0.727273,0.136364,0.407273},
+	        {0.509091,0.136364,0.909091},
+	        {0.909091,0.136364,0.509091},
+	        {1.0,0.136364,0.0},
+	        {1.0,0.136364,-0.56},
+	        {0.56,0.136364,-1.0},
+	        {0.0,0.136364,-1.0},
+	        {1.0,0.0909091,0.0},
+	        {1.0,0.0909091,-0.56},
+	        {0.56,0.0909091,-1.0},
+	        {0.0,0.0909091,-1.0},
+	        {0.909091,0.0909091,0.0},
+	        {0.909091,0.0909091,-0.509091},
+	        {0.509091,0.0909091,-0.909091},
+	        {0.0,0.0909091,-0.909091},
+	        {-0.56,0.136364,-1.0},
+	        {-1.0,0.136364,-0.56},
+	        {-1.0,0.136364,0.0},
+	        {-0.56,0.0909091,-1.0},
+	        {-1.0,0.0909091,-0.56},
+	        {-1.0,0.0909091,0.0},
+	        {-0.509091,0.0909091,-0.909091},
+	        {-0.909091,0.0909091,-0.509091},
+	        {-0.909091,0.0909091,0.0},
+	        {-1.0,0.136364,0.56},
+	        {-0.56,0.136364,1.0},
+	        {0.0,0.136364,1.0},
+	        {-1.0,0.0909091,0.56},
+	        {-0.56,0.0909091,1.0},
+	        {0.0,0.0909091,1.0},
+	        {-0.909091,0.0909091,0.509091},
+	        {-0.509091,0.0909091,0.909091},
+	        {0.0,0.0909091,0.909091},
+	        {0.56,0.136364,1.0},
+	        {1.0,0.136364,0.56},
+	        {0.56,0.0909091,1.0},
+	        {1.0,0.0909091,0.56},
+	        {0.509091,0.0909091,0.909091},
+	        {0.909091,0.0909091,0.509091},
+	        {0.727273,0.0909091,0.0},
+	        {0.727273,0.0909091,-0.407273},
+	        {0.407273,0.0909091,-0.727273},
+	        {0.0,0.0909091,-0.727273},
+	        {0.545455,0.0,0.0},
+	        {0.545455,0.0,-0.305455},
+	        {0.305455,0.0,-0.545455},
+	        {0.0,0.0,-0.545455},
+	        {0.318182,0.0,0.0},
+	        {0.318182,0.0,-0.178182},
+	        {0.178182,0.0,-0.318182},
+	        {0.0,0.0,-0.318182},
+	        {-0.407273,0.0909091,-0.727273},
+	        {-0.727273,0.0909091,-0.407273},
+	        {-0.727273,0.0909091,0.0},
+	        {-0.305455,0.0,-0.545455},
+	        {-0.545455,0.0,-0.305455},
+	        {-0.545455,0.0,0.0},
+	        {-0.178182,0.0,-0.318182},
+	        {-0.318182,0.0,-0.178182},
+	        {-0.318182,0.0,0.0},
+	        {-0.727273,0.0909091,0.407273},
+	        {-0.407273,0.0909091,0.727273},
+	        {0.0,0.0909091,0.727273},
+	        {-0.545455,0.0,0.305455},
+	        {-0.305455,0.0,0.545455},
+	        {0.0,0.0,0.545455},
+	        {-0.318182,0.0,0.178182},
+	        {-0.178182,0.0,0.318182},
+	        {0.0,0.0,0.318182},
+	        {0.407273,0.0909091,0.727273},
+	        {0.727273,0.0909091,0.407273},
+	        {0.305455,0.0,0.545455},
+	        {0.545455,0.0,0.305455},
+	        {0.178182,0.0,0.318182},
+	        {0.318182,0.0,0.178182},
+	        {0.272727,0.0454545,0.0},
+	        {0.272727,0.0454545,-0.152727},
+	        {0.152727,0.0454545,-0.272727},
+	        {0.0,0.0454545,-0.272727},
+	        {0.409091,0.272727,0.0},
+	        {0.409091,0.272727,-0.229091},
+	        {0.229091,0.272727,-0.409091},
+	        {0.0,0.272727,-0.409091},
+	        {0.409091,0.545455,0.0},
+	        {0.409091,0.545455,-0.229091},
+	        {0.229091,0.545455,-0.409091},
+	        {0.0,0.545455,-0.409091},
+	        {-0.152727,0.0454545,-0.272727},
+	        {-0.272727,0.0454545,-0.152727},
+	        {-0.272727,0.0454545,0.0},
+	        {-0.229091,0.272727,-0.409091},
+	        {-0.409091,0.272727,-0.229091},
+	        {-0.409091,0.272727,0.0},
+	        {-0.229091,0.545455,-0.409091},
+	        {-0.409091,0.545455,-0.229091},
+	        {-0.409091,0.545455,0.0},
+	        {-0.272727,0.0454545,0.152727},
+	        {-0.152727,0.0454545,0.272727},
+	        {0.0,0.0454545,0.272727},
+	        {-0.409091,0.272727,0.229091},
+	        {-0.229091,0.272727,0.409091},
+	        {0.0,0.272727,0.409091},
+	        {-0.409091,0.545455,0.229091},
+	        {-0.229091,0.545455,0.409091},
+	        {0.0,0.545455,0.409091},
+	        {0.152727,0.0454545,0.272727},
+	        {0.272727,0.0454545,0.152727},
+	        {0.229091,0.272727,0.409091},
+	        {0.409091,0.272727,0.229091},
+	        {0.229091,0.545455,0.409091},
+	        {0.409091,0.545455,0.229091},
+	        {-0.454545,0.704545,0.0},
+	        {-0.454545,0.704545,-0.0454545},
+	        {-0.454545,0.772727,-0.0454545},
+	        {-0.772727,0.863636,0.0},
+	        {-0.772727,0.863636,-0.0454545},
+	        {-0.818182,0.954545,-0.0454545},
+	        {-0.818182,0.954545,0.0},
+	        {-0.772727,0.522727,0.0},
+	        {-0.772727,0.522727,-0.0454545},
+	        {-0.909091,0.477273,-0.0454545},
+	        {-0.909091,0.477273,0.0},
+	        {-0.409091,0.363636,0.0},
+	        {-0.409091,0.363636,-0.0454545},
+	        {-0.409091,0.295455,-0.0454545},
+	        {-0.409091,0.295455,0.0},
+	        {-0.454545,0.772727,0.0454545},
+	        {-0.454545,0.704545,0.0454545},
+	        {-0.818182,0.954545,0.0454545},
+	        {-0.772727,0.863636,0.0454545},
+	        {-0.909091,0.477273,0.0454545},
+	        {-0.772727,0.522727,0.0454545},
+	        {-0.409091,0.295455,0.0454545},
+	        {-0.409091,0.363636,0.0454545}
+	};
+
+
+	
 }
