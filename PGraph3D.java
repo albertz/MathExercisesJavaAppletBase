@@ -24,6 +24,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				return false;
 			}
 		}
+		
+		public String toString() {
+			try {
+				return "" + get();
+			} catch (Exception e) {
+				return e.getMessage();
+			}
+		}
 	}
 
 	static public abstract class DynVector3D {
@@ -94,6 +102,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 		}
 		
+		private String get_toString(int i) {
+			try {
+				return "" + get(i);
+			} catch (Exception e) {
+				return e.getMessage();
+			}
+		}
+		
+		public String toString() {
+			return "(" + get_toString(0) + "," + get_toString(1) + "," + get_toString(2) + ")";
+		}
 	}
 	
 	static public class pair < First > {
@@ -101,6 +120,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public First y;
 		public pair() {}
 		public pair(First _x, First _y) { x = _x; y = _y; }
+
+		public String toString() {
+			return "<" + x.toString() + "," + y.toString() + ">";
+		}
 	}
 	
 	static public class Vector3D extends DynVector3D {
@@ -397,13 +420,25 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 			p.y = new DynFloat() {
 				public float get() throws Exception {
-					float top = t.get(0,0) * v.x.get() - v.y.get() * t.get(1,0);
+					float top = t.get(0,0) * v.y.get() - v.x.get() * t.get(1,0);
 					float bottom = t.det().get();
 					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for y");
 				}
 			};
 			return p;
+		}
+		
+		private String get_toString(int i, int j) {
+			try {
+				return "" + get(i,j);
+			} catch (Exception e) {
+				return e.getMessage();
+			}
+		}
+		
+		public String toString() {
+			return "[(" + get_toString(0,0) + "," + get_toString(0,1) + ") (" + get_toString(1,0) + "," + get_toString(1,1) + ")]";
 		}
 	}
 	
@@ -433,18 +468,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			
 			Line[] lines = new Line[3];
 			for(int i = 0; i < 3; ++i) lines[i] = basePlanes[i].intersectionLine(this);
-			
+
 			// just for easier debugging
 			for(int i = 0; i < 3; ++i) lines[i].point = lines[i].point.fixed(); 
 			for(int i = 0; i < 3; ++i) lines[i].vector = lines[i].vector.fixed(); 
 			
-			for(int i = 0; i < 3; ++i) lines[i].draw(v); // debugging
+			//for(int i = 0; i < 3; ++i) lines[i].draw(v); // debugging
 			
 			Point3D[] points = new Point3D[3];
 			for(int i = 0; i < 3; ++i) points[i] = lines[i].intersectionPoint(lines[ (i+1) % 3 ]).point.fixed();
 
-			for(int i = 0; i < 3; ++i) if(points[i] != null) new Point(points[i]).draw(v); // debugging
-			if(0 == 0) return;
+			//for(int i = 0; i < 3; ++i) if(points[i] != null) new Point(points[i]).draw(v); // debugging
+			//if(0 == 0) return;
 			
 			List<Point3D> pointList = new LinkedList<Point3D>();
 			for(int i = 0; i < 3; ++i) {
@@ -473,9 +508,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					return normals[i].dotProduct( normals[j] ).get();
 				}
 			};
+			System.out.println("normals = [" + normal + "," + other.normal + "]");
+			System.out.println("nn = " + nn.toString());
 			pair<DynFloat> heights = new pair<DynFloat>(height, other.height);
-			final pair<DynFloat> c = nn.solve(heights); 
+			System.out.println("hs = " + heights.toString());
+			final pair<DynFloat> c = nn.solve(heights);
+			System.out.println("cs = " + c.toString());
 			l.point = normal.product(c.x).sum( other.normal.product(c.y) );
+			System.out.println("p = " + l.point);
 			return l;
 		}
 		
