@@ -210,7 +210,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				if(dist < 0) return false;
 				nearest = Math.min(nearest, dist);
 			}
-			setColorAtDepth(nearest / (2 * maxSize()));
+			setColorAtDepth(nearest / (1.5f * maxSize()));
 			return true;
 		}
 		
@@ -304,29 +304,42 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public Point intersectionPoint(final Line l) {
-			// TODO: this way doesn't cover all cases!
-			
 			final Line t = this;
-			// [ v1, -v2 ] * (t1 t2) = p2 - p1  ->  p1 + t1 v1 ( = p2 + t2 v2 ) is intersection point
-			final DynMatrix2D m = new DynMatrix2D() {
-				public float get(int i, int j) throws Exception {
-					j %= 2;
-					if(j == 0) return t.vector.get(i);
-					else return -l.vector.get(i);
-				}
-			};
+			
+			final DynMatrix2D ms[] = new DynMatrix2D[3];
+			
+			for(int k = 0; k < 3; ++k) {
+				final int K = k;
+				// [ v1, -v2 ] * (t1 t2) = p2 - p1  ->  p1 + t1 v1 ( = p2 + t2 v2 ) is intersection point			
+				ms[k] = new DynMatrix2D() {
+					public float get(int i, int j) throws Exception {
+						j %= 2;
+						if(j == 0) return t.vector.get(i + K);
+						else return -l.vector.get(i + K);
+					}
+				};
+			}
 			final DynVector3D pointDiff = l.point.diff( point );
 			
 			Point p = new Point();
 			p.point = new DynVector3D() {
 				public float get(int i) throws Exception {
-					final pair<DynFloat> ts = m.solve(new pair<DynFloat>(new Float(pointDiff.get(0)), new Float(pointDiff.get(1))));
-
-					// we must check now
-					float check = vector.get(2) * ts.x.get() - l.vector.get(2) * ts.y.get() - (l.point.get(2) - point.get(2));
-					if(Math.abs(check) > EPS) throw new Exception("no solution");
-					
-					return t.point.sum( t.vector.product(ts.x) ).get(i);
+					for(int k = 0; k < 3; ++k) {
+						try {
+							final pair<DynFloat> ts = ms[k].solve(new pair<DynFloat>(new Float(pointDiff.get(k)), new Float(pointDiff.get(k + 1))));
+							float tx = ts.x.get();
+							float ty = ts.y.get();
+							
+							// we must check now
+							float check = vector.get(k + 2) * tx - l.vector.get(k + 2) * ty - (l.point.get(k + 2) - point.get(k + 2));
+							if(Math.abs(check) > EPS) throw new Exception("no solution");
+						
+							return t.point.sum( t.vector.product(ts.x) ).get(i);
+						}
+						catch(Exception e) {
+						}
+					}
+					throw new Exception("intersectionPoint: parameters invalid");
 				}
 			};
 			return p;
@@ -353,7 +366,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Point(DynVector3D p) { point = p; }
 		
 		public void draw(Viewport v) {
-			if(point.isValid()) { 
+			if(point.isValid()) {
 				v.setColor(color);
 				v.drawPoint(point.fixed());
 			}
@@ -425,9 +438,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			for(int i = 0; i < 3; ++i) lines[i].point = lines[i].point.fixed(); 
 			for(int i = 0; i < 3; ++i) lines[i].vector = lines[i].vector.fixed(); 
 			
+			for(int i = 0; i < 3; ++i) lines[i].draw(v); // debugging
+			
 			Point3D[] points = new Point3D[3];
 			for(int i = 0; i < 3; ++i) points[i] = lines[i].intersectionPoint(lines[ (i+1) % 3 ]).point.fixed();
 
+			for(int i = 0; i < 3; ++i) if(points[i] != null) new Point(points[i]).draw(v); // debugging
+			if(0 == 0) return;
+			
 			List<Point3D> pointList = new LinkedList<Point3D>();
 			for(int i = 0; i < 3; ++i) {
 				Point3D p = points[i];
