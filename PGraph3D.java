@@ -1,6 +1,7 @@
 package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Graphics;
 import java.awt.Polygon;
 import java.awt.event.MouseEvent;
@@ -49,7 +50,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 		}
 		
-		public double abs() throws Exception { return (double) Math.sqrt(get(0) * get(0) + get(1) * get(1) + get(2) * get(2)); }
+		public DynFloat abs() {
+			final DynVector3D t = this;
+			return new DynFloat() {
+				public double get() throws Exception {
+					return Math.sqrt(get(0) * get(0) + get(1) * get(1) + get(2) * get(2));
+				}
+
+				private double get(int i) throws Exception {
+					return t.get(i);
+				}
+			}; 
+		}
 		
 		public Point3D fixed() {
 			try {
@@ -101,7 +113,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public DynVector3D norminated() {
 			final DynVector3D t = this;
 			return new DynVector3D() {
-				public double get(int i) throws Exception { return t.get(i) / t.abs(); }
+				public double get(int i) throws Exception {
+					double a = t.abs().get();
+					if(a > EPS)
+						return t.get(i) / a;
+					throw new Exception("DynVector3D.norminated: vector is 0");
+				}
 			};
 		}
 		
@@ -164,7 +181,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3D xAxeDir = new Vector3D(1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
 		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
-		double scaleFactor = 5;
+		double scaleFactor = 20;
 		
 		public void rotate(Matrix3D rotateMatrix) {
 			if(Math.abs(1 - rotateMatrix.det()) > EPS) return;
@@ -175,23 +192,153 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public void setGraphics(Graphics g) { this.g = g; setColor(Color.black); }
 		public void setColor(Color c) { g.setColor(c); }
 		
+		public double baseDistance() {
+			return getEyePlane_PointDistance(new Point3D());			
+		}
+		
 		public double maxSize() {
-			 return (double) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
+			return (double) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
 		}
 		
 		class Primitive {
 			double dist;
 			Color color;
 			public Primitive() {}
-			public Primitive(double d, Color c) { dist = d; color = c; }
 			void draw() {}
 		}
 		
+		class PrimitivePoint extends Primitive {
+			Point3D p;
+			PrimitivePoint(Point3D p_) { p = p_; }
+			void draw() {
+				try {
+					java.awt.Point tp = translate(p);
+					g.fillOval(tp.x, tp.y, 2, 2);					
+				} catch (Exception e) {
+					System.out.println("p = " + p);
+					e.printStackTrace();
+				}
+			}			
+		}
+		
+		class PrimitivePolygon extends Primitive {
+			Point3D[] p;
+			PrimitivePolygon(Point3D[] p_) { p = p_; }
+			void draw() {
+				try {
+					Polygon tpoly = new Polygon();
+					for(int i = 0; i < p.length; ++i) {
+						java.awt.Point tp = translate(p[i]);
+						tpoly.addPoint(tp.x, tp.y);
+					}
+					g.fillPolygon(tpoly);
+				} catch (Exception e1) {
+					e1.printStackTrace();
+				}
+			}
+			Plane plane() {
+				return new Plane(p[0], p[0].diff(p[1]), p[0].diff(p[2]));
+			}
+			Point3D middle() {
+				if(p.length == 0) return new Point3D();
+				DynVector3D sum = new Vector3D();
+				for(int i = 0; i < p.length; ++i)
+					sum = sum.sum(p[i]);
+				return sum.product(new Float(1.0 / p.length)).fixed();
+			}
+		}
+		
+		class PrimitiveLine extends Primitive {
+			Point3D p1, p2;
+			PrimitiveLine(Point3D p1_, Point3D p2_) { p1 = p1_; p2 = p2_; }
+			void draw() {
+				try {
+					java.awt.Point tp1 = translate(p1);
+					java.awt.Point tp2 = translate(p2);
+					g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
+				} catch(Exception e) {
+					System.out.println("p1 = " + p1);
+					System.out.println("p2 = " + p2);
+					e.printStackTrace();
+				}
+			}
+			Point3D middle() {
+				return p1.sum(p2).product(new Float(0.5)).fixed();
+			}
+		}
+		
 		SortedSet<Primitive> primitives = new TreeSet<Primitive>(new Comparator<Primitive>() {
-			public int compare(Primitive o1, Primitive o2) {
-				double d = o2.dist - o1.dist;
+			
+			public int comparePoints(Point3D p1, Point3D p2) {
+				double d = getEyePlane_PointDistance(p2) - getEyePlane_PointDistance(p1);
 				if(d < -EPS) return -1;
 				if(d > EPS) return 1;
+				return 0;
+			}
+			
+			public int compareLineLine(PrimitiveLine l1, PrimitiveLine l2) {
+				return comparePoints(l1.middle(), l2.middle());
+			}
+			
+			public int compareLinePolygon(PrimitiveLine l, PrimitivePolygon p) {
+				Point3D lp = l.middle();
+				Point3D pp = p.plane().intersectionPoint(new Line(lp, lp.diff(eyePoint))).point.fixed();
+				
+				return comparePoints(lp, pp);
+			}
+			
+			public int compareLinePoint(PrimitiveLine l, PrimitivePoint p) {
+				return comparePoints(l.middle(), p.p);
+			}
+			
+			public int compareLine_(PrimitiveLine l, Primitive o) {
+				if(o instanceof PrimitiveLine)
+					return compareLineLine(l, (PrimitiveLine) o);
+				if(o instanceof PrimitivePolygon)
+					return compareLinePolygon(l, (PrimitivePolygon) o);
+				return compareLinePoint(l, (PrimitivePoint) o);
+			}
+			
+			public int comparePolygonPolygon(PrimitivePolygon p1, PrimitivePolygon p2) {
+				return comparePoints(p1.middle(), p2.middle());
+			}
+			
+			public int comparePolygonPoint(PrimitivePolygon pol, PrimitivePoint poi) {
+				Point3D pp = pol.plane().intersectionPoint(new Line(poi.p, poi.p.diff(eyePoint))).point.fixed();
+				return comparePoints(pp, poi.p);
+			}
+			
+			public int comparePolygon_(PrimitivePolygon p, Primitive o) {
+				if(o instanceof PrimitiveLine)
+					return -compareLinePolygon((PrimitiveLine) o, p);
+				if(o instanceof PrimitivePolygon)
+					return comparePolygonPolygon(p, (PrimitivePolygon) o);
+				return comparePolygonPoint(p, (PrimitivePoint) o);				
+			}
+			
+			public int comparePointPoint(PrimitivePoint p1, PrimitivePoint p2) {
+				return comparePoints(p1.p, p2.p);
+			}
+			
+			public int comparePoint_(PrimitivePoint p, Primitive o) {
+				if(o instanceof PrimitiveLine)
+					return -compareLinePoint((PrimitiveLine) o, p);
+				if(o instanceof PrimitivePolygon)
+					return -comparePolygonPoint((PrimitivePolygon) o, p);
+				return comparePointPoint(p, (PrimitivePoint) o);				
+			}
+
+			public int compare_(Primitive o1, Primitive o2) {
+				if(o1 instanceof PrimitiveLine)
+					return compareLine_((PrimitiveLine) o1, o2);
+				if(o1 instanceof PrimitivePolygon)
+					return comparePolygon_((PrimitivePolygon) o1, o2);
+				return comparePoint_((PrimitivePoint) o1, o2);				
+			}
+			
+			public int compare(Primitive o1, Primitive o2) {
+				int d = compare_(o1, o2);
+				if(d != 0) return d;
 				return o2.hashCode() - o1.hashCode();
 			}
 		});
@@ -204,9 +351,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			primitives.clear();
 		}
 		
-		private void addPrimitive(Primitive p) {
-			//if(p.dist >= 0)
-				primitives.add(p);
+		private void addPrimitive(double dist, Color color, Primitive p) {
+			//if(p.dist < 0) return;
+			p.dist = dist;
+			p.color = color;
+			primitives.add(p);
 		}
 		
 		private double getEyePlane_PointDistance(Point3D p) {
@@ -223,7 +372,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				e1.printStackTrace();
 			}
 			
-			return 0;
+			return 10000000.0;
 		}
 		
 		public Point3D getEyePlanePoint(Point3D p) {
@@ -244,7 +393,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return xAxe;
 		}
 		
-		private java.awt.Point translate(Point3D p) throws Exception {
+		public java.awt.Point translate(Point3D p) throws Exception {
 			Point3D eyePtAbs = getEyePlanePoint(p);
 			if(eyePtAbs == null) throw new Exception("translate: plane point bad");
 			
@@ -273,7 +422,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		private void setColorAtDepth(Color c, float d) {
 			//this.g.setColor(c); if(0==0)return;
 			
-			d /= (1.5f * maxSize());
+			d /= (1.0f * baseDistance());
+			d -= 0.9;
 			d = CLAMP(d, 0, 1);
 			
 			float r = (float) c.getRed() / 255;
@@ -281,9 +431,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			float b = (float) c.getBlue() / 255;
 			float a = (float) c.getAlpha() / 255;
 			
+			/*
 			r = d + (1-d)*r;
 			g = d + (1-d)*g;
 			b = d + (1-d)*b;
+			*/
+			a = a * (1 - d);
 			
 			r = CLAMP(r, 0, 1);
 			g = CLAMP(g, 0, 1);
@@ -294,7 +447,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 				
 		private double getPointsDistance(Point3D[] ps) {
-			double nearest = maxSize();
+			double nearest = 10000000000.0;
 			for(int i = 0; i < ps.length; ++i) {
 				double dist = getEyePlane_PointDistance(ps[i]);
 				nearest = Math.min(nearest, dist);
@@ -304,34 +457,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		private void drawLine_LowLevel(final Point3D p1, final Point3D p2) throws Exception {
 			double d = getPointsDistance(new Point3D[] {p1, p2});
-			addPrimitive(new Primitive(d, g.getColor()) {
-				void draw() {
-					try {
-						java.awt.Point tp1 = translate(p1);
-						java.awt.Point tp2 = translate(p2);
-						g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
-					} catch(Exception e) {
-						System.out.println("p1 = " + p1);
-						System.out.println("p2 = " + p2);
-						e.printStackTrace();
-					}
-				}
-			});
+			addPrimitive(d, g.getColor(), new PrimitiveLine(p1, p2));
 		}
 		
 		public void drawPoint(final Point3D p) {
-			double d = getEyePlane_PointDistance(p);
-			addPrimitive(new Primitive(d, g.getColor()) {
-				void draw() {
-					try {
-						java.awt.Point tp = translate(p);
-						g.fillOval(tp.x, tp.y, 2, 2);					
-					} catch (Exception e) {
-						System.out.println("p = " + p);
-						e.printStackTrace();
-					}
-				}
-			});
+			double d = getEyePlane_PointDistance(p) - /* because of the radius */ 1;
+			addPrimitive(d, g.getColor(), new PrimitivePoint(p));
 		}
 		
 		public void drawArrow(Point3D p, Vector3D v) {
@@ -341,7 +472,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void drawLine(Point3D p, Vector3D v) {
 			try {
-				int splitNum = 1 + (int) (20.0f * Math.min(v.abs(), maxSize()) / maxSize());
+				int splitNum = 1 + (int) (20.0f * Math.min(v.abs().get(), baseDistance()) / baseDistance());
 				for(int i = 0; i < splitNum; ++i)
 					drawLine_LowLevel(
 							p.sum(v.product(new Float((double)(i) / splitNum))).fixed(),
@@ -356,20 +487,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void drawPolygon(final Point3D[] p) {
 			double d = getPointsDistance(p);
-			addPrimitive(new Primitive(d, g.getColor()) {
-				void draw() {
-					try {
-						Polygon tpoly = new Polygon();
-						for(int i = 0; i < p.length; ++i) {
-							java.awt.Point tp = translate(p[i]);
-							tpoly.addPoint(tp.x, tp.y);
-						}
-						g.fillPolygon(tpoly);
-					} catch (Exception e1) {
-						e1.printStackTrace();
-					}
-				}
-			});
+			addPrimitive(d, g.getColor(), new PrimitivePolygon(p));
 		}
 		
 	}
@@ -386,6 +504,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Color color = Color.black;
 		
 		public Line() {}
+		public Line(DynVector3D p, DynVector3D v) { point = p; vector = v; }  
 		public Line(DynVector3D p, DynVector3D v, Color c) { point = p; vector = v; color = c; }  
 		
 		public void draw(Viewport v) {
@@ -397,7 +516,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public boolean isValid() {
 			try {
-				return point.isValid() && vector.abs() > EPS;
+				return point.isValid() && vector.abs().get() > EPS;
 			} catch (Exception e) {
 				return false;
 			}
@@ -463,7 +582,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Color color = Color.black;
 		
 		public Point() {}
-		public Point(DynVector3D p) { point = p; }
+		public Point(DynVector3D p, Color c) { point = p; color = c; }
 		
 		public void draw(Viewport v) {
 			if(point.isValid()) {
@@ -528,6 +647,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Plane(DynFloat height, DynVector3D normal) { this.height = height; this.normal = normal; }
 		public Plane(DynFloat height, DynVector3D normal, Color c) { this.height = height; this.normal = normal; color = c; }
 
+		public Plane(DynVector3D p, DynVector3D v1, DynVector3D v2) {
+			normal = v1.crossProduct(v2);
+			ERROR TODO
+		}
+		
 		DynVector3D basePoint() {
 			Line normalLine = new Line();
 			normalLine.point = new Point3D();
@@ -600,7 +724,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 						if(Math.abs(hnp) < EPS) throw new Exception("Plane::intersectionPoint of line: line is on plane");
 						else throw new Exception("Plane::intersectionPoint of line: there is no intersection point");
 					}
-					double t = nv / hnp;
+					double t = hnp / nv; //nv / hnp;
 					return t;
 				}	
 			};
@@ -669,6 +793,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	static public class MoveablePoint extends Point {
+		public MoveablePoint(DynVector3D p, Color c) { super(p, c); }
 		public void moveTo(java.awt.Point p) {}
 	}
 	
@@ -708,7 +833,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 		
 		g.setColor(Color.orange);
-		g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString(), 0, 10);
+		String dist = "bad";
+		dist = "" + Math.round(viewport.getEyePlane_PointDistance(new Point3D())*10.0)/10.0;
+		try {
+			dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(10,10,10)))*10.0)/10.0;
+			dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(-10,-10,0)))*10.0)/10.0;
+		} catch (Exception e) {
+			dist += ";failed";
+		}
+		g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString() + dist, 0, 10);
 	}
 	
 	public void addBaseAxes() {
@@ -796,6 +929,20 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	java.awt.Point oldMousePoint = null;
+	MoveablePoint movedPoint = null;
+	
+	public MoveablePoint moveablePointAt(java.awt.Point p) {		
+		for(Object3D o : objects) {
+			if(o instanceof MoveablePoint) {
+				MoveablePoint mp = (MoveablePoint) o;
+				try {
+					if( p.distance( viewport.translate(mp.point.fixed()) ) < 5 )
+						return mp;
+				} catch (Exception e) {}
+			}
+		}
+		return null;
+	}
 	
 	public void mousePressed(MouseEvent e) {
 		oldMousePoint = pointFromEvent(e);
@@ -806,7 +953,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mouseDragged(MouseEvent e) {
-		mouseMoved(e);
+		if(oldMousePoint == null) return;
+		
+		Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
+		Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
+		
+		Matrix3D rotateM = getRotateMatrixForPoint(globePosNew, false).product( getRotateMatrixForPoint(globePosOld, true) );
+				
+		viewport.rotate(rotateM);
+		
+		oldMousePoint = pointFromEvent(e);
+
+		applet.repaint();
 	}
 	
 	static Matrix3D getRotateMatrix(Vector3D rotateAxe, double cos_a, double sin_a) {
@@ -871,18 +1029,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mouseMoved(MouseEvent e) {
-		if(oldMousePoint == null) return;
-		
-		Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
-		Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
-		
-		Matrix3D rotateM = getRotateMatrixForPoint(globePosNew, false).product( getRotateMatrixForPoint(globePosOld, true) );
-				
-		viewport.rotate(rotateM);
-		
-		oldMousePoint = pointFromEvent(e);
-
-		applet.repaint();
+		MoveablePoint p = moveablePointAt( pointFromEvent(e) );
+		if(p != null)
+			applet.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		else
+			applet.setCursor(Cursor.getDefaultCursor());
 	}
 	
 	public String getResultMsg() {

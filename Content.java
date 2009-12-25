@@ -38,7 +38,9 @@ public class Content {
 		graph = new PGraph3D(applet, 400, 400);		
 		graph.addBaseAxes();
 		
-		graph.objects.add(new PGraph3D.Plane(new PGraph3D.Float(5f), new PGraph3D.Vector3D(1,1,1), Color.red));
+		PGraph3D.Plane plane = new PGraph3D.Plane(new PGraph3D.Float(5f), new PGraph3D.Vector3D(1,1,1), Color.red);
+		graph.objects.add(plane);		
+		graph.objects.add(new PGraph3D.MoveablePoint(plane.basePoint(), Color.blue));
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph)
