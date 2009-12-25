@@ -191,12 +191,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		SortedSet<Primitive> primitives = new TreeSet<Primitive>(new Comparator<Primitive>() {
-			public int compare(Primitive o1, Primitive o2) {
+			public int compare2(Primitive o1, Primitive o2) {
 				float d = o2.dist - o1.dist;
 				if(d < -EPS) return -1;
 				if(d > EPS) return 1;
 				return o2.hashCode() - o1.hashCode();
-			}});
+			}
+			public int compare(Primitive o1, Primitive o2) {
+				return compare2(o2, o1);
+			}
+			
+		});
 		
 		public void doFrame() {
 			for(Primitive p : primitives) {
