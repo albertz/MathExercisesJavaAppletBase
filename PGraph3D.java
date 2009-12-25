@@ -167,6 +167,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		double scaleFactor = 5;
 		
 		public void rotate(Matrix3D rotateMatrix) {
+			if(Math.abs(1 - rotateMatrix.det()) > EPS) return;
 			eyeDir.set( rotateMatrix.product( eyeDir ).norminated().fixed() );
 			xAxeDir.set( rotateMatrix.product( xAxeDir ).norminated().fixed() );
 		}
@@ -644,7 +645,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					res.x[i] += this.v[j].x[i] * v.x[j];
 			return res;
 		}
+
+		private double diag(int i, boolean pos) {
+			int f = pos ? 1 : -1;
+			return v[i%3].x[0] * v[(i+1*f+3)%3].x[1] * v[(i+2*f+3)%3].x[2];
+		}
 		
+		public double det() {
+			return diag(0,true) + diag(1,true) + diag(2,true) - diag(0,false) - diag(1,false) - diag(2,false);
+		}
+
 	}
 	
 	private Applet applet;
@@ -830,11 +840,9 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
 		Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
 		
-		Matrix3D rotateM1 = getRotateMatrixForPoint(globePosOld, true);
-		Matrix3D rotateM2 = getRotateMatrixForPoint(globePosNew, false);
+		Matrix3D rotateM = getRotateMatrixForPoint(globePosNew, false).product( getRotateMatrixForPoint(globePosOld, true) );
 				
-		viewport.rotate(rotateM1);
-		viewport.rotate(rotateM2);
+		viewport.rotate(rotateM);
 		
 		oldMousePoint = pointFromEvent(e);
 
