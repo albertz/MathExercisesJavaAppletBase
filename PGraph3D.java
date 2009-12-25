@@ -14,7 +14,7 @@ import java.util.TreeSet;
 
 public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck {
 
-	static double EPS = 0.001f;
+	static double EPS = 0.00001;
 	
 	static public abstract class DynFloat {
 		public double get() throws Exception { throw new Exception("DynFloat::get() not defined"); }
@@ -237,8 +237,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			if(eyePtAbs == null) throw new Exception("translate: plane point bad");
 			
 			Point3D eyePt = eyePtAbs.diff(eyePlane.basePoint()).fixed();
-			Vector3D xAxe = xAxeDir;
-			Vector3D yAxe = xAxe.crossProduct(eyePlane.normal).norminated().fixed();
+			Vector3D yAxe = xAxeDir.crossProduct(eyePlane.normal).norminated().fixed();
+			Vector3D xAxe = eyePlane.normal.crossProduct(yAxe).norminated().fixed();
 			
 			java.awt.Point tp = new java.awt.Point();
 			try {
@@ -335,6 +335,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 							p.sum(v.product(new Float((double)(i) / splitNum))).fixed(),
 							p.sum(v.product(new Float((double)(i+1) / splitNum))).fixed()
 							);
+				//drawLine_LowLevel(p, p.sum(v).fixed());
 			} catch (Exception e) {
 				// should not happen
 				e.printStackTrace();
@@ -693,8 +694,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		for(int i = -15; i <= 15; ++i) {
 			if(i == 0) continue;
-			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,i,0), Color.orange));
-			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(i,40,0), Color.orange));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,0,0), Color.orange));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(0,40,0), Color.orange));
 		}
 	}
 	
