@@ -226,20 +226,31 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return 0;
 		}
 		
-		private Point3D getEyePlanePoint(Point3D p) {
+		public Point3D getEyePlanePoint(Point3D p) {
 			Line eyeLine = new Line();
 			eyeLine.point = eyePoint;
 			eyeLine.vector = p.diff(eyeLine.point);		
 			return eyePlane.intersectionPoint(eyeLine).point.fixed();
 		}
 
+		public Vector3D getRelAxeY() {
+			Vector3D yAxe = xAxeDir.crossProduct(eyePlane.normal).norminated().fixed();
+			return yAxe;
+		}
+		
+		public Vector3D getRelAxeX() {
+			Vector3D yAxe = getRelAxeY();
+			Vector3D xAxe = eyePlane.normal.crossProduct(yAxe).norminated().fixed();
+			return xAxe;
+		}
+		
 		private java.awt.Point translate(Point3D p) throws Exception {
 			Point3D eyePtAbs = getEyePlanePoint(p);
 			if(eyePtAbs == null) throw new Exception("translate: plane point bad");
 			
 			Point3D eyePt = eyePtAbs.diff(eyePlane.basePoint()).fixed();
-			Vector3D yAxe = xAxeDir.crossProduct(eyePlane.normal).norminated().fixed();
-			Vector3D xAxe = eyePlane.normal.crossProduct(yAxe).norminated().fixed();
+			Vector3D yAxe = getRelAxeY();
+			Vector3D xAxe = getRelAxeX();
 			
 			java.awt.Point tp = new java.awt.Point();
 			try {
@@ -657,6 +668,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 	}
 	
+	static public class MoveablePoint extends Point {
+		public void moveTo(java.awt.Point p) {}
+	}
+	
 	private Applet applet;
 	public int W;
 	public int H;
@@ -678,9 +693,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		// for now
 		//g.setColor(Color.CYAN);
 		//g.fillOval(W/2, H/2, 5, 5);
-		g.setColor(Color.orange);
+		/*g.setColor(Color.orange);
 		
-		/*
 		try {
 			for(int i = 0; i < TeacupPoints.length; ++i) {
 				viewport.drawPoint(new Point3D(new Vector3D(TeacupPoints[i]).product(new Float(10.0f))));
@@ -722,7 +736,29 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		return new java.awt.Point(e.getX(), e.getY());
 	}
 	
-	protected Point3D pointOnEyeGlobe(java.awt.Point p) {
+	public Point3D pointOnEyePlane(java.awt.Point p) {
+		/*
+		Float eyeDistanceFactor = new Float(2.0f);
+		Float eyeHeight = new Float(1.0f);
+		Vector3D eyeDir = new Vector3D(-1,0,0);
+		Plane eyePlane = new Plane(eyeHeight, eyeDir);
+		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
+		double scaleFactor = 5;
+		 */
+		
+		double x = (p.x - W/2) / viewport.scaleFactor;
+		double y = -(p.y - H/2) / viewport.scaleFactor;
+		
+		x /= viewport.eyeDistanceFactor.x;
+		y /= viewport.eyeDistanceFactor.x;
+		
+		return viewport.eyePlane.basePoint()
+		.sum( viewport.getRelAxeX().product(new Float(x)) )
+		.sum( viewport.getRelAxeY().product(new Float(y)) )
+		.fixed();
+	}
+	
+	public Point3D pointOnEyeGlobe(java.awt.Point p) {
 		/*
 		Float eyeDistanceFactor = new Float(2.0f);
 		Float eyeHeight = new Float(1.0f);
