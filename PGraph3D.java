@@ -12,16 +12,12 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung.PGraph3D.Viewport.Primitive;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
-
 public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck {
 
-	static float EPS = 0.001f;
+	static double EPS = 0.001f;
 	
 	static public abstract class DynFloat {
-		public float get() throws Exception { throw new Exception("DynFloat::get() not defined"); }
+		public double get() throws Exception { throw new Exception("DynFloat::get() not defined"); }
 
 		public boolean isValid() {
 			try {
@@ -42,7 +38,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 
 	static public abstract class DynVector3D {
-		public float get(int i) throws Exception { throw new Exception("DynVector3D::get() not defined"); }
+		public double get(int i) throws Exception { throw new Exception("DynVector3D::get() not defined"); }
 		
 		public boolean isValid() {
 			try {
@@ -53,7 +49,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 		}
 		
-		public float abs() throws Exception { return (float) Math.sqrt(get(0) * get(0) + get(1) * get(1) + get(2) * get(2)); }
+		public double abs() throws Exception { return (double) Math.sqrt(get(0) * get(0) + get(1) * get(1) + get(2) * get(2)); }
 		
 		public Point3D fixed() {
 			try {
@@ -66,7 +62,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public DynVector3D crossProduct(final DynVector3D v) {
 			final DynVector3D t = this;
 			return new DynVector3D() {
-				public float get(int i) throws Exception {
+				public double get(int i) throws Exception {
 					return t.get(i + 1) * v.get(i + 2) - t.get(i + 2) * v.get(i + 1);
 				}
 			};
@@ -75,7 +71,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public DynFloat dotProduct(final DynVector3D v) {
 			final DynVector3D t = this;
 			return new DynFloat() {
-				public float get() throws Exception {
+				public double get() throws Exception {
 					return t.get(0) * v.get(0) + t.get(1) * v.get(1) + t.get(2) * v.get(2);
 				}
 			};
@@ -84,28 +80,28 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public DynVector3D product(final DynFloat f) {
 			final DynVector3D t = this;
 			return new DynVector3D() {
-				public float get(int i) throws Exception { return t.get(i) * f.get(); }
+				public double get(int i) throws Exception { return t.get(i) * f.get(); }
 			};
 		}
 
 		public DynVector3D sum(final DynVector3D v) {
 			final DynVector3D t = this;
 			return new DynVector3D() {
-				public float get(int i) throws Exception { return t.get(i) + v.get(i); }
+				public double get(int i) throws Exception { return t.get(i) + v.get(i); }
 			};
 		}
 
 		public DynVector3D diff(final DynVector3D v) {
 			final DynVector3D t = this;
 			return new DynVector3D() {
-				public float get(int i) throws Exception { return t.get(i) - v.get(i); }
+				public double get(int i) throws Exception { return t.get(i) - v.get(i); }
 			};
 		}
 		
 		public DynVector3D norminated() {
 			final DynVector3D t = this;
 			return new DynVector3D() {
-				public float get(int i) throws Exception { return t.get(i) / t.abs(); }
+				public double get(int i) throws Exception { return t.get(i) / t.abs(); }
 			};
 		}
 		
@@ -134,16 +130,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	static public class Vector3D extends DynVector3D {
-		public float x[] = new float[3];
+		public double x[] = new double[3];
 		public Vector3D() {}
-		public Vector3D(float a, float b, float c) { x[0] = a; x[1] = b; x[2] = c; }
-		public Vector3D(double[] ds) { for(int i = 0; i < 3; ++i) x[i] = (float) ds[i]; }
+		public Vector3D(double a, double b, double c) { x[0] = a; x[1] = b; x[2] = c; }
+		public Vector3D(double[] ds) { for(int i = 0; i < 3; ++i) x[i] = (double) ds[i]; }
 
-		public float get(int i) { return x[i % 3]; }
+		public double get(int i) { return x[i % 3]; }
 		public void set(Vector3D v) { for(int i = 0; i < 3; ++i) x[i] = v.x[i]; }
 
 		public String asString() {
-			float r = 10;
+			double r = 10;
 			return "(" + Math.round(x[0]*r)/r + "," + Math.round(x[1]*r)/r + "," + Math.round(x[2]*r)/r + ")";
 		}
 	}
@@ -154,10 +150,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	static public class Float extends DynFloat {
-		public float x;
+		public double x;
 		public Float() {}
-		public Float(float x_) { x = x_; }
-		public float get() { return x; }
+		public Float(double x_) { x = x_; }
+		public double get() { return x; }
 	}
 	
 	public class Viewport {
@@ -168,7 +164,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3D xAxeDir = new Vector3D(1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
 		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
-		float scaleFactor = 5;
+		double scaleFactor = 5;
 		
 		public void rotate(Matrix3D rotateMatrix) {
 			eyeDir.set( rotateMatrix.product( eyeDir ).norminated().fixed() );
@@ -178,21 +174,21 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public void setGraphics(Graphics g) { this.g = g; setColor(Color.black); }
 		public void setColor(Color c) { g.setColor(c); }
 		
-		public float maxSize() {
-			 return (float) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
+		public double maxSize() {
+			 return (double) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
 		}
 		
 		class Primitive {
-			float dist;
+			double dist;
 			Color color;
 			public Primitive() {}
-			public Primitive(float d, Color c) { dist = d; color = c; }
+			public Primitive(double d, Color c) { dist = d; color = c; }
 			void draw() {}
 		}
 		
 		SortedSet<Primitive> primitives = new TreeSet<Primitive>(new Comparator<Primitive>() {
 			public int compare(Primitive o1, Primitive o2) {
-				float d = o2.dist - o1.dist;
+				double d = o2.dist - o1.dist;
 				if(d < -EPS) return -1;
 				if(d > EPS) return 1;
 				return o2.hashCode() - o1.hashCode();
@@ -201,7 +197,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void doFrame() {
 			for(Primitive p : primitives) {
-				setColorAtDepth( p.color, p.dist );
+				setColorAtDepth( p.color, (float) p.dist );
 				p.draw();
 			}
 			primitives.clear();
@@ -212,14 +208,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				primitives.add(p);
 		}
 		
-		private float getEyePlane_PointDistance(Point3D p) {
+		private double getEyePlane_PointDistance(Point3D p) {
 			Point3D eyePlanePoint = getEyePlanePoint(p);
 			Point3D relativeP = p.diff(eyePlanePoint).fixed();
 			//Point3D relativeEye = eyePoint.diff(eyePlanePoint).fixed();
 			
 			try {
-				float linP = eyePlane.normal.dotProduct(relativeP).get();
-				//float linEye = eyePlane.normal.dotProduct(relativeEye).get();
+				double linP = eyePlane.normal.dotProduct(relativeP).get();
+				//double linEye = eyePlane.normal.dotProduct(relativeEye).get();
 				return linP;
 				
 			} catch (Exception e1) {
@@ -285,17 +281,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			this.g.setColor(new Color(r, g, b, a));
 		}
 				
-		private float getPointsDistance(Point3D[] ps) {
-			float nearest = maxSize();
+		private double getPointsDistance(Point3D[] ps) {
+			double nearest = maxSize();
 			for(int i = 0; i < ps.length; ++i) {
-				float dist = getEyePlane_PointDistance(ps[i]);
+				double dist = getEyePlane_PointDistance(ps[i]);
 				nearest = Math.min(nearest, dist);
 			}
 			return nearest;
 		}
 		
 		private void drawLine_LowLevel(final Point3D p1, final Point3D p2) throws Exception {
-			float d = getPointsDistance(new Point3D[] {p1, p2});
+			double d = getPointsDistance(new Point3D[] {p1, p2});
 			addPrimitive(new Primitive(d, g.getColor()) {
 				void draw() {
 					try {
@@ -312,7 +308,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public void drawPoint(final Point3D p) {
-			float d = getEyePlane_PointDistance(p);
+			double d = getEyePlane_PointDistance(p);
 			addPrimitive(new Primitive(d, g.getColor()) {
 				void draw() {
 					try {
@@ -336,8 +332,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				int splitNum = 1 + (int) (20.0f * Math.min(v.abs(), maxSize()) / maxSize());
 				for(int i = 0; i < splitNum; ++i)
 					drawLine_LowLevel(
-							p.sum(v.product(new Float((float)(i) / splitNum))).fixed(),
-							p.sum(v.product(new Float((float)(i+1) / splitNum))).fixed()
+							p.sum(v.product(new Float((double)(i) / splitNum))).fixed(),
+							p.sum(v.product(new Float((double)(i+1) / splitNum))).fixed()
 							);
 			} catch (Exception e) {
 				// should not happen
@@ -346,7 +342,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public void drawPolygon(final Point3D[] p) {
-			float d = getPointsDistance(p);
+			double d = getPointsDistance(p);
 			addPrimitive(new Primitive(d, g.getColor()) {
 				void draw() {
 					try {
@@ -403,7 +399,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				final int K = k;
 				// [ v1, -v2 ] * (t1 t2) = p2 - p1  ->  p1 + t1 v1 ( = p2 + t2 v2 ) is intersection point			
 				ms[k] = new DynMatrix2D() {
-					public float get(int i, int j) throws Exception {
+					public double get(int i, int j) throws Exception {
 						j %= 2;
 						if(j == 0) return t.vector.get(i + K);
 						else return -l.vector.get(i + K);
@@ -414,15 +410,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			
 			Point p = new Point();
 			p.point = new DynVector3D() {
-				public float get(int i) throws Exception {
+				public double get(int i) throws Exception {
 					for(int k = 0; k < 3; ++k) {
 						try {
 							final pair<DynFloat> ts = ms[k].solve(new pair<DynFloat>(new Float(pointDiff.get(k)), new Float(pointDiff.get(k + 1))));
-							float tx = ts.x.get();
-							float ty = ts.y.get();
+							double tx = ts.x.get();
+							double ty = ts.y.get();
 							
 							// we must check now
-							float check = vector.get(k + 2) * tx - l.vector.get(k + 2) * ty - (l.point.get(k + 2) - point.get(k + 2));
+							double check = vector.get(k + 2) * tx - l.vector.get(k + 2) * ty - (l.point.get(k + 2) - point.get(k + 2));
 							if(Math.abs(check) > EPS) throw new Exception("no solution");
 						
 							return t.point.sum( t.vector.product(ts.x) ).get(i);
@@ -465,12 +461,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	static public abstract class DynMatrix2D {
-		public float get(int i, int j) throws Exception { throw new Exception("DynMatrix2D::get not defined"); }
+		public double get(int i, int j) throws Exception { throw new Exception("DynMatrix2D::get not defined"); }
 		
 		public DynFloat det() {
 			final DynMatrix2D t = this;			
 			return new DynFloat() {
-				public float get() throws Exception { return t.get(0,0) * t.get(1,1) - t.get(0,1) * t.get(1,0); }
+				public double get() throws Exception { return t.get(0,0) * t.get(1,1) - t.get(0,1) * t.get(1,0); }
 			};
 		}
 		
@@ -479,17 +475,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			final DynMatrix2D t = this;
 			pair<DynFloat> p = new pair<DynFloat>();
 			p.x = new DynFloat() {
-				public float get() throws Exception {
-					float top = v.x.get() * t.get(1,1) - t.get(0,1) * v.y.get();
-					float bottom = t.det().get();
+				public double get() throws Exception {
+					double top = v.x.get() * t.get(1,1) - t.get(0,1) * v.y.get();
+					double bottom = t.det().get();
 					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for x");
 				}
 			};
 			p.y = new DynFloat() {
-				public float get() throws Exception {
-					float top = t.get(0,0) * v.y.get() - v.x.get() * t.get(1,0);
-					float bottom = t.det().get();
+				public double get() throws Exception {
+					double top = t.get(0,0) * v.y.get() - v.x.get() * t.get(1,0);
+					double bottom = t.det().get();
 					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for y");
 				}
@@ -571,7 +567,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			final DynVector3D normals[] = { normal, other.normal };
 			// [ ( (n1 n1) (n1 n2) ) ( (n2 n1) (n2 n2) ) ] * (c1 c2) = (h1 h2)  ->  n1 c1 + n2 c2  is point on line
 			DynMatrix2D nn = new DynMatrix2D() {
-				public float get(int i, int j) throws Exception {
+				public double get(int i, int j) throws Exception {
 					i %= 2; j %= 2;
 					return normals[i].dotProduct( normals[j] ).get();
 				}
@@ -584,14 +580,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public DynFloat intersectionPoint_LineFactor(final Line line) {
 			return new DynFloat() {
-				public float get() throws Exception {
-					float nv = normal.dotProduct(line.vector).get();
-					float hnp = height.get() - normal.dotProduct(line.point).get();
+				public double get() throws Exception {
+					double nv = normal.dotProduct(line.vector).get();
+					double hnp = height.get() - normal.dotProduct(line.point).get();
 					if(Math.abs(nv) < EPS) {
 						if(Math.abs(hnp) < EPS) throw new Exception("Plane::intersectionPoint of line: line is on plane");
 						else throw new Exception("Plane::intersectionPoint of line: there is no intersection point");
 					}
-					float t = nv / hnp;
+					double t = nv / hnp;
 					return t;
 				}	
 			};
@@ -608,8 +604,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	static public class Matrix3D {
 		Vector3D[] v = new Vector3D[] { new Vector3D(), new Vector3D(), new Vector3D() };
 		public Matrix3D() {}
-		public Matrix3D(float f) { for(int i = 0; i < 3; ++i) v[i].x[i] = f; }
-		public Matrix3D(float[] m) {
+		public Matrix3D(double f) { for(int i = 0; i < 3; ++i) v[i].x[i] = f; }
+		public Matrix3D(double[] m) {
 			for(int i = 0; i < 3; ++i)
 				for(int j = 0; j < 3; ++j)
 					v[i].x[j] = m[j*3 + i];
@@ -632,7 +628,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return res;
 		}
 
-		public Matrix3D product(float f) {
+		public Matrix3D product(double f) {
 			Matrix3D res = new Matrix3D();
 			for(int i = 0; i < 3; ++i)
 				for(int j = 0; j < 3; ++j)
@@ -722,16 +718,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3D eyeDir = new Vector3D(-1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
 		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
-		float scaleFactor = 5;
+		double scaleFactor = 5;
 		 */
 		
-		float x = (p.x - W/2) / viewport.scaleFactor;
-		float z = -(p.y - H/2) / viewport.scaleFactor;
+		double x = (p.x - W/2) / viewport.scaleFactor;
+		double z = -(p.y - H/2) / viewport.scaleFactor;
 		
 		x /= viewport.eyeDistanceFactor.x;
 		z /= viewport.eyeDistanceFactor.x;
 		
-		float maxsize = viewport.maxSize();
+		double maxsize = viewport.maxSize();
 
 		double a = Math.sqrt(x*x + z*z); 
 		if(a > maxsize) {
@@ -739,8 +735,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			z *= maxsize / a;
 		}
 		
-		float y = maxsize*maxsize - x*x - z*z;
-		if(y < 0) y = 0; else y = (float) Math.sqrt(y);
+		double y = maxsize*maxsize - x*x - z*z;
+		if(y < 0) y = 0; else y = (double) Math.sqrt(y);
 		
 		Point3D globePos = new Point3D();
 		globePos.x[0] = x;
@@ -766,9 +762,9 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		mouseMoved(e);
 	}
 	
-	static Matrix3D getRotateMatrix(Vector3D rotateAxe, float cos_a, float sin_a) {
-		float[] v = rotateAxe.x;
-		Matrix3D rotateM = new Matrix3D(new float[] {
+	static Matrix3D getRotateMatrix(Vector3D rotateAxe, double cos_a, double sin_a) {
+		double[] v = rotateAxe.x;
+		Matrix3D rotateM = new Matrix3D(new double[] {
 				cos_a + v[0]*v[0]*(1 - cos_a),		v[0]*v[1]*(1 - cos_a) - v[2]*sin_a,	v[0]*v[2]*(1 - cos_a) + v[1]*sin_a,
 				v[1]*v[0]*(1 - cos_a) + v[2]*sin_a,	cos_a + v[1]*v[1]*(1 - cos_a),		v[1]*v[2]*(1 - cos_a) - v[0]*sin_a,
 				v[2]*v[0]*(1 - cos_a) - v[1]*sin_a,	v[2]*v[1]*(1 - cos_a) + v[0]*sin_a,	cos_a + v[2]*v[2]*(1 - cos_a)
@@ -779,22 +775,22 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	static Matrix3D getRotateMatrixForPoint(Point3D globePos, boolean swapRotate) {
 		// calculate rotation matrix which rotates (0,-1,0) <- globePos
 
-		float x = globePos.x[0];
-		float z = globePos.x[2];
+		double x = globePos.x[0];
+		double z = globePos.x[2];
 
 		final Vector3D rotateAxe = globePos.crossProduct( new Vector3D(0,-1,0) ).norminated().fixed();
-		final float[] v = rotateAxe.x;
+		final double[] v = rotateAxe.x;
 				
-		float sin_a = 0, cos_a = 0;
+		double sin_a = 0, cos_a = 0;
 		if(Math.abs(v[1]) > EPS) try {
 			// TODO: case v0 == 0 || v1 == 0
 			
 			DynMatrix2D m = new DynMatrix2D() {
-				float[] m = new float[] {
+				double[] m = new double[] {
 						v[0] * v[1], - v[2],
 						v[1] * v[2], v[0]
 				};
-				public float get(int i, int j) throws Exception {
+				public double get(int i, int j) throws Exception {
 					return m[i * 2 + j];
 				}
 			};
@@ -817,7 +813,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			else {
 				sin_a = 1f;				
 			}
-			cos_a = (float) Math.sqrt(1 - sin_a*sin_a);
+			cos_a = (double) Math.sqrt(1 - sin_a*sin_a);
 		}
 		
 		if(swapRotate)
