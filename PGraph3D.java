@@ -163,7 +163,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public class Viewport {
 		Graphics g;
 		Float eyeDistanceFactor = new Float(2.0f);
-		Float eyeHeight = new Float(10.0f);
+		Float eyeHeight = new Float(-30.0f);
 		Vector3D eyeDir = new Vector3D(0,1,0);
 		Vector3D xAxeDir = new Vector3D(1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
@@ -191,16 +191,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		SortedSet<Primitive> primitives = new TreeSet<Primitive>(new Comparator<Primitive>() {
-			public int compare2(Primitive o1, Primitive o2) {
+			public int compare(Primitive o1, Primitive o2) {
 				float d = o2.dist - o1.dist;
 				if(d < -EPS) return -1;
 				if(d > EPS) return 1;
 				return o2.hashCode() - o1.hashCode();
 			}
-			public int compare(Primitive o1, Primitive o2) {
-				return compare2(o2, o1);
-			}
-			
 		});
 		
 		public void doFrame() {
@@ -267,7 +263,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		private void setColorAtDepth(Color c, float d) {
-			this.g.setColor(c); if(0==0)return;
+			//this.g.setColor(c); if(0==0)return;
 			
 			d /= (1.5f * maxSize());
 			d = CLAMP(d, 0, 1);
@@ -277,15 +273,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			float b = (float) c.getBlue() / 255;
 			float a = (float) c.getAlpha() / 255;
 			
-			/*
-			r = d - (1-d)*r;
-			g = d - (1-d)*g;
-			b = d - (1-d)*b;
+			r = d + (1-d)*r;
+			g = d + (1-d)*g;
+			b = d + (1-d)*b;
 			
 			r = CLAMP(r, 0, 1);
 			g = CLAMP(g, 0, 1);
 			b = CLAMP(b, 0, 1);
-			a = CLAMP(a, 0, 1);*/
+			a = CLAMP(a, 0, 1);
 			
 			this.g.setColor(new Color(r, g, b, a));
 		}
@@ -308,6 +303,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 						java.awt.Point tp2 = translate(p2);
 						g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
 					} catch(Exception e) {
+						System.out.println("p1 = " + p1);
+						System.out.println("p2 = " + p2);
 						e.printStackTrace();
 					}
 				}
@@ -322,6 +319,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 						java.awt.Point tp = translate(p);
 						g.fillOval(tp.x, tp.y, 2, 2);					
 					} catch (Exception e) {
+						System.out.println("p = " + p);
 						e.printStackTrace();
 					}
 				}
@@ -690,6 +688,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		g.setColor(Color.orange);
 		g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString(), 0, 10);
+	}
+	
+	public void addBaseAxes() {
+		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-10,0,0), new PGraph3D.Vector3D(30,0,0), Color.DARK_GRAY));
+		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-10,0), new PGraph3D.Vector3D(0,30,0), Color.DARK_GRAY));
+		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,0,-1), new PGraph3D.Vector3D(0,0,21), Color.DARK_GRAY));
+		
+		for(int i = -15; i <= 15; ++i) {
+			if(i == 0) continue;
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,i,0), Color.orange));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(i,40,0), Color.orange));
+		}
 	}
 	
 	public void mouseClicked(MouseEvent e) {

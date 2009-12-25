@@ -35,12 +35,9 @@ public class Content {
 	}
 		
 	public void run() {
-		graph = new PGraph3D(applet, 400, 400);
+		graph = new PGraph3D(applet, 400, 400);		
+		graph.addBaseAxes();
 		
-		graph.objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(), new PGraph3D.Vector3D(10,0,0), Color.blue));
-		graph.objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(), new PGraph3D.Vector3D(0,10,0), Color.blue));
-		graph.objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(), new PGraph3D.Vector3D(0,0,10), Color.yellow));
-
 		graph.objects.add(new PGraph3D.Plane(new PGraph3D.Float(5f), new PGraph3D.Vector3D(1,1,1), Color.red));
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
