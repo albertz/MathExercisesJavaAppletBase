@@ -20,6 +20,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	static public abstract class DynFloat {
 		public double get() throws Exception { throw new Exception("DynFloat::get() not defined"); }
 
+		public DynFloat product(final DynFloat f) {
+			final DynFloat t = this; 
+			return new DynFloat() {
+				public double get() throws Exception {
+					return t.get() * f.get();
+				}
+			};
+		}
+		
 		public boolean isValid() {
 			try {
 				get();
@@ -205,6 +214,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			Color color;
 			public Primitive() {}
 			void draw() {}
+			Point3D middle() { return null; }
 		}
 		
 		class PrimitivePoint extends Primitive {
@@ -218,7 +228,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					System.out.println("p = " + p);
 					e.printStackTrace();
 				}
-			}			
+			}
+			Point3D middle() { return p; }
 		}
 		
 		class PrimitivePolygon extends Primitive {
@@ -337,7 +348,9 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 			
 			public int compare(Primitive o1, Primitive o2) {
-				int d = compare_(o1, o2);
+				// complex compare doesnt work right now, some bug somewhere
+				//int d = compare_(o1, o2);
+				int d = comparePoints(o1.middle(), o2.middle());
 				if(d != 0) return d;
 				return o2.hashCode() - o1.hashCode();
 			}
@@ -422,8 +435,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		private void setColorAtDepth(Color c, float d) {
 			//this.g.setColor(c); if(0==0)return;
 			
-			d /= (1.0f * baseDistance());
-			d -= 0.9;
+			// this is good but because ordering is wrong, we leave it out and want all transparent
+			/*d /= (1.0f * baseDistance());
+			d -= 0.9;*/
+			
+			d /= (1.5f * baseDistance());
 			d = CLAMP(d, 0, 1);
 			
 			float r = (float) c.getRed() / 255;
@@ -649,7 +665,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 		public Plane(DynVector3D p, DynVector3D v1, DynVector3D v2) {
 			normal = v1.crossProduct(v2);
-			ERROR TODO
+			height = p.abs();
+			height = height.product(height);
 		}
 		
 		DynVector3D basePoint() {
