@@ -483,13 +483,20 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void drawArrow(Point3D p, Vector3D v) {
 			// TODO:...
-			drawLine(p, v);
+			drawLine(p, v, false);
 		}
 		
-		public void drawLine(Point3D p, Vector3D v) {
+		public void drawLine(Point3D p, Vector3D v, boolean infinite) {
 			try {
 				int splitNum = 1 + (int) (20.0f * Math.min(v.abs().get(), baseDistance()) / baseDistance());
-				for(int i = 0; i < splitNum; ++i)
+				int start = 0;
+				int end = splitNum;
+				if(infinite) {
+					// TODO: better
+					start = -20;
+					end = 20;
+				}
+				for(int i = start; i < end; ++i)
 					drawLine_LowLevel(
 							p.sum(v.product(new Float((double)(i) / splitNum))).fixed(),
 							p.sum(v.product(new Float((double)(i+1) / splitNum))).fixed()
@@ -518,17 +525,28 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		DynVector3D point;
 		DynVector3D vector;
 		Color color = Color.black;
+		boolean infinite = true;
 		
 		public Line() {}
 		public Line(DynVector3D p, DynVector3D v) { point = p; vector = v; }  
 		public Line(DynVector3D p, DynVector3D v, Color c) { point = p; vector = v; color = c; }  
+		public Line(DynVector3D p, DynVector3D v, boolean inf, Color c) { point = p; vector = v; color = c; infinite = inf; }  
 		
 		public void draw(Viewport v) {
 			if(point.isValid() && vector.isValid()) {
 				v.setColor(color);
-				v.drawLine( point.fixed(), vector.fixed() );
+				v.drawLine( point.fixed(), vector.fixed(), infinite );
 			}
 		};
+		
+		public DynVector3D dynPoint() {
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					if(point == null) throw new Exception("Line.point == null");
+					return point.get(i);
+				}				
+			};
+		}
 		
 		public boolean isValid() {
 			try {
@@ -583,7 +601,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	
 	static public class VectorArrow extends Line {
 		public VectorArrow() { super();	}
-		public VectorArrow(DynVector3D p, DynVector3D v, Color c) { super(p, v, c); }
+		public VectorArrow(DynVector3D p, DynVector3D v, Color c) { super(p, v, false, c); }
 
 		public void draw(Viewport v) {
 			if(point.isValid() && vector.isValid()) {
@@ -605,6 +623,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				v.setColor(color);
 				v.drawPoint(point.fixed());
 			}
+		}
+		
+		public DynVector3D dynPoint() {
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					if(point == null) throw new Exception("Point.point == null");
+					return point.get(i);
+				}
+			};
 		}
 	}
 	
@@ -840,16 +867,21 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			super(p, c);
 			plane = new Plane();
 			plane.normal = viewport.eyeDir.norminated();
-			plane.height = new DynFloat() {
-				public double get() throws Exception {
-					return line.point.abs().get();
-				}
-			};
+			plane.height = dynLinePoint().abs();
 		}
-
+		
 		public MoveablePointOnLine(DynVector3D p, Line l, Color c) {
 			this(p, c);
 			line = l;
+		}
+		
+		protected DynVector3D dynLinePoint() {
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					if(line == null) throw new Exception("MoveablePointOnLine.line == null");
+					return line.dynPoint().get(i);
+				}
+			};
 		}
 		
 		public Point3D pointForPos(java.awt.Point p) {
@@ -932,8 +964,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		for(int i = -15; i <= 15; ++i) {
 			if(i == 0) continue;
-			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,0,0), Color.orange));
-			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(0,40,0), Color.orange));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,0,0), false, Color.orange));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(0,40,0), false, Color.orange));
 		}
 	}
 	

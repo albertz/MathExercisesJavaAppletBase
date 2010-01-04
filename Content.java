@@ -40,7 +40,12 @@ public class Content {
 		
 		PGraph3D.Plane plane = new PGraph3D.Plane(new PGraph3D.Float(5f), new PGraph3D.Vector3D(1,1,1), Color.red);
 		graph.objects.add(plane);
-		graph.objects.add(graph.new MoveablePointOnPlane(plane.basePoint(), plane, Color.blue));
+		PGraph3D.Point pt = graph.new MoveablePointOnPlane(plane.basePoint(), plane, Color.blue);
+		graph.objects.add(pt);
+		PGraph3D.Line line = new PGraph3D.Line(pt.dynPoint(), pt.dynPoint().diff( new PGraph3D.Vector3D(5, 0, 0) ), Color.green);
+		graph.objects.add(line);
+		PGraph3D.Point pt2 = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(5, 0, 0), line, Color.blue);
+		graph.objects.add(pt2);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph)
