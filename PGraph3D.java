@@ -666,7 +666,6 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Plane(DynVector3D p, DynVector3D v1, DynVector3D v2) {
 			normal = v1.crossProduct(v2);
 			height = p.abs();
-			height = height.product(height);
 		}
 		
 		DynVector3D basePoint() {
@@ -811,7 +810,60 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	
 	static public class MoveablePoint extends Point {
 		public MoveablePoint(DynVector3D p, Color c) { super(p, c); }
-		public void moveTo(java.awt.Point p) {}
+		public Point3D pointForPos(java.awt.Point p) { return null; }
+
+		public void moveTo(java.awt.Point p) {
+			Point3D pt = pointForPos(p);
+			if(pt != null) this.point = pt;
+		}
+	}
+
+	public class MoveablePointOnPlane extends MoveablePoint {
+		Plane plane;
+		public MoveablePointOnPlane(DynVector3D p, Color c) { super(p, c); }
+		public MoveablePointOnPlane(DynVector3D p, Plane pl, Color c) { this(p, c); plane = pl; }
+		
+		public Point3D pointForPos(java.awt.Point p) {
+			// intersection from line(eye to ptOnEyePlane) to plane
+			Line l = new Line();
+			l.point = viewport.eyePoint;
+			l.vector = pointOnEyePlane(p) .diff( l.point );
+			return plane.intersectionPoint(l).point.fixed();
+		}
+		
+	}
+
+	public class MoveablePointOnLine extends MoveablePointOnPlane {
+		Line line;
+		
+		public MoveablePointOnLine(DynVector3D p, Color c) {
+			super(p, c);
+			plane = new Plane();
+			plane.normal = viewport.eyeDir.norminated();
+			plane.height = new DynFloat() {
+				public double get() throws Exception {
+					return line.point.abs().get();
+				}
+			};
+		}
+
+		public MoveablePointOnLine(DynVector3D p, Line l, Color c) {
+			this(p, c);
+			line = l;
+		}
+		
+		public Point3D pointForPos(java.awt.Point p) {
+			Point3D ptOnPlane = super.pointForPos(p);
+			if(ptOnPlane == null) return null;
+			
+			// get normal line from ptOnPlane to line
+			Line l = new Line();
+			l.point = ptOnPlane;
+			l.vector = line.vector.crossProduct( plane.normal );
+			
+			return line.intersectionPoint(l).point.fixed();
+		}
+		
 	}
 	
 	private Applet applet;
@@ -848,17 +900,29 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 		viewport.doFrame();
 
-		
-		g.setColor(Color.orange);
-		String dist = "bad";
-		dist = "" + Math.round(viewport.getEyePlane_PointDistance(new Point3D())*10.0)/10.0;
-		try {
-			dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(10,10,10)))*10.0)/10.0;
-			dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(-10,-10,0)))*10.0)/10.0;
-		} catch (Exception e) {
-			dist += ";failed";
+		// means we are rotating right now
+		if(oldMousePoint != null) {
+			g.setColor(Color.orange);
+			String dist = "bad";
+			dist = "" + Math.round(viewport.getEyePlane_PointDistance(new Point3D())*10.0)/10.0;
+			try {
+				dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(10,10,10)))*10.0)/10.0;
+				dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(-10,-10,0)))*10.0)/10.0;
+			} catch (Exception e) {
+				dist += ";failed";
+			}
+			g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString() + dist, 0, 10);
 		}
-		g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString() + dist, 0, 10);
+		
+		// means we are moving a point right now
+		if(movedPoint != null) {
+			g.setColor(movedPoint.color);
+			String s = "bad";
+			try {
+				s = movedPoint.point.fixed().asString();
+			} catch (Exception e) {}
+			g.drawString(s, 0, 10); 
+		}
 	}
 	
 	public void addBaseAxes() {
@@ -899,8 +963,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		double x = (p.x - W/2) / viewport.scaleFactor;
 		double y = -(p.y - H/2) / viewport.scaleFactor;
 		
-		x /= viewport.eyeDistanceFactor.x;
-		y /= viewport.eyeDistanceFactor.x;
+		//x /= viewport.eyeDistanceFactor.x;
+		//y /= viewport.eyeDistanceFactor.x;
 		
 		return viewport.eyePlane.basePoint()
 		.sum( viewport.getRelAxeX().product(new Float(x)) )
@@ -962,25 +1026,34 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mousePressed(MouseEvent e) {
-		oldMousePoint = pointFromEvent(e);
+		java.awt.Point pressedp = pointFromEvent(e);
+		movedPoint = moveablePointAt( pressedp );
+		if(movedPoint == null)
+			oldMousePoint = pressedp;
 	}
 	
 	public void mouseReleased(MouseEvent e) {
 		oldMousePoint = null;
+		movedPoint = null;
 	}
 	
 	public void mouseDragged(MouseEvent e) {
-		if(oldMousePoint == null) return;
+		if(oldMousePoint != null) {
+			Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
+			Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
+			
+			Matrix3D rotateM = getRotateMatrixForPoint(globePosNew, false).product( getRotateMatrixForPoint(globePosOld, true) );
+					
+			viewport.rotate(rotateM);
+			
+			oldMousePoint = pointFromEvent(e);
+		}
+		else if(movedPoint != null) {
+			movedPoint.moveTo( pointFromEvent(e) );
+		}
+		else
+			return;
 		
-		Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
-		Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
-		
-		Matrix3D rotateM = getRotateMatrixForPoint(globePosNew, false).product( getRotateMatrixForPoint(globePosOld, true) );
-				
-		viewport.rotate(rotateM);
-		
-		oldMousePoint = pointFromEvent(e);
-
 		applet.repaint();
 	}
 	
