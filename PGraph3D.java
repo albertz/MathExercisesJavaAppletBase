@@ -170,6 +170,22 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 	}
 	
+	static interface FrameUpdate {
+		void doFrameUpdate();
+	}
+	
+	static public class FrameUpdatedVector3D extends Vector3D implements FrameUpdate {
+		DynVector3D updater;
+		public FrameUpdatedVector3D(Vector3D initial) { set(initial); }
+		public void doFrameUpdate() {
+			Point3D updated = updater.fixed();
+			if(updated != null)
+				set(updated);
+		}
+	}
+	
+	Set<FrameUpdatedVector3D> frameUpdated = new HashSet<FrameUpdatedVector3D>();
+	
 	static public class Point3D extends Vector3D {
 		public Point3D() {}
 		public Point3D(DynVector3D v) throws Exception { for(int i = 0; i < 3; ++i) x[i] = v.get(i); }
@@ -577,6 +593,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			Point p = new Point();
 			p.point = new DynVector3D() {
 				public double get(int i) throws Exception {
+					Exception exp = null;
 					for(int k = 0; k < 3; ++k) {
 						try {
 							final pair<DynFloat> ts = ms[k].solve(new pair<DynFloat>(new Float(pointDiff.get(k)), new Float(pointDiff.get(k + 1))));
@@ -585,14 +602,22 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 							
 							// we must check now
 							double check = vector.get(k + 2) * tx - l.vector.get(k + 2) * ty - (l.point.get(k + 2) - point.get(k + 2));
-							if(Math.abs(check) > EPS) throw new Exception("no solution");
+							if(Math.abs(check) > EPS) throw new Exception("no solution, check = " + check);
 						
 							return t.point.sum( t.vector.product(ts.x) ).get(i);
 						}
-						catch(Exception e) {
+						catch(Exception elocal) {
+							if(exp == null) exp = elocal;
 						}
 					}
-					throw new Exception("intersectionPoint: parameters invalid");
+					String expStr = "null exception";
+					if(exp != null) {
+						expStr = exp.getMessage();
+						for(int j = 0; j < exp.getStackTrace().length; ++j) {
+							expStr = expStr + "\n  " + exp.getStackTrace()[j];
+						}
+					}
+					throw new Exception("intersectionPoint: one param of one of the lines has thrown an exception:\n" + expStr);
 				}
 			};
 			return p;
@@ -692,7 +717,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 		public Plane(DynVector3D p, DynVector3D v1, DynVector3D v2) {
 			normal = v1.crossProduct(v2);
-			height = p.abs();
+			height = p.dotProduct(normal);
 		}
 		
 		DynVector3D basePoint() {
@@ -714,8 +739,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			for(int i = 0; i < 3; ++i) lines[i] = basePlanes[i].intersectionLine(this);
 
 			// just for easier debugging
-			for(int i = 0; i < 3; ++i) lines[i].point = lines[i].point.fixed(); 
-			for(int i = 0; i < 3; ++i) lines[i].vector = lines[i].vector.fixed(); 
+			//for(int i = 0; i < 3; ++i) lines[i].point = lines[i].point.fixed(); 
+			//for(int i = 0; i < 3; ++i) lines[i].vector = lines[i].vector.fixed(); 
 			
 			//for(int i = 0; i < 3; ++i) lines[i].draw(v); // debugging
 			
@@ -865,9 +890,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public MoveablePointOnLine(DynVector3D p, Color c) {
 			super(p, c);
-			plane = new Plane();
-			plane.normal = viewport.eyeDir.norminated();
-			plane.height = dynLinePoint().abs();
+			plane = new Plane(dynLinePoint(), dynLineVector(), viewport.eyeDir.crossProduct(dynLineVector()));
 		}
 		
 		public MoveablePointOnLine(DynVector3D p, Line l, Color c) {
@@ -879,11 +902,20 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return new DynVector3D() {
 				public double get(int i) throws Exception {
 					if(line == null) throw new Exception("MoveablePointOnLine.line == null");
-					return line.dynPoint().get(i);
+					return line.point.get(i);
 				}
 			};
 		}
 		
+		protected DynVector3D dynLineVector() {
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					if(line == null) throw new Exception("MoveablePointOnLine.line == null");
+					return line.vector.get(i);
+				}
+			};
+		}
+
 		public Point3D pointForPos(java.awt.Point p) {
 			Point3D ptOnPlane = super.pointForPos(p);
 			if(ptOnPlane == null) return null;
@@ -893,7 +925,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			l.point = ptOnPlane;
 			l.vector = line.vector.crossProduct( plane.normal );
 			
-			return line.intersectionPoint(l).point.fixed();
+			return l.intersectionPoint(line).point.fixed();
 		}
 		
 	}
@@ -954,6 +986,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				s = movedPoint.point.fixed().asString();
 			} catch (Exception e) {}
 			g.drawString(s, 0, 10); 
+		}
+		
+		for(FrameUpdatedVector3D v : frameUpdated) {
+			v.doFrameUpdate();
 		}
 	}
 	
