@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
+package applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
 import java.awt.Font;

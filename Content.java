@@ -1,10 +1,10 @@
-package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
+package applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
 import java.util.Collection;
 import java.util.Random;
 
-import applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung.PGraph3D.Vector3D;
+import applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung.PGraph3D.Vector3D;
 
 public class Content {
 
