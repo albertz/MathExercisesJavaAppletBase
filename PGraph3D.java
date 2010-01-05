@@ -913,10 +913,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public MoveablePointOnPlane(DynVector3D p, Plane pl, Color c) { this(p, c); plane = pl; }
 		
 		public Point3D pointForPos(java.awt.Point p) {
+			// if plane is almost orthogonal to viewport, point is very inaccurate -> dont do that movement
+			try {
+				if(Math.abs(plane.normal.dotProduct(viewport.eyeDir).get()) < 0.1) return null;
+			} catch (Exception e) {
+				return null;
+			}
+
 			// intersection from line(eye to ptOnEyePlane) to plane
 			Line l = new Line();
 			l.point = viewport.eyePoint;
-			l.vector = pointOnEyePlane(p) .diff( l.point );
+			l.vector = pointOnEyePlane(p) .diff( l.point );			
 			return plane.intersectionPoint(l).point.fixed();
 		}
 		
