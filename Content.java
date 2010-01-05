@@ -94,19 +94,7 @@ public class Content {
 		
 		// for better imagination
 		graph.objects.add(plane.intersectionLine(PGraph3D.Plane.zPlane).setColor(Color.darkGray));
-		
-		/*
-		PGraph3D.Plane plane = new PGraph3D.Plane(new PGraph3D.Float(5f), new PGraph3D.Vector3D(1,1,1), Color.red);
-		graph.objects.add(plane);
-		PGraph3D.Point pt = graph.new MoveablePointOnPlane(plane.basePoint(), plane, Color.blue);
-		graph.objects.add(pt);
-		PGraph3D.Line line = new PGraph3D.Line(pt.dynPoint(), null, Color.green);
-		PGraph3D.Point pt2 = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(5, 0, 0), line, Color.blue);
-		line.vector = pt.dynPoint().diff( pt2.dynPoint() );
-		graph.objects.add(line);
-		graph.objects.add(pt2);
-		*/
-		
+				
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph)
 		});	
