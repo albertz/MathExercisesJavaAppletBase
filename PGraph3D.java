@@ -884,6 +884,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3D point;
 		DynVector3D updater;
 		public Vector3DUpdater(Vector3D p, DynVector3D u) { point = p; updater = u; p.set(u.fixed()); }
+		public Vector3DUpdater(Vector3D p, DynVector3D u, boolean immediateSet) { point = p; updater = u; if(immediateSet) p.set(u.fixed()); }
 		
 		public void doFrameUpdate(Vector3D diff) {
 			Point3D updated = updater.fixed();
