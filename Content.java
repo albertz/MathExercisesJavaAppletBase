@@ -1,13 +1,10 @@
 package applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung;
 
 import java.awt.Color;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.Collection;
 import java.util.Random;
-import javax.swing.JLabel;
-import javax.swing.JTextField;
+
+import applets.AnalytischeGeometrieundLA_Ebene_StuetzNormRichtung.PGraph3D.Vector3D;
 
 public class Content {
 
@@ -39,23 +36,35 @@ public class Content {
 		graph = new PGraph3D(applet, 400, 400);		
 		graph.addBaseAxes();
 	
-		PGraph3D.MoveablePointOnLine stuetzPt = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(5,0,0), Color.black);
-		PGraph3D.MoveablePointOnPlane normalPt = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(5,5,5), Color.blue);
+		PGraph3D.Vector3D normalUnnorminated = new PGraph3D.Vector3D(2,2,2);
+		double length = 0;
+		try {
+			length = normalUnnorminated.abs().get();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		PGraph3D.DynVector3D normal = normalUnnorminated.norminated();
+
+		PGraph3D.MoveablePointOnLine stuetzPt = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(4,4,4), Color.black);
+		final PGraph3D.MoveablePointOnPlane normalPt = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(), Color.blue);
+		stuetzPt.updater.add( new PGraph3D.Vector3DUpdater((Vector3D) normalPt.point, stuetzPt.dynPoint().sum(normalUnnorminated)) );
+		normalPt.updater.add( new PGraph3D.Vector3DUpdater(normalUnnorminated, normalPt.dynPoint().diff(stuetzPt.dynPoint()).norminated().product(new PGraph3D.Float(length)) ) );
+		normalPt.updater.add( new PGraph3D.Vector3DUpdater((Vector3D) normalPt.point, stuetzPt.dynPoint().sum(normalUnnorminated)) );
+
 		//PGraph3D.MoveablePointOnPlane richtungPt = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(0,5,0), Color.blue);
 		graph.objects.add(stuetzPt);
 		graph.objects.add(normalPt);
 		graph.objects.add(new PGraph3D.VectorArrow(stuetzPt.dynPoint(), normalPt.dynPoint().diff(stuetzPt.dynPoint()), Color.blue));
 		//graph.objects.add(richtungPt);
-		
-		PGraph3D.DynVector3D normal = normalPt.dynPoint().diff(stuetzPt.dynPoint()).norminated();
-		
+				
 		PGraph3D.Plane plane = new PGraph3D.Plane( stuetzPt.dynPoint().dotProduct(normal), normal, Color.red );
 		graph.objects.add(plane);
 		
-		normalPt.plane = new PGraph3D.Plane( normal.dotProduct(normalPt.dynPoint()), normal );
-		stuetzPt.line = new PGraph3D.Line(new PGraph3D.Point3D(), normal);
+		normalPt.plane = new PGraph3D.Plane( normalPt.dynPoint().dotProduct(normal), normal );
+		stuetzPt.line = new PGraph3D.Line(stuetzPt.dynPoint(), normal);
 		//richtungPt.plane = plane;
-		normalPt.point = new PGraph3D.FrameUpdatedVector3D(normalPt.point.fixed());
+		
+		graph.objects.add(plane.intersectionLine(PGraph3D.Plane.zPlane).setColor(Color.darkGray));
 		
 		/*
 		PGraph3D.Plane plane = new PGraph3D.Plane(new PGraph3D.Float(5f), new PGraph3D.Vector3D(1,1,1), Color.red);

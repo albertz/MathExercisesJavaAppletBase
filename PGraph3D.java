@@ -131,6 +131,31 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 		}
 		
+		public DynVector3D someOrthogonal() {
+			final DynVector3D t = this;
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					for(int j = 0; j < 3; ++j) {
+						try {
+							Vector3D v = t.crossProduct(Plane.basePlanes[j].normal).fixed();
+							if(v.abs().get() > EPS) return v.get(i);
+						}
+						catch(Exception e) {}
+					}
+					throw new Exception("DynVector3D.someOrthogonal: no solution");
+				}
+			};
+			
+			/*
+			DynVector3D otherVec = new DynVector3D() {
+				public double get(int i) throws Exception {
+					return t.get((i + 1) % 3);
+				}
+			};
+			return t.crossProduct(otherVec);
+			*/
+		}
+		
 		private String get_toString(int i) {
 			try {
 				return "" + get(i);
@@ -169,23 +194,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return "(" + Math.round(x[0]*r)/r + "," + Math.round(x[1]*r)/r + "," + Math.round(x[2]*r)/r + ")";
 		}
 	}
-	
-	static interface FrameUpdate {
-		void doFrameUpdate();
-	}
-	
-	static public class FrameUpdatedVector3D extends Vector3D implements FrameUpdate {
-		DynVector3D updater;
-		public FrameUpdatedVector3D(Vector3D initial) { set(initial); }
-		public void doFrameUpdate() {
-			Point3D updated = updater.fixed();
-			if(updated != null)
-				set(updated);
-		}
-	}
-	
-	Set<FrameUpdatedVector3D> frameUpdated = new HashSet<FrameUpdatedVector3D>();
-	
+		
 	static public class Point3D extends Vector3D {
 		public Point3D() {}
 		public Point3D(DynVector3D v) throws Exception { for(int i = 0; i < 3; ++i) x[i] = v.get(i); }
@@ -407,7 +416,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Point3D getEyePlanePoint(Point3D p) {
 			Line eyeLine = new Line();
 			eyeLine.point = eyePoint;
-			eyeLine.vector = p.diff(eyeLine.point);		
+			eyeLine.vector = p.diff(eyeLine.point);
 			return eyePlane.intersectionPoint(eyeLine).point.fixed();
 		}
 
@@ -547,6 +556,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public Line(DynVector3D p, DynVector3D v) { point = p; vector = v; }  
 		public Line(DynVector3D p, DynVector3D v, Color c) { point = p; vector = v; color = c; }  
 		public Line(DynVector3D p, DynVector3D v, boolean inf, Color c) { point = p; vector = v; color = c; infinite = inf; }  
+		public Line setColor(Color c) { color = c; return this; }
 		
 		public void draw(Viewport v) {
 			if(point.isValid() && vector.isValid()) {
@@ -733,23 +743,28 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		static public Plane[] basePlanes = new Plane[] { xPlane, yPlane, zPlane };
 		
 		public void draw(Viewport v) {
-			v.setColor(color);
+			v.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 120));
 			
+			Vector3D v1 = normal.someOrthogonal().norminated().fixed(); if(v1 == null) return;
+			Vector3D v2 = normal.crossProduct(v1).norminated().fixed(); if(v2 == null) return;
+
+			for(int i = 4; i < 20; i += 6) {
+				Float f = new Float(i);
+				Point3D p1 = basePoint().diff(v1.product(f)).fixed();
+				Point3D p2 = basePoint().diff(v2.product(f)).fixed();
+				Point3D p3 = basePoint().sum(v1.product(f)).fixed();
+				Point3D p4 = basePoint().sum(v2.product(f)).fixed();
+							
+				v.drawPolygon( new Point3D[] {p1, p2, p3, p4} );
+			}
+			
+			/*
 			Line[] lines = new Line[3];
 			for(int i = 0; i < 3; ++i) lines[i] = basePlanes[i].intersectionLine(this);
-
-			// just for easier debugging
-			//for(int i = 0; i < 3; ++i) lines[i].point = lines[i].point.fixed(); 
-			//for(int i = 0; i < 3; ++i) lines[i].vector = lines[i].vector.fixed(); 
-			
-			//for(int i = 0; i < 3; ++i) lines[i].draw(v); // debugging
 			
 			Point3D[] points = new Point3D[3];
 			for(int i = 0; i < 3; ++i) points[i] = lines[i].intersectionPoint(lines[ (i+1) % 3 ]).point.fixed();
 
-			//for(int i = 0; i < 3; ++i) if(points[i] != null) new Point(points[i]).draw(v); // debugging
-			//if(0 == 0) return;
-			
 			List<Point3D> pointList = new LinkedList<Point3D>();
 			for(int i = 0; i < 3; ++i) {
 				Point3D p = points[i];
@@ -764,6 +779,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 			
 			v.drawPolygon( pointList.toArray(new Point3D[] {}) );
+			*/
 		}
 		
 		public Line intersectionLine(Plane other) {
@@ -859,14 +875,35 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 
 	}
+
+	static interface FrameUpdate {
+		void doFrameUpdate(Vector3D diff);
+	}
 	
+	static public class Vector3DUpdater implements FrameUpdate {
+		Vector3D point;
+		DynVector3D updater;
+		public Vector3DUpdater(Vector3D p, DynVector3D u) { point = p; updater = u; p.set(u.fixed()); }
+		
+		public void doFrameUpdate(Vector3D diff) {
+			Point3D updated = updater.fixed();
+			if(updated != null)
+				point.set(updated);
+		}
+	}
+
 	static public class MoveablePoint extends Point {
+		List<FrameUpdate> updater = new LinkedList<FrameUpdate>();
 		public MoveablePoint(DynVector3D p, Color c) { super(p, c); }
 		public Point3D pointForPos(java.awt.Point p) { return null; }
 
 		public void moveTo(java.awt.Point p) {
 			Point3D pt = pointForPos(p);
-			if(pt != null) this.point = pt;
+			if(pt != null) {
+				Vector3D diff = pt.diff(this.point).fixed();
+				((Vector3D) this.point).set(pt);
+				for(FrameUpdate u : updater) u.doFrameUpdate(diff); 
+			}
 		}
 	}
 
@@ -942,7 +979,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 	public Set<Object3D> objects = new HashSet<Object3D>();
 	
-	public void paint(Graphics g) {
+	public void paint(Graphics g) {		
 		viewport.setGraphics(g);
 		for(Object3D o : objects) {
 			o.draw(viewport);
@@ -987,10 +1024,6 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			} catch (Exception e) {}
 			g.drawString(s, 0, 10); 
 		}
-		
-		for(FrameUpdatedVector3D v : frameUpdated) {
-			v.doFrameUpdate();
-		}
 	}
 	
 	public void addBaseAxes() {
@@ -1002,6 +1035,24 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			if(i == 0) continue;
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,0,0), false, Color.orange));
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(0,40,0), false, Color.orange));
+
+			/*
+			for(int l = -15; l <= 15; ++l) {
+				final int j = i;
+				final int k = l;
+				objects.add(new Object3D() {
+					public void draw(Viewport v) {
+						v.setColor(new Color(40, 40, 40, 40));
+						v.drawPolygon(new Point3D[] {
+								new Vector3D(-k,-j,0).fixed(),
+								new Vector3D(-k,j,0).fixed(),
+								new Vector3D(k,j,0).fixed(),
+								new Vector3D(k,-j,0).fixed(),						
+						});
+					}
+				});
+			}
+			*/
 		}
 	}
 	
