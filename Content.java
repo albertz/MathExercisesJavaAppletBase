@@ -4,9 +4,6 @@ import java.awt.Color;
 import java.util.Collection;
 import java.util.Random;
 
-import applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung.PGraph3D.DynVector3D;
-import applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung.PGraph3D.Vector3D;
-
 public class Content {
 
 	Applet applet;
@@ -49,18 +46,18 @@ public class Content {
 
 		PGraph3D.MoveablePointOnLine stuetzPt = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(4,4,4), Color.black);
 		final PGraph3D.MoveablePointOnPlane normalPt = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(), Color.blue);
-		PGraph3D.Vector3DUpdater normalUpdater = new PGraph3D.Vector3DUpdater((Vector3D) normalPt.point, stuetzPt.dynPoint().sum(normalUnnorminated));
+		PGraph3D.Vector3DUpdater normalUpdater = new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) normalPt.point, stuetzPt.dynPoint().sum(normalUnnorminated));
 		stuetzPt.updater.add( normalUpdater );
 		normalPt.updater.add( new PGraph3D.Vector3DUpdater(normalUnnorminated, normalPt.dynPoint().diff(stuetzPt.dynPoint()).norminated().product(length) ) );
 		normalPt.updater.add( normalUpdater );
 
 		PGraph3D.MoveablePointOnPlane richtungPt1 = graph.new MoveablePointOnPlane(stuetzPt.dynPoint().sum( normalUnnorminated.someOrthogonal().norminated().product(length) ).fixed(), Color.green);
-		DynVector3D richtung1 = richtungPt1.dynPoint().diff(stuetzPt.dynPoint());
+		PGraph3D.DynVector3D richtung1 = richtungPt1.dynPoint().diff(stuetzPt.dynPoint());
 		PGraph3D.MoveablePointOnPlane richtungPt2 = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(), Color.green);
-		DynVector3D richtung2 = richtungPt2.dynPoint().diff(stuetzPt.dynPoint());
+		PGraph3D.DynVector3D richtung2 = richtungPt2.dynPoint().diff(stuetzPt.dynPoint());
 
-		PGraph3D.Vector3DUpdater richtungPt1Updater = new PGraph3D.Vector3DUpdater((Vector3D) richtungPt1.point, stuetzPt.dynPoint().sum( richtung2.crossProduct(normalUnnorminated).norminated().product(length) ), false);
-		PGraph3D.Vector3DUpdater richtungPt2Updater = new PGraph3D.Vector3DUpdater((Vector3D) richtungPt2.point, stuetzPt.dynPoint().sum( normalUnnorminated.crossProduct(richtung1).norminated().product(length) ));
+		PGraph3D.Vector3DUpdater richtungPt1Updater = new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) richtungPt1.point, stuetzPt.dynPoint().sum( richtung2.crossProduct(normalUnnorminated).norminated().product(length) ), false);
+		PGraph3D.Vector3DUpdater richtungPt2Updater = new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) richtungPt2.point, stuetzPt.dynPoint().sum( normalUnnorminated.crossProduct(richtung1).norminated().product(length) ));
 		normalPt.updater.add(richtungPt1Updater);
 		normalPt.updater.add(richtungPt2Updater);
 		stuetzPt.updater.add(richtungPt1Updater);
