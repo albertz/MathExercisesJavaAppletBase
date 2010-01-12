@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung;
+package applets.AnalytischeGeometrieundLA_03_Ebene3Punkte;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
