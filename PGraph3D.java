@@ -1,14 +1,17 @@
 package applets.AnalytischeGeometrieundLA_04_Ebene_StuetzNormRichtung;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.event.MouseEvent;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -248,7 +251,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			void draw() {
 				try {
 					java.awt.Point tp = translate(p);
-					g.fillOval(tp.x, tp.y, 2, 2);					
+					g.fillOval(tp.x - 3, tp.y - 3, 6, 6);					
 				} catch (Exception e) {
 					System.out.println("p = " + p);
 					e.printStackTrace();
@@ -291,6 +294,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				try {
 					java.awt.Point tp1 = translate(p1);
 					java.awt.Point tp2 = translate(p2);
+					if(g instanceof Graphics2D) ((Graphics2D)g).setStroke(new BasicStroke(4));
 					g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
 				} catch(Exception e) {
 					System.out.println("p1 = " + p1);
@@ -1124,16 +1128,29 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	java.awt.Point oldMousePoint = null;
 	MoveablePoint movedPoint = null;
 	
-	public MoveablePoint moveablePointAt(java.awt.Point p) {		
+	public MoveablePoint moveablePointAt(final java.awt.Point p) {
+		SortedSet<MoveablePoint> pts = new TreeSet<MoveablePoint>(new Comparator<MoveablePoint>() {
+			public int compare(MoveablePoint o1, MoveablePoint o2) {
+				try {
+					double d1 = p.distance( viewport.translate(o1.point.fixed()) );
+					double d2 = p.distance( viewport.translate(o2.point.fixed()) );
+					if(d2 < d1) return -1;
+					if(d2 > d1) return 1;
+				} catch(Exception e) {}
+				return 0;
+			}
+		});
 		for(Object3D o : objects) {
 			if(o instanceof MoveablePoint) {
 				MoveablePoint mp = (MoveablePoint) o;
 				try {
-					if( p.distance( viewport.translate(mp.point.fixed()) ) < 5 )
-						return mp;
+					if( p.distance( viewport.translate(mp.point.fixed()) ) < 6 )
+						pts.add(mp);
 				} catch (Exception e) {}
 			}
 		}
+		if(pts.size() > 0)
+			return pts.first();
 		return null;
 	}
 	
