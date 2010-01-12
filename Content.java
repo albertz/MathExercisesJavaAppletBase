@@ -17,7 +17,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(436, 581);
+		applet.setSize(620, 620);
 	}
 
 	void postinit() {}
@@ -34,10 +34,10 @@ public class Content {
 	}
 		
 	public void run() {
-		graph = new PGraph3D(applet, 400, 400);		
+		graph = new PGraph3D(applet, 600, 600);		
 		graph.addBaseAxes();
 	
-		PGraph3D.Vector3D normalUnnorminated = new PGraph3D.Vector3D(2,2,2);
+		PGraph3D.Vector3D normalUnnorminated = new PGraph3D.Vector3D(4,4,4);
 		PGraph3D.Float length = new PGraph3D.Float(0);
 		try {
 			length.x = normalUnnorminated.abs().get();
