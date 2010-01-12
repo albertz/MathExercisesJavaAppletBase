@@ -14,7 +14,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(620, 620);
+		applet.setSize(620, 650);
 	}
 
 	void postinit() {}
@@ -93,7 +93,12 @@ public class Content {
 		graph.objects.add(plane.intersectionLine(PGraph3D.Plane.zPlane).setColor(Color.darkGray));
 				
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("graph", 10, 5, graph.W, graph.H, graph)
+				new VTImage("graph", 10, 5, graph.W, graph.H, graph),
+				new VTButton("newpt", "neuer Punkt", 10, 5, new Runnable() {
+					public void run() {
+						
+					}
+				})
 		});	
 	}
 	
