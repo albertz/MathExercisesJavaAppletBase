@@ -302,7 +302,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				try {
 					java.awt.Point tp1 = translate(p1);
 					java.awt.Point tp2 = translate(p2);
-					if(g instanceof Graphics2D) ((Graphics2D)g).setStroke(new BasicStroke(4));
+					//if(g instanceof Graphics2D) ((Graphics2D)g).setStroke(new BasicStroke(4));
 					g.drawLine(tp1.x, tp1.y, tp2.x, tp2.y);
 				} catch(Exception e) {
 					System.out.println("p1 = " + p1);
@@ -519,8 +519,17 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public void drawArrow(Point3D p, Vector3D v) {
-			// TODO:...
 			drawLine(p, v, false);
+			
+			double arrowSize = 1;
+			Point3D endp = p.sum(v).fixed();
+			Point3D mp = endp.diff( v.norminated().product(new Float(arrowSize)) ).fixed();
+			Vector3D ov = v.someOrthogonal().norminated().fixed();
+			Point3D p1 = mp.sum( ov.product(new Float(arrowSize * 0.5)) ).fixed();
+			Point3D p2 = mp.sum( ov.product(new Float(-arrowSize * 0.5)) ).fixed();
+			
+			drawLine(endp, p1.diff(endp).fixed(), false);
+			drawLine(endp, p2.diff(endp).fixed(), false);
 		}
 		
 		public void drawLine(Point3D p, Vector3D v, boolean infinite) {

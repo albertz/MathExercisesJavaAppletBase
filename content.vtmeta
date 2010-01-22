@@ -1,2 +1,6 @@
 \object[graph]
-\object[newpt]
+\object[neueebene]
+
+\text[s1] \m{=} \text[s2]\m{∙x +} \text[s3]\m{∙y +} \text[s4]\m{∙z} 
+
+\button[type=check,source=checker]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwww}  \button[type=help,source=checker]

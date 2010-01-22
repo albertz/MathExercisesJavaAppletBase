@@ -20,7 +20,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(620, 650);
+		applet.setSize(520, 530);
 	}
 
 	void postinit() {}
@@ -50,48 +50,13 @@ public class Content {
 	}
 	
 	public void run() {
-		graph = new PGraph3D(applet, 600, 600);		
+		graph = new PGraph3D(applet, 480, 400);		
 		graph.addBaseAxes();
 			
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph),
-				new VTButton("newpt", "neuer Punkt", 10, 5, new Runnable() {
+				new VTButton("neueebene", "andere Ebene", 10, 5, new Runnable() {
 					public void run() {
-						if(pts.size() >= 3) return;
-						final PGraph3D.MoveablePoint pt = graph.new MoveablePointDynamic(new PGraph3D.Vector3D(
-								(pts.size() == 0) ? 4 : 1,
-								(pts.size() == 1) ? 4 : 1,
-								(pts.size() == 2) ? 4 : 1),
-								Color.blue);
-						pts.add(pt);
-						graph.objects.add(pt);
-						
-						if(pts.size() == 1) {
-							graph.objects.add(new PGraph3D.Plane(
-									pt.point,
-									new PGraph3D.DynVector3D() {
-										public double get(int i) throws Exception {
-											if(pts.size() >= 2) return pts.get(1).point.get(i) - pt.point.get(i);
-											i %= 3;
-											if(i == 0) return 1;
-											if(i == 1) return ((Calendar.getInstance().getTimeInMillis() % 1000) - 500) * 0.001 * 20;
-											return ((Calendar.getInstance().getTimeInMillis() % 1000) - 500) * 0.001 * 20;
-										}
-									},
-									new PGraph3D.DynVector3D() {
-										public double get(int i) throws Exception {
-											if(pts.size() >= 3) return pts.get(2).point.get(i) - pt.point.get(i);
-											i %= 3;
-											if(i == 0) return 1;
-											if(i == 1) return (((Calendar.getInstance().getTimeInMillis() + 300) % 2000) - 1000) * 0.001 * 20;
-											return (((Calendar.getInstance().getTimeInMillis() + 1000) % 2000) - 1000) * 0.001 * 20;
-										}
-									}
-									).setColor(Color.green)
-							);							
-						}
-						
-						newScheduledRedraw();
 						applet.repaint();
 					}
 				})
