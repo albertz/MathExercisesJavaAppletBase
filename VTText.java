@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_03_Ebene3Punkte;
+package applets.AnalytischeGeometrieundLA_05_EbenenGleichung;
 
 import java.awt.Component;
 import java.awt.event.KeyEvent;

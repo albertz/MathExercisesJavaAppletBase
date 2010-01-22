@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_03_Ebene3Punkte;
+package applets.AnalytischeGeometrieundLA_05_EbenenGleichung;
 
 import java.awt.Color;
 import java.awt.Cursor;
