@@ -1,8 +1,14 @@
 package applets.AnalytischeGeometrieundLA_03_Ebene3Punkte;
 
 import java.awt.Color;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.Vector;
 
 public class Content {
 
@@ -29,74 +35,64 @@ public class Content {
 		int i = new Random().nextInt(ar.length);
 		return ar[i];
 	}
-		
+	
+	final Vector<PGraph3D.MoveablePoint> pts = new Vector<PGraph3D.MoveablePoint>(); 
+
+	void newScheduledRedraw() {
+		TimerTask t = new TimerTask() {
+			public void run() {
+				applet.repaint();
+				if(pts.size() < 3)
+					newScheduledRedraw();
+			}
+		};
+		new Timer().schedule(t, 50);
+	}
+	
 	public void run() {
 		graph = new PGraph3D(applet, 600, 600);		
 		graph.addBaseAxes();
-	
-		PGraph3D.Vector3D normalUnnorminated = new PGraph3D.Vector3D(4,4,4);
-		PGraph3D.Float length = new PGraph3D.Float(0);
-		try {
-			length.x = normalUnnorminated.abs().get();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		PGraph3D.DynVector3D normal = normalUnnorminated.norminated();
-
-
-		PGraph3D.MoveablePointOnLine stuetzPt = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(4,4,4), Color.black);
-		final PGraph3D.MoveablePointOnPlane normalPt = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(), Color.blue);
-		PGraph3D.Vector3DUpdater normalUpdater = new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) normalPt.point, stuetzPt.dynPoint().sum(normalUnnorminated));
-		stuetzPt.updater.add( normalUpdater );
-		normalPt.updater.add( new PGraph3D.Vector3DUpdater(normalUnnorminated, normalPt.dynPoint().diff(stuetzPt.dynPoint()).norminated().product(length) ) );
-		normalPt.updater.add( normalUpdater );
-
-		PGraph3D.MoveablePointOnPlane richtungPt1 = graph.new MoveablePointOnPlane(stuetzPt.dynPoint().sum( normalUnnorminated.someOrthogonal().norminated().product(length) ).fixed(), Color.green);
-		PGraph3D.DynVector3D richtung1 = richtungPt1.dynPoint().diff(stuetzPt.dynPoint());
-		PGraph3D.MoveablePointOnPlane richtungPt2 = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(), Color.green);
-		PGraph3D.DynVector3D richtung2 = richtungPt2.dynPoint().diff(stuetzPt.dynPoint());
-
-		PGraph3D.Vector3DUpdater richtungPt1Updater = new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) richtungPt1.point, stuetzPt.dynPoint().sum( richtung2.crossProduct(normalUnnorminated).norminated().product(length) ), false);
-		PGraph3D.Vector3DUpdater richtungPt2Updater = new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) richtungPt2.point, stuetzPt.dynPoint().sum( normalUnnorminated.crossProduct(richtung1).norminated().product(length) ));
-		normalPt.updater.add(richtungPt1Updater);
-		normalPt.updater.add(richtungPt2Updater);
-		stuetzPt.updater.add(richtungPt1Updater);
-		stuetzPt.updater.add(richtungPt2Updater);
-
-		graph.objects.add(stuetzPt);
-		graph.objects.add(normalPt);
-		graph.objects.add(new PGraph3D.VectorArrow(stuetzPt.dynPoint(), normalPt.dynPoint().diff(stuetzPt.dynPoint()), Color.blue));
-				
-		PGraph3D.Plane plane = new PGraph3D.Plane( stuetzPt.dynPoint().dotProduct(normal), normal, Color.red );
-		graph.objects.add(plane);
-		
-		normalPt.plane = new PGraph3D.Plane( normalPt.dynPoint().dotProduct(normal), normal );
-		stuetzPt.line = new PGraph3D.Line(stuetzPt.dynPoint(), normal);
-		
-		graph.objects.add(richtungPt1);
-		graph.objects.add(richtungPt2);
-		graph.objects.add(new PGraph3D.VectorArrow(stuetzPt.dynPoint(), richtung1, Color.green));
-		graph.objects.add(new PGraph3D.VectorArrow(stuetzPt.dynPoint(), richtung2, Color.green));
-
-		richtungPt1.plane = new PGraph3D.Plane(richtungPt1.dynPoint(), richtung2, plane.normal);
-		richtungPt2.plane = new PGraph3D.Plane(richtungPt2.dynPoint(), plane.normal, richtung1);
-		richtungPt1.updater.add( new PGraph3D.Vector3DUpdater(normalUnnorminated, richtung1.crossProduct(richtung2).norminated().product(length)) );
-		richtungPt1.updater.add( normalUpdater );
-		richtungPt1.updater.add( richtungPt1Updater );
-		richtungPt1.updater.add( richtungPt2Updater );
-		richtungPt2.updater.add( new PGraph3D.Vector3DUpdater(normalUnnorminated, richtung1.crossProduct(richtung2).norminated().product(length)) );
-		richtungPt2.updater.add( normalUpdater );
-		richtungPt2.updater.add( richtungPt1Updater );
-		richtungPt2.updater.add( richtungPt2Updater );
-		
-		// for better imagination
-		graph.objects.add(plane.intersectionLine(PGraph3D.Plane.zPlane).setColor(Color.darkGray));
-				
+			
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph),
 				new VTButton("newpt", "neuer Punkt", 10, 5, new Runnable() {
 					public void run() {
+						if(pts.size() >= 3) return;
+						final PGraph3D.MoveablePoint pt = graph.new MoveablePointDynamic(new PGraph3D.Vector3D(
+								(pts.size() == 0) ? 4 : 1,
+								(pts.size() == 1) ? 4 : 1,
+								(pts.size() == 2) ? 4 : 1),
+								Color.blue);
+						pts.add(pt);
+						graph.objects.add(pt);
 						
+						if(pts.size() == 1) {
+							graph.objects.add(new PGraph3D.Plane(
+									pt.point,
+									new PGraph3D.DynVector3D() {
+										public double get(int i) throws Exception {
+											if(pts.size() >= 2) return pts.get(1).point.get(i) - pt.point.get(i);
+											i %= 3;
+											if(i == 0) return 1;
+											if(i == 1) return ((Calendar.getInstance().getTimeInMillis() % 1000) - 500) * 0.001 * 20;
+											return ((Calendar.getInstance().getTimeInMillis() % 1000) - 500) * 0.001 * 20;
+										}
+									},
+									new PGraph3D.DynVector3D() {
+										public double get(int i) throws Exception {
+											if(pts.size() >= 3) return pts.get(2).point.get(i) - pt.point.get(i);
+											i %= 3;
+											if(i == 0) return 1;
+											if(i == 1) return (((Calendar.getInstance().getTimeInMillis() + 300) % 2000) - 1000) * 0.001 * 20;
+											return (((Calendar.getInstance().getTimeInMillis() + 1000) % 2000) - 1000) * 0.001 * 20;
+										}
+									}
+									).setColor(Color.green)
+							);							
+						}
+						
+						newScheduledRedraw();
+						applet.repaint();
 					}
 				})
 		});	

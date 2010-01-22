@@ -7,13 +7,17 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.event.MouseEvent;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeSet;
 
 public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck {
@@ -235,6 +239,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public double maxSize() {
 			return (double) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
+		}
+		
+		public PGraph3D base() {
+			return PGraph3D.this;
 		}
 		
 		class Primitive {
@@ -746,6 +754,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		static public Plane zPlane = new Plane(new Float(0), new Vector3D(0,0,1));
 		static public Plane[] basePlanes = new Plane[] { xPlane, yPlane, zPlane };
 		
+		Plane setColor(Color c) {
+			color = c;
+			return this;
+		}
+		
 		public void draw(Viewport v) {
 			v.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 120));
 			
@@ -910,6 +923,19 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				for(FrameUpdate u : updater) u.doFrameUpdate(diff); 
 			}
 		}
+		
+		public void draw(Viewport v) {
+			if(point.isValid()) {
+				if(v.base().mouseOverPt == this)
+					v.setColor(new Color(255,255,255,200));
+				else
+					v.setColor(color);
+				v.drawPoint(point.fixed());
+			}
+		}
+		
+		public void mouseClicked() {}
+		
 	}
 
 	public class MoveablePointOnPlane extends MoveablePoint {
@@ -979,6 +1005,56 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 	}
 	
+	public class MoveablePointDynamic extends MoveablePointOnLine {
+		int baseLineIndex = 0;
+		
+		public MoveablePointDynamic(DynVector3D p, Color c) {
+			super(p, c);
+			line = new Line();
+			line.point = p;
+			updateLine();
+		}
+
+		void updateLine() {
+			line.vector = Plane.basePlanes[baseLineIndex].normal;
+		}
+				
+		public void draw(Viewport v) {
+			if(point.isValid()) {
+				if(mouseOverPt == this && Calendar.getInstance().getTimeInMillis() % 1000 > 500)
+					v.setColor(new Color(255,255,255,200));
+				else
+					v.setColor(color);
+				
+				v.drawPoint(point.fixed());
+				
+				if(mouseOverPt == this) {
+					v.setColor(new Color(
+							(baseLineIndex == 0) ? 255 : 0,
+							(baseLineIndex == 1) ? 255 : 0,
+							(baseLineIndex == 2) ? 255 : 0
+							));
+					v.drawLine(point.fixed(), line.vector.fixed(), true);
+				}
+				
+				if(mouseOverPt == this) {
+					new Timer() .schedule(new TimerTask() {
+						public void run() {
+							applet.repaint();
+						}
+					}, 500);
+				}
+			}
+		}
+		
+		public void mouseClicked() {
+			baseLineIndex++;
+			baseLineIndex %= 3;
+			updateLine();
+		}
+
+	}
+	
 	private Applet applet;
 	public int W;
 	public int H;
@@ -1013,11 +1089,13 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		// means we are moving a point right now
-		if(movedPoint != null) {
-			g.setColor(movedPoint.color);
+		Point p = movedPoint;
+		if(p == null) p = mouseOverPt;
+		if(p != null) {
+			g.setColor(p.color);
 			String s = "bad";
 			try {
-				s = movedPoint.point.fixed().asString();
+				s = p.point.fixed().asString();
 			} catch (Exception e) {}
 			g.drawString(s, 0, 10); 
 		}
@@ -1054,6 +1132,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mouseClicked(MouseEvent e) {
+		if(mouseOverPt != null) {
+			mouseOverPt.mouseClicked();
+			applet.repaint();
+		}
 	}
 	
 	public void mouseEntered(MouseEvent e) {
@@ -1247,12 +1329,19 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		return getRotateMatrix(rotateAxe, cos_a, sin_a);
 	}
 	
+	public MoveablePoint mouseOverPt = null;
+	
 	public void mouseMoved(MouseEvent e) {
 		MoveablePoint p = moveablePointAt( pointFromEvent(e) );
 		if(p != null)
 			applet.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		else
 			applet.setCursor(Cursor.getDefaultCursor());
+
+		if(mouseOverPt != p) {
+			mouseOverPt = p;			
+			applet.repaint();
+		}
 	}
 	
 	public String getResultMsg() {
