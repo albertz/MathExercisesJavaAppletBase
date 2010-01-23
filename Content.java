@@ -82,9 +82,9 @@ public class Content {
 		pt1v.updater.add(updater);
 		pt2v.updater.add(updater);
 		pt1.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D)pt1v.point, pt1.point.sum(plane1Normal)));
-		pt1v.updater.add(new PGraph3D.Vector3DUpdater(plane1Normal, pt1v.point.diff(pt1.point)));
+		pt1v.updater.add(new PGraph3D.Vector3DUpdater(plane1Normal, pt1v.point.diff(pt1.point)).setAllowZero(false));
 		pt2.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D)pt2v.point, pt2.point.sum(plane2Normal)));
-		pt2v.updater.add(new PGraph3D.Vector3DUpdater(plane2Normal, pt2v.point.diff(pt2.point)));
+		pt2v.updater.add(new PGraph3D.Vector3DUpdater(plane2Normal, pt2v.point.diff(pt2.point)).setAllowZero(false));
 		
 		graph.objects.add(pt1);
 		graph.objects.add(pt2);

@@ -562,15 +562,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public void drawArrow(Point3D p, Vector3D v) {
 			drawLine(p, v, false);
 			
-			double arrowSize = 20.0 / scaleFactor;
-			Point3D endp = p.sum(v).fixed();
-			Point3D mp = endp.diff( v.norminated().product(new Float(arrowSize)) ).fixed();
-			Vector3D ov = v.someOrthogonal().norminated().fixed();
-			Point3D p1 = mp.sum( ov.product(new Float(arrowSize * 0.5)) ).fixed();
-			Point3D p2 = mp.sum( ov.product(new Float(-arrowSize * 0.5)) ).fixed();
-			
-			drawLine(endp, p1.diff(endp).fixed(), false);
-			drawLine(endp, p2.diff(endp).fixed(), false);
+			try {
+				double arrowSize = 20.0 / scaleFactor;
+				Point3D endp = p.sum(v).fixed();
+				Point3D mp = endp.diff( v.norminated().product(new Float(arrowSize)) ).fixed();
+				Vector3D ov = v.someOrthogonal().norminated().fixed();
+				Point3D p1 = mp.sum( ov.product(new Float(arrowSize * 0.5)) ).fixed();
+				Point3D p2 = mp.sum( ov.product(new Float(-arrowSize * 0.5)) ).fixed();
+	
+				drawLine(endp, p1.diff(endp).fixed(), false);
+				drawLine(endp, p2.diff(endp).fixed(), false);
+			}
+			catch(NullPointerException e) {}
 		}
 		
 		public void drawLine(Point3D p, Vector3D v, boolean infinite) {
@@ -1031,14 +1034,25 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	static public class Vector3DUpdater implements FrameUpdate {
 		Vector3D point;
 		DynVector3D updater;
+		boolean allowZero = true;
 		public Vector3DUpdater(Vector3D p, DynVector3D u) { point = p; updater = u; p.set(u.fixed()); }
 		public Vector3DUpdater(Vector3D p, DynVector3D u, boolean immediateSet) { point = p; updater = u; if(immediateSet) p.set(u.fixed()); }
 		
 		public void doFrameUpdate(Vector3D diff) {
 			Point3D updated = updater.fixed();
-			if(updated != null)
+			if(updated != null) {
+				if(!allowZero)
+					try {
+						if(Math.abs(updated.abs().get()) < EPS) return;
+					} catch (Exception e) {
+						e.printStackTrace();
+						return;
+					}
 				point.set(updated);
+			}
 		}
+		
+		Vector3DUpdater setAllowZero(boolean v) { allowZero = v; return this; }
 	}
 
 	static public class MoveablePoint extends Point {
