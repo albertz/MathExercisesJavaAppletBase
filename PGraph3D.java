@@ -1114,12 +1114,28 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-10,0,0), new PGraph3D.Vector3D(30,0,0), Color.DARK_GRAY));
 		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-10,0), new PGraph3D.Vector3D(0,30,0), Color.DARK_GRAY));
 		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,0,-1), new PGraph3D.Vector3D(0,0,21), Color.DARK_GRAY));
+
+		for(int i = -5; i <= 15; ++i) {
+			if(i == 0) continue;
+
+			double s = 0.4;
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-s,0), new PGraph3D.Vector3D(0,s*2,0), false, Color.DARK_GRAY));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,0,-s), new PGraph3D.Vector3D(0,0,s*2), false, Color.DARK_GRAY));
+			
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-s,i,0), new PGraph3D.Vector3D(s*2,0,0), false, Color.DARK_GRAY));
+			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(0,i,-s), new PGraph3D.Vector3D(0,0,s*2), false, Color.DARK_GRAY));
+
+			if(i > 0) {
+				objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(0,-s,i), new PGraph3D.Vector3D(0,s*2,0), false, Color.DARK_GRAY));
+				objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-s,0,i), new PGraph3D.Vector3D(s*2,0,0), false, Color.DARK_GRAY));
+			}
+		}
 		
 		for(int i = -15; i <= 15; ++i) {
 			if(i == 0) continue;
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-20,i,0), new PGraph3D.Vector3D(40,0,0), false, Color.orange));
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-20,0), new PGraph3D.Vector3D(0,40,0), false, Color.orange));
-
+						
 			/*
 			for(int l = -15; l <= 15; ++l) {
 				final int j = i;
