@@ -163,9 +163,28 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			*/
 		}
 		
+		public DynFloat divide(final DynVector3D v) {
+			return new DynFloat() {
+				public double get() throws Exception {
+					double fac = 0;
+					for(int i = 0; i < 4; ++i) {
+						if(i == 3) throw new Exception("V3d.divide: v is zero");
+						if(Math.abs(v.get(i)) > EPS) {
+							fac = DynVector3D.this.get(i) / v.get(i);
+							break;
+						}
+					}
+					for(int i = 0; i < 3; ++i)
+						if(Math.abs( DynVector3D.this.get(i) -  v.get(i) * fac ) > EPS)
+							throw new Exception("V3d.divide: not parallel");
+					return fac;
+				}
+			};			
+		}
+		
 		private String get_toString(int i) {
 			try {
-				return "" + get(i);
+				return "" + Math.round(get(i)*10)*0.1;
 			} catch (Exception e) {
 				return e.getMessage();
 			}
@@ -617,6 +636,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 		}
 		
+		public DynVector3D dynVector() {
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					if(vector == null) throw new Exception("vector == null");
+					return vector.get(i);
+				}				
+			};
+		}
+
 		public boolean isValid() {
 			try {
 				return point.isValid() && vector.abs().get() > EPS;
@@ -677,23 +705,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public DynFloat factorForPointOnLine(final DynVector3D p) {
-			return new DynFloat() {
-				public double get() throws Exception {
-					DynVector3D relP = p.diff(point);
-					double fac = 0;
-					for(int i = 0; i < 4; ++i) {
-						if(i == 3) throw new Exception("factorForPointOnLine: my vector is zero, line is invalid");
-						if(Math.abs(vector.get(i)) > EPS) {
-							fac = relP.get(i) / vector.get(i);
-							break;
-						}
-					}
-					for(int i = 0; i < 3; ++i)
-						if(Math.abs( vector.get(i) * fac -  relP.get(i) ) > EPS)
-							throw new Exception("factorForPointOnLine: point not on line");
-					return fac;
-				}
-			};
+			return p.diff(dynPoint()).divide(dynVector());
 		}
 		
 		public boolean isPointOnLine(DynVector3D p) {
@@ -702,6 +714,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public boolean lineIsEqual(Line l) {
 			return isPointOnLine(l.point) && isPointOnLine(l.point.sum(l.vector));
+		}
+		
+		public String toString(String name) {
+			return name + "(t) = " + point.toString() + " + " + vector.toString() + "∙t";
 		}
 	}
 	
@@ -939,6 +955,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public boolean isLineOnPlane(Line l) {
 			return isPointOnPlane(l.point) && isPointOnPlane(l.point.sum(l.vector));
+		}
+		
+		public boolean isPlaneEqual(Plane p) {
+			return isPointOnPlane(p.basePoint()) && normal.divide(p.normal).isValid();
 		}
 		
 		public String toString() {
