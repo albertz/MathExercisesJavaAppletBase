@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_08_EbeneEbeneSchnittgerade;
+package applets.AnalytischeGeometrieundLA_10_MatrixIndex;
 
 import java.awt.Color;
 import java.awt.Component;

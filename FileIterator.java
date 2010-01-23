@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_08_EbeneEbeneSchnittgerade;
+package applets.AnalytischeGeometrieundLA_10_MatrixIndex;
 
 import java.io.File;
 import java.io.FileFilter;

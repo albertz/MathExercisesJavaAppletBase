@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_08_EbeneEbeneSchnittgerade;
+package applets.AnalytischeGeometrieundLA_10_MatrixIndex;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
