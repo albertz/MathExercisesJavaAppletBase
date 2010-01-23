@@ -486,6 +486,17 @@ public class Applet extends JApplet {
 		}
 	}
 	
+	public static boolean equalParseNum(String txt, double num, double eps) {
+		try {
+			txt = txt.replace(',', '.');
+			txt = txt.replaceAll(" ", "");
+			double p = Double.parseDouble(txt);
+			return Math.abs(p - num) < eps;
+		} catch (NumberFormatException e) {
+			return false;
+		}
+	}
+
 	public String getSelected(int selId) {
 		Component comp = getComponentByName("s" + selId);
 		if(comp == null) return null;
@@ -500,9 +511,7 @@ public class Applet extends JApplet {
 		Var var = vtmeta.getVar("s" + selId);
 		if(var != null) return var.value.compareToIgnoreCase(selected) == 0;
 
-		switch(selId) {
-		default: return false;
-		}
+		return content.isCorrect(selId, selected);
 	}
 
 	public void resetResultLabels() {

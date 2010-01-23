@@ -7,8 +7,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 
-
-
 public class VTMeta extends VTContainer  {
 	
 	private final Applet applet;
@@ -51,6 +49,11 @@ public class VTMeta extends VTContainer  {
 		Var var = getVar(name);
 		if(var == null) return null;
 		return var.value;
+	}
+	
+	public void setVarValue(String name, String value) {
+		Var v = getVar(name, true);
+		v.value = value;
 	}
 	
 	private VisualThing getExternThing(String name) {

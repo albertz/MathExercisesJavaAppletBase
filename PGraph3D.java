@@ -222,7 +222,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3D xAxeDir = new Vector3D(1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
 		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
-		double scaleFactor = 40;
+		double scaleFactor = 60;
 		
 		public void rotate(Matrix3D rotateMatrix) {
 			if(Math.abs(1 - rotateMatrix.det()) > EPS) return;
