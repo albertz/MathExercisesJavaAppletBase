@@ -810,20 +810,33 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		DynVector3D normal;
 		Color color = Color.black;
 		
+		DynVector3D point; // obsolete but used for drawing as base point
+		
 		public Plane() {}
-		public Plane(DynFloat height, DynVector3D normal) { this.height = height; this.normal = normal; }
-		public Plane(DynFloat height, DynVector3D normal, Color c) { this.height = height; this.normal = normal; color = c; }
+		public Plane(DynFloat height, DynVector3D normal) { this.height = height; this.normal = normal; point = basePoint(); }
+		public Plane(DynFloat height, DynVector3D normal, Color c) { this.height = height; this.normal = normal; point = basePoint(); color = c; }
 
 		public Plane(DynVector3D p, DynVector3D v1, DynVector3D v2) {
 			normal = v1.crossProduct(v2);
 			height = p.dotProduct(normal);
+			point = p;
+		}
+		
+		public Plane(DynVector3D p, DynVector3D normal) {
+			this.normal = normal;
+			height = p.dotProduct(normal);
+			point = p;
 		}
 		
 		DynVector3D basePoint() {
-			Line normalLine = new Line();
-			normalLine.point = new Point3D();
-			normalLine.vector = normal;
-			return intersectionPoint(normalLine).point;
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					Line normalLine = new Line();
+					normalLine.point = new Point3D();
+					normalLine.vector = normal;
+					return intersectionPoint(normalLine).point.get(i);
+				}
+			};
 		}
 		
 		static public Plane xPlane = new Plane(new Float(0), new Vector3D(1,0,0));
@@ -843,11 +856,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			Vector3D v2 = normal.crossProduct(v1).norminated().fixed(); if(v2 == null) return;
 
 			for(int i = 4; i < 20; i += 6) {
-				Float f = new Float(i);
-				Point3D p1 = basePoint().diff(v1.product(f)).fixed();
-				Point3D p2 = basePoint().diff(v2.product(f)).fixed();
-				Point3D p3 = basePoint().sum(v1.product(f)).fixed();
-				Point3D p4 = basePoint().sum(v2.product(f)).fixed();
+				double s = 20 / v.scaleFactor;
+				Float f = new Float(i * s);
+				Point3D p1 = point.diff(v1.product(f)).fixed();
+				Point3D p2 = point.diff(v2.product(f)).fixed();
+				Point3D p3 = point.sum(v1.product(f)).fixed();
+				Point3D p4 = point.sum(v2.product(f)).fixed();
 							
 				v.drawPolygon( new Point3D[] {p1, p2, p3, p4} );
 			}
@@ -913,6 +927,26 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			Point p = new Point();
 			p.point = line.point.sum( line.vector.product(t) );
 			return p;
+		}
+		
+		public boolean isPointOnPlane(DynVector3D v) {
+			try {
+				return Math.abs(normal.dotProduct(v).get() - height.get()) < EPS;
+			} catch (Exception e) {
+				return false;
+			} 
+		}
+		
+		public boolean isLineOnPlane(Line l) {
+			return isPointOnPlane(l.point) && isPointOnPlane(l.point.sum(l.vector));
+		}
+		
+		public String toString() {
+			try {
+				return height.toString() + " = " + Math.round(normal.get(0)*10)*0.1 + "∙x + " + Math.round(normal.get(1)*10)*0.1 + "∙y + " + Math.round(normal.get(2)*10)*0.1 + "∙z";
+			} catch (Exception e) {
+				return "undefined";
+			}
 		}
 	}
 	
