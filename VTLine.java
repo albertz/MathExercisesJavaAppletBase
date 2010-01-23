@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_06_GeradenSchnittpunktWindschief;
+package applets.AnalytischeGeometrieundLA_07_EbeneGeradeSchnittpunkt;
 
 
 
