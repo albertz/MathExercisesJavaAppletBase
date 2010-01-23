@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_07_EbeneGeradeSchnittpunkt;
+package applets.AnalytischeGeometrieundLA_08_EbeneEbeneSchnittgerade;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

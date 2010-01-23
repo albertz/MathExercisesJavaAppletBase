@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_07_EbeneGeradeSchnittpunkt;
+package applets.AnalytischeGeometrieundLA_08_EbeneEbeneSchnittgerade;
 
 class Var {
 	public String name = "";
