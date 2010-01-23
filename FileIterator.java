@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_05_EbenenGleichung;
+package applets.AnalytischeGeometrieundLA_06_GeradenSchnittpunktWindschief;
 
 import java.io.File;
 import java.io.FileFilter;

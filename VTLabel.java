@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_05_EbenenGleichung;
+package applets.AnalytischeGeometrieundLA_06_GeradenSchnittpunktWindschief;
 
 import java.awt.Color;
 import java.awt.Component;
