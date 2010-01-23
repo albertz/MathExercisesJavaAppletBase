@@ -9,6 +9,7 @@ import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.Vector;
+import javax.swing.JLabel;
 
 public class Content {
 
@@ -20,41 +21,12 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(520, 530);
+		applet.setSize(520, 490);
 	}
 
-	void postinit() {}
-	void next(int i) {}
-	
-	boolean isCorrect(int i, String sel) {
-		double eps = 0.1;
-		switch(i) {
-		case 1:
-			if(height.x != 0) {
-				if(!Applet.equalParseNum(sel, 0, eps))
-					return true;
-				return false;
-			}
-			return Applet.equalParseNum(sel, 0, eps);
-		case 2:
-		case 3:
-		case 4:
-			double f;
-			if(height.x != 0)
-				f = Applet.parseNum(applet.getSelected(1)) / height.x;
-			else if(normal.x[0] != 0)
-				f = Applet.parseNum(applet.getSelected(2)) / normal.x[0];
-			else if(normal.x[1] != 0)
-				f = Applet.parseNum(applet.getSelected(3)) / normal.x[1];
-			else if(normal.x[2] != 0)
-				f = Applet.parseNum(applet.getSelected(4)) / normal.x[2];
-			else
-				f = 0;
-			
-			return Applet.equalParseNum(sel, normal.x[i - 2] * f, eps);
-		}
-		return false;
-	}
+	void postinit() { updater.doFrameUpdate(null); }
+	void next(int i) {}	
+	boolean isCorrect(int i, String sel) { return false; }
 	
 	protected String Round(double x) {
 		return "" + (Math.round(x * 10) / 10.0);
@@ -72,48 +44,56 @@ public class Content {
 	}
 	
 	final Vector<PGraph3D.MoveablePoint> pts = new Vector<PGraph3D.MoveablePoint>(); 
-
-	void newScheduledRedraw() {
-		TimerTask t = new TimerTask() {
-			public void run() {
-				applet.repaint();
-				if(pts.size() < 3)
-					newScheduledRedraw();
-			}
-		};
-		new Timer().schedule(t, 50);
-	}
-	
-	final PGraph3D.Float height = new PGraph3D.Float();
-	final PGraph3D.Vector3D normal = new PGraph3D.Vector3D();
-
-	void neueEbene() {
-		height.x = randomChoiceFrom(new int[]{0,1,2,3});
-		normal.x[0] = randomChoiceFrom(new int[]{0,1,2,3});
-		normal.x[1] = randomChoiceFrom(new int[]{0,1,2,3});
-		normal.x[2] = randomChoiceFrom(new int[]{0,1,2,3});
-		System.out.println("neueEbene: " + height.x + " = " + normal.x[0] + "*x + " + normal.x[1] + "*y + " + normal.x[2] + "*z");
-	}
+	PGraph3D.FrameUpdate updater = null;
 	
 	public void run() {
 		graph = new PGraph3D(applet, 480, 400);		
 		graph.addBaseAxes();
 		
-		PGraph3D.Plane ebene = new PGraph3D.Plane(height, normal, Color.red);
-		graph.objects.add(ebene);
+		final PGraph3D.MoveablePointDynamic pt1 = graph.new MoveablePointDynamic(new PGraph3D.Vector3D(0,2,0), Color.blue);
+		final PGraph3D.MoveablePointDynamic pt2 = graph.new MoveablePointDynamic(new PGraph3D.Vector3D(2,0,0), Color.blue);
+		final PGraph3D.MoveablePointDynamic pt1v = graph.new MoveablePointDynamic(new PGraph3D.Vector3D(4,2,4), Color.red);
+		final PGraph3D.MoveablePointDynamic pt2v = graph.new MoveablePointDynamic(new PGraph3D.Vector3D(2,4,4), Color.red);		
+		pt1.snapGrid = 1;
+		pt2.snapGrid = 1;
+		pt1v.snapGrid = 1;
+		pt2v.snapGrid = 1;
+		final PGraph3D.Line line1 = new PGraph3D.Line(pt1.point, pt1v.point.diff(pt1.point), Color.green);  
+		final PGraph3D.Line line2 = new PGraph3D.Line(pt2.point, pt2v.point.diff(pt2.point), Color.green);
+		final PGraph3D.Point intersectionPoint = line1.intersectionPoint(line2);
+		
+		updater = new PGraph3D.FrameUpdate() {
+			public void doFrameUpdate(PGraph3D.Vector3D diff) {
+				((JLabel) applet.getComponentByName("line1")).setText("g1(t) = " + pt1.point.toString() + " + " + line1.vector.toString() + " ∙ t");
+				((JLabel) applet.getComponentByName("line2")).setText("g2(t) = " + pt2.point.toString() + " + " + line2.vector.toString() + " ∙ t");
+				
+				if(intersectionPoint.point.isValid())
+					((JLabel) applet.getComponentByName("schnitt")).setText("Schnittpunkt: " + intersectionPoint.point.toString());
+				else if(line1.lineIsEqual(line2))
+					((JLabel) applet.getComponentByName("schnitt")).setText("Gerade liegen übereinander");
+				else
+					((JLabel) applet.getComponentByName("schnitt")).setText("kein Schnittpunkt, Geraden liegen windschief");
+			}
+		};
+		pt1.updater.add(updater);
+		pt2.updater.add(updater);
+		pt1v.updater.add(updater);
+		pt2v.updater.add(updater);
+		
+		graph.objects.add(pt1);
+		graph.objects.add(pt2);
+		graph.objects.add(pt1v);
+		graph.objects.add(pt2v);
+		
+		graph.objects.add(new PGraph3D.VectorArrow(line1.point, line1.vector, Color.red));
+		graph.objects.add(new PGraph3D.VectorArrow(line2.point, line2.vector, Color.red));		
+		graph.objects.add(line1);
+		graph.objects.add(line2);		
+		graph.objects.add(intersectionPoint);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph),
-				new VTButton("neueebene", "andere Ebene", 10, 5, new Runnable() {
-					public void run() {
-						neueEbene();
-						applet.repaint();
-					}
-				})
-				
 		});
-		
-		neueEbene();
 	}
 	
 }

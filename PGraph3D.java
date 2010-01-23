@@ -675,6 +675,34 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 			return p;
 		}
+		
+		public DynFloat factorForPointOnLine(final DynVector3D p) {
+			return new DynFloat() {
+				public double get() throws Exception {
+					DynVector3D relP = p.diff(point);
+					double fac = 0;
+					for(int i = 0; i < 4; ++i) {
+						if(i == 3) throw new Exception("factorForPointOnLine: my vector is zero, line is invalid");
+						if(Math.abs(vector.get(i)) > EPS) {
+							fac = relP.get(i) / vector.get(i);
+							break;
+						}
+					}
+					for(int i = 0; i < 3; ++i)
+						if(Math.abs( vector.get(i) * fac -  relP.get(i) ) > EPS)
+							throw new Exception("factorForPointOnLine: point not on line");
+					return fac;
+				}
+			};
+		}
+		
+		public boolean isPointOnLine(DynVector3D p) {
+			return factorForPointOnLine(p).isValid();
+		}
+		
+		public boolean lineIsEqual(Line l) {
+			return isPointOnLine(l.point) && isPointOnLine(l.point.sum(l.vector));
+		}
 	}
 	
 	static public class VectorArrow extends Line {
@@ -961,15 +989,20 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 	static public class MoveablePoint extends Point {
 		List<FrameUpdate> updater = new LinkedList<FrameUpdate>();
-		public MoveablePoint(DynVector3D p, Color c) { super(p, c); }
+		double snapGrid = 0;
+		public MoveablePoint(Vector3D p, Color c) { super(p, c); }
 		public Point3D pointForPos(java.awt.Point p) { return null; }
 
 		public void moveTo(java.awt.Point p) {
 			Point3D pt = pointForPos(p);
 			if(pt != null) {
+				if(snapGrid > 0) {
+					for(int i = 0; i < 3; ++i)
+						pt.x[i] = Math.round(pt.x[i] / snapGrid) * snapGrid;
+				}
 				Vector3D diff = pt.diff(this.point).fixed();
 				((Vector3D) this.point).set(pt);
-				for(FrameUpdate u : updater) u.doFrameUpdate(diff); 
+				for(FrameUpdate u : updater) u.doFrameUpdate(diff);
 			}
 		}
 		
@@ -985,12 +1018,13 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void mouseClicked() {}
 		
+		MoveablePoint setSnapGrid(double sg) { snapGrid = sg; return this; }
 	}
 
 	public class MoveablePointOnPlane extends MoveablePoint {
 		Plane plane;
-		public MoveablePointOnPlane(DynVector3D p, Color c) { super(p, c); }
-		public MoveablePointOnPlane(DynVector3D p, Plane pl, Color c) { this(p, c); plane = pl; }
+		public MoveablePointOnPlane(Vector3D p, Color c) { super(p, c); }
+		public MoveablePointOnPlane(Vector3D p, Plane pl, Color c) { this(p, c); plane = pl; }
 		
 		public Point3D pointForPos(java.awt.Point p) {
 			// if plane is almost orthogonal to viewport, point is very inaccurate -> dont do that movement
@@ -1012,12 +1046,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public class MoveablePointOnLine extends MoveablePointOnPlane {
 		Line line;
 		
-		public MoveablePointOnLine(DynVector3D p, Color c) {
+		public MoveablePointOnLine(Vector3D p, Color c) {
 			super(p, c);
 			plane = new Plane(dynLinePoint(), dynLineVector(), viewport.eyeDir.crossProduct(dynLineVector()));
 		}
 		
-		public MoveablePointOnLine(DynVector3D p, Line l, Color c) {
+		public MoveablePointOnLine(Vector3D p, Line l, Color c) {
 			this(p, c);
 			line = l;
 		}
@@ -1057,7 +1091,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public class MoveablePointDynamic extends MoveablePointOnLine {
 		int baseLineIndex = 0;
 		
-		public MoveablePointDynamic(DynVector3D p, Color c) {
+		public MoveablePointDynamic(Vector3D p, Color c) {
 			super(p, c);
 			line = new Line();
 			line.point = p;

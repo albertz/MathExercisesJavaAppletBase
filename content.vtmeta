@@ -1,6 +1,4 @@
 \object[graph]
-\object[neueebene]
-
-\text[s1] \m{=} \text[s2]\m{∙x +} \text[s3]\m{∙y +} \text[s4]\m{∙z} 
-
-\button[type=check]   \label[res1]{wwwwwwwwwwwwwwwwwwwwwwwwww}  \button[type=help]
+\label[line1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\label[line2]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\label[schnitt]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
