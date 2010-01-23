@@ -222,7 +222,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3D xAxeDir = new Vector3D(1,0,0);
 		Plane eyePlane = new Plane(eyeHeight, eyeDir);
 		DynVector3D eyePoint = eyeDir.product(eyeHeight).product(eyeDistanceFactor);
-		double scaleFactor = 20;
+		double scaleFactor = 40;
 		
 		public void rotate(Matrix3D rotateMatrix) {
 			if(Math.abs(1 - rotateMatrix.det()) > EPS) return;
@@ -266,6 +266,23 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				}
 			}
 			Point3D middle() { return p; }
+		}
+		
+		class PrimitiveText extends PrimitivePoint {
+			String text;
+			PrimitiveText(Point3D p, String t) {
+				super(p);
+				text = t;
+			}
+			void draw() {
+				try {
+					java.awt.Point tp = translate(p);
+					g.drawString(text, tp.x - 3, tp.y - 3);
+				} catch (Exception e) {
+					System.out.println("p = " + p + ", t = " + text);
+					e.printStackTrace();
+				}				
+			}
 		}
 		
 		class PrimitivePolygon extends Primitive {
@@ -517,11 +534,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			double d = getEyePlane_PointDistance(p) - /* because of the radius */ 1;
 			addPrimitive(d, g.getColor(), new PrimitivePoint(p));
 		}
-		
+
+		public void drawText(final Point3D p, String text) {
+			double d = getEyePlane_PointDistance(p);
+			addPrimitive(d, g.getColor(), new PrimitiveText(p, text));
+		}
+
 		public void drawArrow(Point3D p, Vector3D v) {
 			drawLine(p, v, false);
 			
-			double arrowSize = 1;
+			double arrowSize = 20.0 / scaleFactor;
 			Point3D endp = p.sum(v).fixed();
 			Point3D mp = endp.diff( v.norminated().product(new Float(arrowSize)) ).fixed();
 			Vector3D ov = v.someOrthogonal().norminated().fixed();
@@ -689,6 +711,24 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				}
 			};
 		}
+	}
+
+	static public class Text extends Point {
+		String text;
+		public Text() { super(); }
+
+		public Text(DynVector3D p, String t, Color c) {
+			super(p, c);
+			text = t;
+		}
+
+		public void draw(Viewport v) {
+			if(point.isValid() && text != null) {
+				v.setColor(color);
+				v.drawText(point.fixed(), text);
+			}
+		}
+
 	}
 	
 	static public abstract class DynMatrix2D {
@@ -1111,14 +1151,19 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void addBaseAxes() {
-		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-10,0,0), new PGraph3D.Vector3D(30,0,0), Color.DARK_GRAY));
-		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-10,0), new PGraph3D.Vector3D(0,30,0), Color.DARK_GRAY));
-		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,0,-1), new PGraph3D.Vector3D(0,0,21), Color.DARK_GRAY));
+		double x = 400.0 / viewport.scaleFactor;
+		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-x/2,0,0), new PGraph3D.Vector3D(x*1.75,0,0), Color.DARK_GRAY));
+		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-x/2,0), new PGraph3D.Vector3D(0,x*1.75,0), Color.DARK_GRAY));
+		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,0,-1), new PGraph3D.Vector3D(0,0,x+1), Color.DARK_GRAY));
 
-		for(int i = -5; i <= 15; ++i) {
+		objects.add(new Text(new Vector3D(x*1.25, 0, 0), "x", Color.DARK_GRAY));
+		objects.add(new Text(new Vector3D(0, x*1.25, 0), "y", Color.DARK_GRAY));
+		objects.add(new Text(new Vector3D(0, 0, x), "z", Color.DARK_GRAY));
+		
+		for(int i = -(int)(x / 4); i <= (int)(x * 0.75); ++i) {
 			if(i == 0) continue;
 
-			double s = 0.4;
+			double s = 0.01 * x;
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-s,0), new PGraph3D.Vector3D(0,s*2,0), false, Color.DARK_GRAY));
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,0,-s), new PGraph3D.Vector3D(0,0,s*2), false, Color.DARK_GRAY));
 			
