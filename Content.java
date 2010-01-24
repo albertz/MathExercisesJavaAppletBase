@@ -66,35 +66,33 @@ public class Content {
 	PGraph3D.Float xab, yab;
 	PGraph3D.MoveablePoint a, ab, b;
 	PGraph3D.Line line;
+	PGraph3D.Float xab2, yab2;
+	PGraph3D.MoveablePoint a2, ab2, b2;
+	PGraph3D.Line line2;
+	PGraph3D.Point schnitt;
 	
 	void updateLabels() {
-		String txt = "";
+		String txt;
 		PGraph3D.DynFloat d = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line).point.dynGet(1);
-		txt += "x_B - x_A = " + num(xab.x);
-		txt += ",    y_B - y_A = " + num(yab.x);
-		txt += ",    m = " + num(yab.x/xab.x);
-		txt += ",    d = " + num( d );
-		((JLabel) applet.getComponentByName("rest")).setText(txt);
+		txt = "A1 = " + a.point.toString();
+		txt += ",    B1 = " + b.point.toString();
+		txt += ",    m1 = " + num(yab.x/xab.x);
+		txt += ",    d1 = " + num( d );
+		((JLabel) applet.getComponentByName("g1")).setText(txt);
 		
-		try {
-			((JLabel) applet.getComponentByName("g")).setText("Gerade g : y = " + num(yab.x/xab.x) + "∙x + " + num(d.get()));
-		} catch (Exception e1) {
-			((JLabel) applet.getComponentByName("g")).setText("Gerade g lässt sich nicht als Funktion darstellen");
-		}
-
-		for (int i = 0; i < 2; ++i)
-			try {
-				((JLabel) applet.getComponentByName("A" + i)).setText("" + num(a.point.get(i)));
-			} catch (Exception e) {
-				((JLabel) applet.getComponentByName("A" + i)).setText("?");
-			}
-
-		for (int i = 0; i < 2; ++i)
-			try {
-				((JLabel) applet.getComponentByName("B" + i)).setText("" + num(b.point.get(i)));
-			} catch (Exception e) {
-				((JLabel) applet.getComponentByName("B" + i)).setText("?");
-			}
+		PGraph3D.DynFloat d2 = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line2).point.dynGet(1);
+		txt = "A2 = " + a2.point.toString();
+		txt += ",    B2 = " + b2.point.toString();
+		txt += ",    m2 = " + num(yab2.x/xab2.x);
+		txt += ",    d2 = " + num( d2 );
+		((JLabel) applet.getComponentByName("g2")).setText(txt);
+		
+		if(schnitt.point.isValid())
+			((JLabel) applet.getComponentByName("schnitt")).setText("Schnittpunkt: " + schnitt.point.toString());
+		else if(line.lineIsEqual(line2))
+			((JLabel) applet.getComponentByName("schnitt")).setText("Geraden liegen übereinander");
+		else
+			((JLabel) applet.getComponentByName("schnitt")).setText("Geraden sind parallel ohne Berührungspunkt");
 	}
 	
 	public void run() {
@@ -136,19 +134,48 @@ public class Content {
 		graph.objects.add(new PGraph3D.VectorArrow(a.point, ab.point.diff(a.point), Color.blue));
 		graph.objects.add(new PGraph3D.VectorArrow(ab.point, b.point.diff(ab.point), Color.red));
 		graph.objects.add(line);
-		graph.objects.add(new PGraph3D.Text(a.point, "A", a.color));
-		graph.objects.add(new PGraph3D.Text(b.point, "B", b.color));
+		graph.objects.add(new PGraph3D.Text(a.point, "A1", a.color));
+		graph.objects.add(new PGraph3D.Text(b.point, "B1", b.color));
+		
+		// Hack to not accidently use these anymore
+		//int xab,yab,line,a,ab,b;
+		
+		xab2 = new PGraph3D.Float(5);
+		yab2 = new PGraph3D.Float(3);
+
+		a2 = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(-2,5,0), PGraph3D.Plane.zPlane, Color.black);
+		ab2 = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(2+xab2.x,3,0), new PGraph3D.Line(a2.point, new PGraph3D.Vector3D(1, 0, 0)), Color.blue);
+		b2 = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(2+xab2.x,3+yab2.x,0), new PGraph3D.Line(ab2.point, new PGraph3D.Vector3D(0, 1, 0)), Color.red);
+		line2 = new PGraph3D.Line(a2.point, b2.point.diff(a2.point), Color.black);
+		
+		a2.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) ab2.point, a2.point.sum(new PGraph3D.Vector3D(1,0,0).product(xab2))));
+		a2.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) b2.point, ab2.point.sum(new PGraph3D.Vector3D(0,1,0).product(yab2))));
+		ab2.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) b2.point, ab2.point.sum(new PGraph3D.Vector3D(0,1,0).product(yab2))));
+		ab2.updater.add(new PGraph3D.FloatUpdater(xab2, ab2.point.diff(a2.point).dynGet(0)));
+		b2.updater.add(new PGraph3D.FloatUpdater(yab2, b2.point.diff(ab2.point).dynGet(1)));
+		
+		a2.updater.add(updater);
+		ab2.updater.add(updater);
+		b2.updater.add(updater);
+		
+		ab2.clickPriority = 1;
+		b2.clickPriority = 2;
+		
+		graph.objects.add(a2);
+		graph.objects.add(ab2);
+		graph.objects.add(b2);
+		graph.objects.add(new PGraph3D.VectorArrow(a2.point, ab2.point.diff(a2.point), Color.blue));
+		graph.objects.add(new PGraph3D.VectorArrow(ab2.point, b2.point.diff(ab2.point), Color.red));
+		graph.objects.add(line2);
+		graph.objects.add(new PGraph3D.Text(a2.point, "A2", a2.color));
+		graph.objects.add(new PGraph3D.Text(b2.point, "B2", b2.color));
+
+		schnitt = line.intersectionPoint(line2);
+		schnitt.color = Color.blue;
+		graph.objects.add(schnitt);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 20, graph.W, graph.H, graph),
-				new VTMatrix("A", 0, 0, new VisualThing[][] {
-						new VisualThing[] { new VTLabel("A0", "www", 0, 0) },
-						new VisualThing[] { new VTLabel("A1", "www", 0, 0) }
-				}),
-				new VTMatrix("B", 0, 0, new VisualThing[][] {
-						new VisualThing[] { new VTLabel("B0", "www", 0, 0) },
-						new VisualThing[] { new VTLabel("B1", "www", 0, 0) }
-				})
 		});
 	}
 	
