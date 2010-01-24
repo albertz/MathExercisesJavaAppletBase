@@ -25,7 +25,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(347, 265);
+		applet.setSize(370, 270);
 	}
 
 	void postinit() { updateLabel(); /* updater.doFrameUpdate(null); */ }
@@ -50,7 +50,9 @@ public class Content {
 	final Vector<PGraph3D.MoveablePoint> pts = new Vector<PGraph3D.MoveablePoint>(); 
 	PGraph3D.FrameUpdate updater = null;
 
-	VisualThing[][] labels = null;
+	VisualThing[][] labelsE = null;
+	VisualThing[][] labelsM1 = null;
+	VisualThing[][] labelsM2 = null;
 	JLabel mouseOverLabel = null;
 	
 	static private String subscript(int n) {
@@ -58,25 +60,75 @@ public class Content {
 		return "₀₁₂₃₄₅₆₇₈₉".substring(n, n+1);
 	}
 	
+	void clearMatrix(VisualThing[][] m) {
+		for(int i = 0; i < m.length; ++i)
+			for(int j = 0; j < m[i].length; ++j) {
+				JLabel l = (JLabel) m[i][j].getComponent();
+				l.setOpaque(false);
+				l.repaint();
+			}
+	}
+	
+	void markLabel(JLabel l) {
+		l.setOpaque(true);
+		l.setBackground(Color.green);
+	}
+	
 	void updateLabel() {
-		if(mouseOverLabel != null) {
-			mouseOverLabel.setOpaque(false);
-			mouseOverLabel.repaint();
-			mouseOverLabel = null;
-		}
+		clearMatrix(labelsE);
+		clearMatrix(labelsM1);
+		clearMatrix(labelsM2);
 			
-		for(int i = 0; i < labels.length; ++i)
-			for(int j = 0; j < labels[0].length; ++j)
-				if(labels[i][j].getComponent().getMousePosition() != null) {
-					mouseOverLabel = (JLabel) labels[i][j].getComponent();
-					mouseOverLabel.setOpaque(true);
-					mouseOverLabel.setBackground(Color.green);
-
-					((JLabel) applet.getComponentByName("m")).setText("Zeile " + (i+1) + ", Spalte " + (j+1) + ",   A" + subscript(i+1) + "," + subscript(j+1));
+		for(int i = 0; i < labelsE.length; ++i)
+			for(int j = 0; j < labelsE[0].length; ++j)
+				if(labelsE[i][j].getComponent().getMousePosition() != null) {
+					markLabel( (JLabel) labelsE[i][j].getComponent() );
+					String txt = "Zeile " + (i+1) + ", Spalte " + (j+1);
+					txt += ",   " + ((VTLabel)labelsE[i][j]).getText() + " = ";
+					
+					for(int a = 0; a < rowCountM1; ++a) {
+						markLabel( (JLabel) labelsM1[i][a].getComponent() );
+						markLabel( (JLabel) labelsM2[a][j].getComponent() );						
+						if(a > 0) txt += " + ";
+						txt += ((VTLabel)labelsM1[i][a]).getText();
+						txt += "∙" + ((VTLabel)labelsM2[a][j]).getText();
+					}
+					
+					((JLabel) applet.getComponentByName("m")).setText(txt);
 					return;
 				}
 		
-		((JLabel) applet.getComponentByName("m")).setText("Fahre mit der Maus über ein Element der Matrix A");
+		((JLabel) applet.getComponentByName("m")).setText("Fahre mit der Maus über ein Element der linken Matrix");
+	}
+	
+	int lineCountM1 = 10;
+	int rowCountM1 = 5;
+	int lineCountM2 = rowCountM1;
+	int rowCountM2 = 6;
+	int lineCountE = lineCountM1;
+	int rowCountE = rowCountM2;
+	
+	VisualThing[][] createMatrix(int lineCount, int rowCount) {
+		VisualThing[][] labels = new VisualThing[lineCount][];
+		for(int i = 0; i < lineCount; ++i) {
+			labels[i] = new VisualThing[rowCount];
+			for(int j = 0; j < rowCount; ++j)
+				labels[i][j] = new VTLabel("" + (int)Math.round(Math.random() * 10), 0, 0);
+		}
+		return labels;
+	}
+	
+	int calcMatrixE(int I, int J) {
+		int sum = 0;
+		for(int i = 0; i < rowCountM1; ++i)
+			sum += Integer.parseInt( ((VTLabel)labelsM1[I][i]).getText() ) * Integer.parseInt( ((VTLabel)labelsM2[i][J]).getText() );
+		return sum;
+	}
+	
+	public void updateMatrix() {
+		for(int i = 0; i < lineCountE; ++i)
+			for(int j = 0; j < rowCountE; ++j)
+				((VTLabel)labelsE[i][j]).setText("" + calcMatrixE(i,j));
 	}
 	
 	public void run() {
@@ -136,18 +188,10 @@ public class Content {
 		});
 		*/
 
-		int lineCount = 10;
-		int rowCount = 6;
-		labels = new VisualThing[lineCount][];
-		int c = 1;
-		for(int i = 0; i < lineCount; ++i) {
-			labels[i] = new VisualThing[rowCount];
-			for(int j = 0; j < rowCount; ++j)
-				labels[i][j] = new VTLabel("" + c++, 0, 0);
-		}
-		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTMatrix("matrix", 0, 0, labels),
-		});
+		labelsE = createMatrix(lineCountE, rowCountE);
+		labelsM1 = createMatrix(lineCountM1, rowCountM1);
+		labelsM2 = createMatrix(lineCountM2, rowCountM2);
+		updateMatrix();
 		
 		applet.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseMoved(MouseEvent e) {
@@ -155,6 +199,12 @@ public class Content {
 			}
 			
 			public void mouseDragged(MouseEvent e) {}
+		});
+		
+		applet.vtmeta.setExtern(new VisualThing[] {
+				new VTMatrix("erg", 0, 0, labelsE),
+				new VTMatrix("m1", 0, 0, labelsM1),
+				new VTMatrix("m2", 0, 0, labelsM2),
 		});
 	}
 	
