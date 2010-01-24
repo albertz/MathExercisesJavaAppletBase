@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_12_2DDrehung;
+package applets.AnalytischeGeometrieundLA_01_2DGeradeSteigungsdreieck;
 
 import java.awt.Color;
 import java.awt.Component;
