@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_10_MatrixIndex;
+package applets.AnalytischeGeometrieundLA_11_MatrixMultiplikation;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

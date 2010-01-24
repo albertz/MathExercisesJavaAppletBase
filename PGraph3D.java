@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_10_MatrixIndex;
+package applets.AnalytischeGeometrieundLA_11_MatrixMultiplikation;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
