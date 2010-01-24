@@ -1,6 +1,10 @@
 package applets.AnalytischeGeometrieundLA_10_MatrixIndex;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -21,10 +25,10 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(520, 490);
+		applet.setSize(347, 265);
 	}
 
-	void postinit() { updater.doFrameUpdate(null); }
+	void postinit() { updateLabel(); /* updater.doFrameUpdate(null); */ }
 	void next(int i) {}	
 	boolean isCorrect(int i, String sel) { return false; }
 	
@@ -45,8 +49,38 @@ public class Content {
 	
 	final Vector<PGraph3D.MoveablePoint> pts = new Vector<PGraph3D.MoveablePoint>(); 
 	PGraph3D.FrameUpdate updater = null;
+
+	VisualThing[][] labels = null;
+	JLabel mouseOverLabel = null;
+	
+	static private String subscript(int n) {
+		if(n >= 10) return subscript(n/10) + subscript(n%10);
+		return "₀₁₂₃₄₅₆₇₈₉".substring(n, n+1);
+	}
+	
+	void updateLabel() {
+		if(mouseOverLabel != null) {
+			mouseOverLabel.setOpaque(false);
+			mouseOverLabel.repaint();
+			mouseOverLabel = null;
+		}
+			
+		for(int i = 0; i < labels.length; ++i)
+			for(int j = 0; j < labels[0].length; ++j)
+				if(labels[i][j].getComponent().getMousePosition() != null) {
+					mouseOverLabel = (JLabel) labels[i][j].getComponent();
+					mouseOverLabel.setOpaque(true);
+					mouseOverLabel.setBackground(Color.green);
+
+					((JLabel) applet.getComponentByName("m")).setText("Zeile " + (i+1) + ", Spalte " + (j+1) + ",   A" + subscript(i+1) + "," + subscript(j+1));
+					return;
+				}
+		
+		((JLabel) applet.getComponentByName("m")).setText("Fahre mit der Maus über ein Element der Matrix A");
+	}
 	
 	public void run() {
+		/*
 		graph = new PGraph3D(applet, 480, 400);		
 		graph.addBaseAxes();
 		
@@ -99,6 +133,28 @@ public class Content {
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 5, graph.W, graph.H, graph),
+		});
+		*/
+
+		int lineCount = 10;
+		int rowCount = 6;
+		labels = new VisualThing[lineCount][];
+		int c = 1;
+		for(int i = 0; i < lineCount; ++i) {
+			labels[i] = new VisualThing[rowCount];
+			for(int j = 0; j < rowCount; ++j)
+				labels[i][j] = new VTLabel("" + c++, 0, 0);
+		}
+		applet.vtmeta.setExtern(new VisualThing[] {
+				new VTMatrix("matrix", 0, 0, labels),
+		});
+		
+		applet.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseMoved(MouseEvent e) {
+				updateLabel();
+			}
+			
+			public void mouseDragged(MouseEvent e) {}
 		});
 	}
 	

@@ -1,4 +1,3 @@
-\object[graph]
-\label[plane1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
-\label[plane2]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
-\label[schnitt]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}
+\m{A = \object[matrix]}
+
+\label[m]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}

@@ -122,9 +122,16 @@ public class VTMeta extends VTContainer  {
 		if(base == null) return null;
 		else if(base instanceof VTContainer) {
 			VTContainer con = (VTContainer) base;
-			for(int i = 0; i < con.getThings().length; i++) {
+			for(int i = 0; i < con.getThings().length; i++)
 				con.getThings()[i] = resetAllColors(con.getThings()[i], color);
-			}
+		}
+		else if(base instanceof VTLineCombiner) {
+			VTLineCombiner con = (VTLineCombiner) base;
+			for(int i = 0; i < con.things.length; ++i)
+				con.things[i] = resetAllColors(con.things[i], color);
+		}
+		else if(base instanceof VTMatrix.VTArc) {
+			((VTMatrix.VTArc) base).color = color;
 		}
 		else if(base instanceof VTLabel) {
 			((VTLabel) base).setColor(color);
@@ -135,6 +142,9 @@ public class VTMeta extends VTContainer  {
 	protected VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
 		if(tagname.compareTo("frac") == 0) {
 			return new VTFrac(0, 0, upperparam, lowerparam);
+		}
+		else if(tagname.compareTo("matrix") == 0) {
+			return new VTMatrix(0, 0, baseparam);
 		}
 		else if(tagname.compareTo("lim") == 0) {
 			return Applet.newVTLimes(0, 0, lowerparam);
@@ -403,10 +413,16 @@ public class VTMeta extends VTContainer  {
 				case '\\': curtag.reset(); state = 10; break;
 				case -1: case '}': case ']': // these marks the end at all
 					state = -1;
+					// no break here, pass down
 				case '\n': // new line
 					addNewVT(things, curstr, null); curstr = "";
 					lastlines.add(new VTLineCombiner(10, 7, getArrayByThingList(things)));
 					things.clear();
+					break;
+				case '{': // without tag, so handle it as container
+					// NOTE: VTMatrix.splitThing currently depends on exactly this behavior
+					addNewVT(things, curstr, createSimpleContainer(getThingsByContentStr(content, pos+1, newpos)));
+					pos = newpos.number - 1;
 					break;
 				default: curstr += (char)c;
 				}
@@ -493,7 +509,7 @@ public class VTMeta extends VTContainer  {
 		}
 		endpos.number = pos;
 		
-		// we fill the last things in the automat automatically in lastlines at the end
+		// we fill the last things in the automata automatically in lastlines at the end
 		if(lastlines.size() == 1) {
 			((VTLineCombiner) lastlines.get(0)).setStepX(0);
 			((VTLineCombiner) lastlines.get(0)).setStepY(0);

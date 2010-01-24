@@ -46,6 +46,8 @@ public class VTLabel extends VisualThing {
 	private Color color = Color.black;
 	private JLabel label = null;
 
+	public String getName() { return name; }
+	
 	public void setText(String text) {
 		this.text = text;
 		if(label != null)
