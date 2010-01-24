@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_01_2DGeradeSteigungsdreieck;
+package applets.AnalytischeGeometrieundLA_02_2DGeradeStuetzRichtung;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
