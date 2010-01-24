@@ -15,9 +15,6 @@ import java.util.TimerTask;
 import java.util.Vector;
 import javax.swing.JLabel;
 
-import applets.AnalytischeGeometrieundLA_12_2DDrehung.PGraph3D.Plane;
-import applets.AnalytischeGeometrieundLA_12_2DDrehung.PGraph3D.Vector3D;
-
 public class Content {
 
 	Applet applet;
@@ -109,7 +106,7 @@ public class Content {
 		graph.addBaseAxes();
 		
 		PGraph3D.FrameUpdate updater = new PGraph3D.FrameUpdate() {
-			public void doFrameUpdate(Vector3D diff) {
+			public void doFrameUpdate(PGraph3D.Vector3D diff) {
 				updateLabels();
 			}
 		};
@@ -139,7 +136,7 @@ public class Content {
 		anglePt = new MoveableAngle();
 		((MoveableAngle) anglePt).updater.add(new PGraph3D.Vector3DUpdater(relAnglePt, anglePt.point.diff(a.point)));
 		((MoveableAngle) anglePt).updater.add(updater);
-		a.updater.add(new PGraph3D.Vector3DUpdater((Vector3D) anglePt.point, a.point.sum(relAnglePt)));
+		a.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) anglePt.point, a.point.sum(relAnglePt)));
 		a.updater.add(updater);
 		((PGraph3D.MoveablePoint) p[0]).updater.add(updater);
 		
