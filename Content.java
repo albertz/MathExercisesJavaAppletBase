@@ -161,6 +161,7 @@ public class Content {
 			graph.objects.add(new PGraph3D.Line(movedP[i].point, movedP[(i+1)%4].point.diff(movedP[i].point), false, Color.blue));
 		}
 		graph.objects.add(a);		
+		graph.objects.add(new PGraph3D.Text(a.point, "A", a.color));		
 		graph.objects.add(anglePt);
 		graph.objects.add(new PGraph3D.VectorArrow(a.point, relAnglePt, Color.cyan));
 		
