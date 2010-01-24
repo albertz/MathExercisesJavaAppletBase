@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_02_2DGeradeStuetzRichtung;
+package applets.AnalytischeGeometrieundLA_01a_2DGeradenSchnittParallel;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -63,27 +63,35 @@ public class Content {
 		}
 	}
 
-	PGraph3D.Vector3D pu;
-	PGraph3D.MoveablePoint p, u;
+	PGraph3D.Float xab, yab;
+	PGraph3D.MoveablePoint a, ab, b;
 	PGraph3D.Line line;
 	
-	void updateLabels() {		
+	void updateLabels() {
+		String txt = "";
+		PGraph3D.DynFloat d = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line).point.dynGet(1);
+		txt += "x_B - x_A = " + num(xab.x);
+		txt += ",    y_B - y_A = " + num(yab.x);
+		txt += ",    m = " + num(yab.x/xab.x);
+		txt += ",    d = " + num( d );
+		((JLabel) applet.getComponentByName("rest")).setText(txt);
+		
 		try {
-			((JLabel) applet.getComponentByName("g")).setText("g : (x,y) = " + p.point.toString() + " + " + pu.toString() + "∙t");
+			((JLabel) applet.getComponentByName("g")).setText("Gerade g : y = " + num(yab.x/xab.x) + "∙x + " + num(d.get()));
 		} catch (Exception e1) {
 			((JLabel) applet.getComponentByName("g")).setText("Gerade g lässt sich nicht als Funktion darstellen");
 		}
 
 		for (int i = 0; i < 2; ++i)
 			try {
-				((JLabel) applet.getComponentByName("A" + i)).setText("" + num(p.point.get(i)));
+				((JLabel) applet.getComponentByName("A" + i)).setText("" + num(a.point.get(i)));
 			} catch (Exception e) {
 				((JLabel) applet.getComponentByName("A" + i)).setText("?");
 			}
 
 		for (int i = 0; i < 2; ++i)
 			try {
-				((JLabel) applet.getComponentByName("B" + i)).setText("" + num(pu.get(i)));
+				((JLabel) applet.getComponentByName("B" + i)).setText("" + num(b.point.get(i)));
 			} catch (Exception e) {
 				((JLabel) applet.getComponentByName("B" + i)).setText("?");
 			}
@@ -101,26 +109,35 @@ public class Content {
 			}
 		};
 
-		pu = new PGraph3D.Vector3D(5,4,0);
+		xab = new PGraph3D.Float(5);
+		yab = new PGraph3D.Float(3);
 
-		p = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(2,3,0), PGraph3D.Plane.zPlane, Color.black);
-		u = graph.new MoveablePointOnPlane(p.point.sum(pu).fixed(), PGraph3D.Plane.zPlane, Color.red);
-		line = new PGraph3D.Line(p.point, pu, Color.blue);
+		a = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(2,3,0), PGraph3D.Plane.zPlane, Color.black);
+		ab = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(2+xab.x,3,0), new PGraph3D.Line(a.point, new PGraph3D.Vector3D(1, 0, 0)), Color.blue);
+		b = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(2+xab.x,3+yab.x,0), new PGraph3D.Line(ab.point, new PGraph3D.Vector3D(0, 1, 0)), Color.red);
+		line = new PGraph3D.Line(a.point, b.point.diff(a.point), Color.black);
 		
-		p.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) u.point, p.point.sum(pu)));
-		u.updater.add(new PGraph3D.Vector3DUpdater(pu, u.point.diff(p.point)));
+		a.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) ab.point, a.point.sum(new PGraph3D.Vector3D(1,0,0).product(xab))));
+		a.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) b.point, ab.point.sum(new PGraph3D.Vector3D(0,1,0).product(yab))));
+		ab.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) b.point, ab.point.sum(new PGraph3D.Vector3D(0,1,0).product(yab))));
+		ab.updater.add(new PGraph3D.FloatUpdater(xab, ab.point.diff(a.point).dynGet(0)));
+		b.updater.add(new PGraph3D.FloatUpdater(yab, b.point.diff(ab.point).dynGet(1)));
 		
-		p.updater.add(updater);
-		u.updater.add(updater);
+		a.updater.add(updater);
+		ab.updater.add(updater);
+		b.updater.add(updater);
 		
-		u.clickPriority = 2;
+		ab.clickPriority = 1;
+		b.clickPriority = 2;
 		
-		graph.objects.add(p);
-		graph.objects.add(u);
-		graph.objects.add(new PGraph3D.VectorArrow(p.point, pu, Color.red));
+		graph.objects.add(a);
+		graph.objects.add(ab);
+		graph.objects.add(b);
+		graph.objects.add(new PGraph3D.VectorArrow(a.point, ab.point.diff(a.point), Color.blue));
+		graph.objects.add(new PGraph3D.VectorArrow(ab.point, b.point.diff(ab.point), Color.red));
 		graph.objects.add(line);
-		graph.objects.add(new PGraph3D.Text(p.point.sum(new PGraph3D.Vector3D(0,0.2,0)), "p", p.color));
-		graph.objects.add(new PGraph3D.Text(u.point.sum(new PGraph3D.Vector3D(0,0.2,0)), "u", u.color));
+		graph.objects.add(new PGraph3D.Text(a.point, "A", a.color));
+		graph.objects.add(new PGraph3D.Text(b.point, "B", b.color));
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 20, graph.W, graph.H, graph),

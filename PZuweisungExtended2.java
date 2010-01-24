@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_02_2DGeradeStuetzRichtung;
+package applets.AnalytischeGeometrieundLA_01a_2DGeradenSchnittParallel;
 
 import java.awt.Color;
 import java.awt.Font;
