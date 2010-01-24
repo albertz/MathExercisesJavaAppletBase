@@ -47,55 +47,53 @@ public class Content {
 		return ar[i];
 	}
 	
-	final Vector<PGraph3D.MoveablePoint> pts = new Vector<PGraph3D.MoveablePoint>(); 
 	PGraph3D.FrameUpdate updater = null;
-
-	PGraph3D.Point[] p;
-	PGraph3D.Point[] movedP;
-	PGraph3D.MoveablePointOnPlane a;
-	PGraph3D.Point anglePt;
-	PGraph3D.Vector3D relAnglePt = new PGraph3D.Vector3D();
-	PGraph3D.DynFloat angle;
-	PGraph3D.DynMatrix2D matrix = new PGraph3D.DynMatrix2D() {
-		public double get(int i, int j) throws Exception {
-			i %= 2; j %= 2;
-			if(i == 0 && j == 0) return Math.cos(angle.get());
-			if(i == 1 && j == 0) return Math.sin(angle.get());
-			if(i == 0 && j == 1) return -Math.sin(angle.get());
-			if(i == 1 && j == 1) return Math.cos(angle.get());
-			throw new Exception("matrix get: invalid indexes " + i + "," + j);
-		}
-	};
-	
-	PGraph3D.DynVector3D rotated(PGraph3D.DynVector3D p) {
-		return matrix.mult( p.diff(a.point) ).sum( a.point );
-	}
 	
 	static private String num(double n) {
+		if(Double.isInfinite(n)) return (n >= 0) ? "∞" : "-∞";
 		if(n < 0) return "-" + num(-n);
 		return "" + (int)(Math.floor(n)) + "." + ((int)(Math.floor(n*10)) % 10);
 	}
 	
-	void updateLabels() {
+	static private String num(PGraph3D.DynFloat n) {
 		try {
-			((JLabel) applet.getComponentByName("alpha")).setText("" + (int)(angle.get()*180/Math.PI) + "°");
-		} catch (Exception e1) {
-			((JLabel) applet.getComponentByName("alpha")).setText("?");
+			return num(n.get());
+		} catch (Exception e) {
+			return "ungültig";
 		}
+	}
+
+	PGraph3D.Float xab, yab;
+	PGraph3D.MoveablePoint a, ab, b;
+	PGraph3D.Line line;
+	
+	void updateLabels() {
+		String txt = "";
+		PGraph3D.DynFloat d = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line).point.dynGet(1);
+		txt += "x_B - x_A = " + num(xab.x);
+		txt += ",    y_B - y_A = " + num(yab.x);
+		txt += ",    m = " + num(yab.x/xab.x);
+		txt += ",    d = " + num( d );
+		((JLabel) applet.getComponentByName("rest")).setText(txt);
 		
-		for(int i = 0; i < 2; ++i)
-			for(int j = 0; j < 2; ++j)
-				try {
-					((JLabel) applet.getComponentByName("R"+i+j)).setText("" + num(matrix.get(i, j)));
-				} catch (Exception e) {
-					((JLabel) applet.getComponentByName("R"+i+j)).setText("?");					
-				}
+		try {
+			((JLabel) applet.getComponentByName("g")).setText("Gerade g : y = " + num(yab.x/xab.x) + "∙x + " + num(d.get()));
+		} catch (Exception e1) {
+			((JLabel) applet.getComponentByName("g")).setText("Gerade g lässt sich nicht als Funktion darstellen");
+		}
 
 		for (int i = 0; i < 2; ++i)
 			try {
 				((JLabel) applet.getComponentByName("A" + i)).setText("" + num(a.point.get(i)));
 			} catch (Exception e) {
 				((JLabel) applet.getComponentByName("A" + i)).setText("?");
+			}
+
+		for (int i = 0; i < 2; ++i)
+			try {
+				((JLabel) applet.getComponentByName("B" + i)).setText("" + num(b.point.get(i)));
+			} catch (Exception e) {
+				((JLabel) applet.getComponentByName("B" + i)).setText("?");
 			}
 	}
 	
@@ -110,71 +108,46 @@ public class Content {
 				updateLabels();
 			}
 		};
-		
-		p = new PGraph3D.Point[4];
-		p[0] = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(4,1,0), PGraph3D.Plane.zPlane, Color.blue);
-		p[1] = new PGraph3D.Point(p[0].point.sum(new PGraph3D.Vector3D(2,0,0)), Color.black);
-		p[2] = new PGraph3D.Point(p[1].point.sum(new PGraph3D.Vector3D(0,4,0)), Color.black);
-		p[3] = new PGraph3D.Point(p[2].point.sum(new PGraph3D.Vector3D(-2,0,0)), Color.black);		
-		a = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(1,1,0), PGraph3D.Plane.zPlane, Color.red);
-		
-		class MoveableAngle extends PGraph3D.MoveablePointOnPlane {			
-			MoveableAngle() {
-				graph.super(a.point.sum(new PGraph3D.Vector3D(2,0,0)).fixed(), PGraph3D.Plane.zPlane, Color.cyan);
-			}
 
-			public PGraph3D.Point3D pointForPos(Point p) {
-				PGraph3D.DynVector3D p3d = super.pointForPos(p);
-				try {
-					return p3d.diff(a.point).norminated().product(new PGraph3D.Float(2)).sum(a.point).fixed();
-				}
-				catch(NullPointerException e) { return null; }
-			}
+		xab = new PGraph3D.Float(5);
+		yab = new PGraph3D.Float(3);
 
-		}
+		a = graph.new MoveablePointOnPlane(new PGraph3D.Vector3D(2,3,0), PGraph3D.Plane.zPlane, Color.black);
+		ab = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(2+xab.x,3,0), new PGraph3D.Line(a.point, new PGraph3D.Vector3D(1, 0, 0)), Color.blue);
+		b = graph.new MoveablePointOnLine(new PGraph3D.Vector3D(2+xab.x,3+yab.x,0), new PGraph3D.Line(ab.point, new PGraph3D.Vector3D(0, 1, 0)), Color.red);
+		line = new PGraph3D.Line(a.point, b.point.diff(a.point), Color.black);
 		
-		anglePt = new MoveableAngle();
-		((MoveableAngle) anglePt).updater.add(new PGraph3D.Vector3DUpdater(relAnglePt, anglePt.point.diff(a.point)));
-		((MoveableAngle) anglePt).updater.add(updater);
-		a.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) anglePt.point, a.point.sum(relAnglePt)));
+		a.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) ab.point, a.point.sum(new PGraph3D.Vector3D(1,0,0).product(xab))));
+		a.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) b.point, ab.point.sum(new PGraph3D.Vector3D(0,1,0).product(yab))));
+		ab.updater.add(new PGraph3D.Vector3DUpdater((PGraph3D.Vector3D) b.point, ab.point.sum(new PGraph3D.Vector3D(0,1,0).product(yab))));
+		ab.updater.add(new PGraph3D.FloatUpdater(xab, ab.point.diff(a.point).dynGet(0)));
+		b.updater.add(new PGraph3D.FloatUpdater(yab, b.point.diff(ab.point).dynGet(1)));
+		
 		a.updater.add(updater);
-		((PGraph3D.MoveablePoint) p[0]).updater.add(updater);
+		ab.updater.add(updater);
+		b.updater.add(updater);
 		
-		angle = new PGraph3D.DynFloat() {
-			public double get() throws Exception {
-				PGraph3D.DynVector3D v = relAnglePt;
-				return Math.atan2(v.get(1), v.get(0));
-			}
-		};
+		ab.clickPriority = 1;
+		b.clickPriority = 2;
 		
-		movedP = new PGraph3D.Point[4];
-		for(int i = 0; i < 4; ++i)
-			movedP[i] = new PGraph3D.Point(rotated(p[i].point), p[i].color);	
-		
-		for(int i = 0; i < 4; ++i) {
-			graph.objects.add(p[i]);
-			graph.objects.add(movedP[i]);
-			graph.objects.add(new PGraph3D.Line(p[i].point, p[(i+1)%4].point.diff(p[i].point), false, Color.blue));
-			graph.objects.add(new PGraph3D.Line(movedP[i].point, movedP[(i+1)%4].point.diff(movedP[i].point), false, Color.blue));
-		}
-		graph.objects.add(a);		
-		graph.objects.add(new PGraph3D.Text(a.point, "A", a.color));		
-		graph.objects.add(anglePt);
-		graph.objects.add(new PGraph3D.VectorArrow(a.point, relAnglePt, Color.cyan));
+		graph.objects.add(a);
+		graph.objects.add(ab);
+		graph.objects.add(b);
+		graph.objects.add(new PGraph3D.VectorArrow(a.point, ab.point.diff(a.point), Color.blue));
+		graph.objects.add(new PGraph3D.VectorArrow(ab.point, b.point.diff(ab.point), Color.red));
+		graph.objects.add(line);
+		graph.objects.add(new PGraph3D.Text(a.point, "A", a.color));
+		graph.objects.add(new PGraph3D.Text(b.point, "B", b.color));
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 20, graph.W, graph.H, graph),
-				new VTMatrix("m1", 0, 0, new VisualThing[][] {
-						new VisualThing[] { new VTLabel("cos(α)", 0, 0), new VTLabel("-sin(α)", 0, 0) },
-						new VisualThing[] { new VTLabel("sin(α)", 0, 0), new VTLabel("cos(α)", 0, 0) }
-				}),
-				new VTMatrix("m2", 0, 0, new VisualThing[][] {
-						new VisualThing[] { new VTLabel("R00", "www", 0, 0), new VTLabel("R01", "www", 0, 0) },
-						new VisualThing[] { new VTLabel("R10", "www", 0, 0), new VTLabel("R11", "www", 0, 0) }
-				}),
 				new VTMatrix("A", 0, 0, new VisualThing[][] {
 						new VisualThing[] { new VTLabel("A0", "www", 0, 0) },
 						new VisualThing[] { new VTLabel("A1", "www", 0, 0) }
+				}),
+				new VTMatrix("B", 0, 0, new VisualThing[][] {
+						new VisualThing[] { new VTLabel("B0", "www", 0, 0) },
+						new VisualThing[] { new VTLabel("B1", "www", 0, 0) }
 				})
 		});
 	}

@@ -79,6 +79,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}; 
 		}
 		
+		public DynFloat dynGet(final int i) {
+			return new DynFloat() {
+				public double get() throws Exception {
+					return DynVector3D.this.get(i);
+				}
+			};
+		}
+		
 		public Point3D fixed() {
 			try {
 				return new Point3D(this);
@@ -1068,9 +1076,30 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3DUpdater setAllowZero(boolean v) { allowZero = v; return this; }
 	}
 
+	static public class FloatUpdater implements FrameUpdate {
+		Float point;
+		DynFloat updater;
+		public FloatUpdater(Float p, DynFloat u) {
+			point = p; updater = u; 
+			try { p.x = u.get(); } catch (Exception e) {} 
+		}
+		public FloatUpdater(Float p, DynFloat u, boolean immediateSet) {
+			point = p; updater = u;
+			if(immediateSet)
+				try { p.x = u.get(); } catch (Exception e) {}
+		}
+		
+		public void doFrameUpdate(Vector3D diff) {
+			try {
+				point.x = updater.get();
+			} catch (Exception e) {}
+		}
+	}
+
 	static public class MoveablePoint extends Point {
 		List<FrameUpdate> updater = new LinkedList<FrameUpdate>();
 		double snapGrid = 0;
+		int clickPriority = 0; 
 		public MoveablePoint(Vector3D p, Color c) { super(p, c); }
 		public Point3D pointForPos(java.awt.Point p) { return null; }
 
@@ -1432,6 +1461,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public MoveablePoint moveablePointAt(final java.awt.Point p) {
 		SortedSet<MoveablePoint> pts = new TreeSet<MoveablePoint>(new Comparator<MoveablePoint>() {
 			public int compare(MoveablePoint o1, MoveablePoint o2) {
+				if(o1.clickPriority != o2.clickPriority) return o2.clickPriority - o1.clickPriority;
 				try {
 					double d1 = p.distance( viewport.translate(o1.point.fixed()) );
 					double d2 = p.distance( viewport.translate(o2.point.fixed()) );
