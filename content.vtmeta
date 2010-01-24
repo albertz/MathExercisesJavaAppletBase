@@ -1,4 +1,4 @@
 \object[graph]
 
-\m{A = \object[A],    B = \object[B],    \label[rest]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}}
+\m{p = \object[A],    u = \object[B]}
 \m{\label[g]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}}
