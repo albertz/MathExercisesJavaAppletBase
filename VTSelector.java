@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_11_MatrixMultiplikation;
+package applets.AnalytischeGeometrieundLA_12_2DDrehung;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
