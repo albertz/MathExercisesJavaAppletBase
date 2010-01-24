@@ -559,21 +559,24 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			addPrimitive(d, g.getColor(), new PrimitiveText(p, text));
 		}
 
-		public void drawArrow(Point3D p, Vector3D v) {
-			drawLine(p, v, false);
-			
+		private void drawArrowItself(Point3D p, Vector3D v, Vector3D orth) {
 			try {
 				double arrowSize = 20.0 / scaleFactor;
 				Point3D endp = p.sum(v).fixed();
 				Point3D mp = endp.diff( v.norminated().product(new Float(arrowSize)) ).fixed();
-				Vector3D ov = v.someOrthogonal().norminated().fixed();
-				Point3D p1 = mp.sum( ov.product(new Float(arrowSize * 0.5)) ).fixed();
-				Point3D p2 = mp.sum( ov.product(new Float(-arrowSize * 0.5)) ).fixed();
+				Point3D p1 = mp.sum( orth.product(new Float(arrowSize * 0.5)) ).fixed();
+				Point3D p2 = mp.sum( orth.product(new Float(-arrowSize * 0.5)) ).fixed();
 	
 				drawLine(endp, p1.diff(endp).fixed(), false);
 				drawLine(endp, p2.diff(endp).fixed(), false);
 			}
-			catch(NullPointerException e) {}
+			catch(NullPointerException e) {}			
+		}
+		
+		public void drawArrow(Point3D p, Vector3D v) {
+			drawLine(p, v, false);
+			drawArrowItself(p, v, v.someOrthogonal().norminated().fixed());
+			drawArrowItself(p, v, v.someOrthogonal().crossProduct(v).norminated().fixed());			
 		}
 		
 		public void drawLine(Point3D p, Vector3D v, boolean infinite) {
@@ -1206,6 +1209,29 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 	}
 	
+	
+	
+	
+	// ------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
+	// ------------------------------------------------------------------------------
+
+	boolean onlyXY = false;
+	
+	void setOnlyXY(boolean v) {
+		onlyXY = v;
+		if(v) {
+			viewport.eyeDir.x[0] = 0;
+			viewport.eyeDir.x[1] = 0;
+			viewport.eyeDir.x[2] = 1;
+			viewport.xAxeDir.x[0] = 1;
+			viewport.xAxeDir.x[1] = 0;
+			viewport.xAxeDir.x[2] = 0;			
+		}
+	}
+	
 	private Applet applet;
 	public int W;
 	public int H;
@@ -1254,25 +1280,36 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	
 	public void addBaseAxes() {
 		double x = 400.0 / viewport.scaleFactor;
-		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-x/2,0,0), new PGraph3D.Vector3D(x*1.75,0,0), Color.DARK_GRAY));
-		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-x/2,0), new PGraph3D.Vector3D(0,x*1.75,0), Color.DARK_GRAY));
-		objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,0,-1), new PGraph3D.Vector3D(0,0,x+1), Color.DARK_GRAY));
-
-		objects.add(new Text(new Vector3D(x*1.25, 0, 0), "x", Color.DARK_GRAY));
-		objects.add(new Text(new Vector3D(0, x*1.25, 0), "y", Color.DARK_GRAY));
-		objects.add(new Text(new Vector3D(0, 0, x), "z", Color.DARK_GRAY));
+		if(onlyXY) {
+			x *= 0.8;
+			objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-x,0,0), new PGraph3D.Vector3D(x*2,0,0), Color.DARK_GRAY));
+			objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-x,0), new PGraph3D.Vector3D(0,x*2,0), Color.DARK_GRAY));
+		
+			objects.add(new Text(new Vector3D(x, 0, 0), "x", Color.DARK_GRAY));
+			objects.add(new Text(new Vector3D(0, x, 0), "y", Color.DARK_GRAY));
+		}
+		else {
+			objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(-x/2,0,0), new PGraph3D.Vector3D(x*1.75,0,0), Color.DARK_GRAY));
+			objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,-x/2,0), new PGraph3D.Vector3D(0,x*1.75,0), Color.DARK_GRAY));
+			objects.add(new PGraph3D.VectorArrow(new PGraph3D.Vector3D(0,0,-1), new PGraph3D.Vector3D(0,0,x+1), Color.DARK_GRAY));
+			
+			objects.add(new Text(new Vector3D(x*1.25, 0, 0), "x", Color.DARK_GRAY));
+			objects.add(new Text(new Vector3D(0, x*1.25, 0), "y", Color.DARK_GRAY));
+			objects.add(new Text(new Vector3D(0, 0, x), "z", Color.DARK_GRAY));
+		}
 		
 		for(int i = -(int)(x / 4); i <= (int)(x * 0.75); ++i) {
 			if(i == 0) continue;
 
 			double s = 0.01 * x;
+			if(onlyXY) s *= 2;
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,-s,0), new PGraph3D.Vector3D(0,s*2,0), false, Color.DARK_GRAY));
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(i,0,-s), new PGraph3D.Vector3D(0,0,s*2), false, Color.DARK_GRAY));
 			
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-s,i,0), new PGraph3D.Vector3D(s*2,0,0), false, Color.DARK_GRAY));
 			objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(0,i,-s), new PGraph3D.Vector3D(0,0,s*2), false, Color.DARK_GRAY));
 
-			if(i > 0) {
+			if(!onlyXY && i > 0) {
 				objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(0,-s,i), new PGraph3D.Vector3D(0,s*2,0), false, Color.DARK_GRAY));
 				objects.add(new PGraph3D.Line(new PGraph3D.Vector3D(-s,0,i), new PGraph3D.Vector3D(s*2,0,0), false, Color.DARK_GRAY));
 			}
@@ -1421,6 +1458,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mouseDragged(MouseEvent e) {
+		if(onlyXY) return;
+		
 		if(oldMousePoint != null) {
 			Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
 			Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
