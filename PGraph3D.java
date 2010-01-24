@@ -814,6 +814,16 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return p;
 		}
 		
+		public DynVector3D mult(final DynVector3D v) {
+			return new DynVector3D() {
+				public double get(int i) throws Exception {
+					i %= 3;
+					if(i == 2) return v.get(i);
+					return DynMatrix2D.this.get(i, 0) * v.get(0) + DynMatrix2D.this.get(i, 1) * v.get(1); 
+				}
+			};
+		}
+		
 		private String get_toString(int i, int j) {
 			try {
 				return "" + get(i,j);
@@ -1080,7 +1090,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public void draw(Viewport v) {
 			if(point.isValid()) {
 				if(v.base().mouseOverPt == this)
-					v.setColor(new Color(255,255,255,200));
+					v.setColor(new Color(0,0,0,200));
 				else
 					v.setColor(color);
 				v.drawPoint(point.fixed());
@@ -1225,7 +1235,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		if(v) {
 			viewport.eyeDir.x[0] = 0;
 			viewport.eyeDir.x[1] = 0;
-			viewport.eyeDir.x[2] = 1;
+			viewport.eyeDir.x[2] = -1;
 			viewport.xAxeDir.x[0] = 1;
 			viewport.xAxeDir.x[1] = 0;
 			viewport.xAxeDir.x[2] = 0;			
@@ -1448,7 +1458,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public void mousePressed(MouseEvent e) {
 		java.awt.Point pressedp = pointFromEvent(e);
 		movedPoint = moveablePointAt( pressedp );
-		if(movedPoint == null)
+		if(movedPoint == null && !onlyXY)
 			oldMousePoint = pressedp;
 	}
 	
@@ -1458,8 +1468,6 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	public void mouseDragged(MouseEvent e) {
-		if(onlyXY) return;
-		
 		if(oldMousePoint != null) {
 			Point3D globePosOld = pointOnEyeGlobe( oldMousePoint );
 			Point3D globePosNew = pointOnEyeGlobe( pointFromEvent(e) );
