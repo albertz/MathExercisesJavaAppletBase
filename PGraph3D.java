@@ -22,7 +22,7 @@ import java.util.TreeSet;
 
 public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck {
 
-	static double EPS = 0.00001;
+	static double EPS = 0.1;
 	
 	static public abstract class DynFloat {
 		public double get() throws Exception { throw new Exception("DynFloat::get() not defined"); }
