@@ -74,21 +74,21 @@ public class Content {
 	void updateLabels() {
 		String txt;
 		PGraph3D.DynFloat d = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line).point.dynGet(1);
-		txt = "A1 = " + a.point.toString();
-		txt += ",    B1 = " + b.point.toString();
+		txt = "A1 = " + a.point.toString2D();
+		txt += ",    B1 = " + b.point.toString2D();
 		txt += ",    m1 = " + num(yab.x/xab.x);
 		txt += ",    d1 = " + num( d );
 		((JLabel) applet.getComponentByName("g1")).setText(txt);
 		
 		PGraph3D.DynFloat d2 = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line2).point.dynGet(1);
-		txt = "A2 = " + a2.point.toString();
-		txt += ",    B2 = " + b2.point.toString();
+		txt = "A2 = " + a2.point.toString2D();
+		txt += ",    B2 = " + b2.point.toString2D();
 		txt += ",    m2 = " + num(yab2.x/xab2.x);
 		txt += ",    d2 = " + num( d2 );
 		((JLabel) applet.getComponentByName("g2")).setText(txt);
 		
 		if(schnitt.point.isValid())
-			((JLabel) applet.getComponentByName("schnitt")).setText("Schnittpunkt: " + schnitt.point.toString());
+			((JLabel) applet.getComponentByName("schnitt")).setText("Schnittpunkt: " + schnitt.point.toString2D());
 		else if(line.lineIsEqual(line2))
 			((JLabel) applet.getComponentByName("schnitt")).setText("Geraden liegen übereinander");
 		else

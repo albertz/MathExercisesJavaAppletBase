@@ -203,6 +203,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public String toString() {
 			return "(" + dynGet(0).toString() + "," + dynGet(1).toString() + "," + dynGet(2).toString() + ")";
 		}
+
+		public String toString2D() {
+			return "(" + dynGet(0).toString() + "," + dynGet(1).toString() + ")";
+		}
 	}
 	
 	static public class pair < First > {
