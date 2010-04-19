@@ -78,6 +78,7 @@ public class Content {
 		txt += ",    B1 = " + b.point.toString2D();
 		txt += ",    m1 = " + num(yab.x/xab.x);
 		txt += ",    d1 = " + num( d );
+		txt += ",    g1: y = m1∙x + d1";
 		((JLabel) applet.getComponentByName("g1")).setText(txt);
 		
 		PGraph3D.DynFloat d2 = new PGraph3D.Line(new PGraph3D.Vector3D(0,0,0), PGraph3D.Plane.yPlane.normal).intersectionPoint(line2).point.dynGet(1);
@@ -85,6 +86,7 @@ public class Content {
 		txt += ",    B2 = " + b2.point.toString2D();
 		txt += ",    m2 = " + num(yab2.x/xab2.x);
 		txt += ",    d2 = " + num( d2 );
+		txt += ",    g2: y = m2∙x + d2";
 		((JLabel) applet.getComponentByName("g2")).setText(txt);
 		
 		if(schnitt.point.isValid())
