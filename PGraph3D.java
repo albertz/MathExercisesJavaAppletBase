@@ -258,7 +258,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			xAxeDir.set( rotateMatrix.product( xAxeDir ).norminated().fixed() );
 		}
 		
-		public void setGraphics(Graphics g) { this.g = g; setColor(Color.black); }
+		public void setGraphics(Graphics g) {
+			this.g = g;
+			g.setFont(Applet.defaultFont.deriveFont(14.0f));
+			setColor(Color.black);
+		}
 		public void setColor(Color c) { g.setColor(c); }
 		
 		public double baseDistance() {
