@@ -1251,6 +1251,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			updateLine();
 		}
 
+		public String getUsageDescription() {
+			final String[] xyz = new String[]{"X","Y","Z"};
+			int i = baseLineIndex;
+			int j = (i + 1) % 3;
+			return "Bewegen um " + xyz[i] + " zu verändern. Einmal Klicken um " + xyz[j] + " veränderbar zu machen.";
+		}
 	}
 	
 	
@@ -1315,6 +1321,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		if(p != null) {
 			g.setColor(p.color);
 			g.drawString(p.point.toString(), 0, 10); 
+			if(p instanceof MoveablePointDynamic) {
+				g.setFont(Applet.defaultFont);
+				g.drawString(((MoveablePointDynamic)p).getUsageDescription(), 0, 25);
+			}
 		}
 	}
 	
