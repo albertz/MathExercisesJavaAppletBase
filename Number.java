@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_01a_2DGeradenSchnittParallel;
+package applets.AnalytischeGeometrieundLA_13_Kavalierprojektion;
 
 class Number {
 	public int number = 0;

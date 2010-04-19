@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_01a_2DGeradenSchnittParallel;
+package applets.AnalytischeGeometrieundLA_13_Kavalierprojektion;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

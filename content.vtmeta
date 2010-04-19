@@ -1,5 +1,3 @@
 \object[graph]
 
-\m{\label[g1]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}}
-\m{\label[g2]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}}
-\m{\label[schnitt]{wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww}}
+\m{α = \label[alpha]{wwww},    R = \object[m1] = \object[m2],   A = \object[A]}
