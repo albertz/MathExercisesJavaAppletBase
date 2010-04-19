@@ -79,7 +79,7 @@ public class Content {
 		}
 
 		try {
-			((JLabel) applet.getComponentByName("a")).setText(a.point.toString());
+			((JLabel) applet.getComponentByName("a")).setText(a.point.abs().toString());
 		} catch (Exception e1) {
 			((JLabel) applet.getComponentByName("a")).setText("?");
 		}
