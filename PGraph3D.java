@@ -44,13 +44,23 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				return false;
 			}
 		}
+
+		static private String num(double n) {
+			if(Double.isInfinite(n)) return (n >= 0) ? "∞" : "-∞";
+			if(n < 0) return "-" + num(-n);
+			return "" + (int)(Math.floor(n)) + "." + ((int)(Math.floor(n*10)) % 10);
+		}
 		
-		public String toString() {
+		private String num() {
 			try {
-				return "" + get();
+				return num(get());
 			} catch (Exception e) {
-				return e.getMessage();
+				return "ungültig";
 			}
+		}
+
+		public String toString() {
+			return num();
 		}
 	}
 
@@ -77,6 +87,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					return t.get(i);
 				}
 			}; 
+		}
+		
+		public DynFloat dynGet(final int i) {
+			return new DynFloat() {
+				public double get() throws Exception {
+					return DynVector3D.this.get(i);
+				}
+			};
 		}
 		
 		public Point3D fixed() {
@@ -182,16 +200,12 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};			
 		}
 		
-		private String get_toString(int i) {
-			try {
-				return "" + Math.round(get(i)*10)*0.1;
-			} catch (Exception e) {
-				return e.getMessage();
-			}
-		}
-		
 		public String toString() {
-			return "(" + get_toString(0) + "," + get_toString(1) + "," + get_toString(2) + ")";
+			return "(" + dynGet(0).toString() + "," + dynGet(1).toString() + "," + dynGet(2).toString() + ")";
+		}
+
+		public String toString2D() {
+			return "(" + dynGet(0).toString() + "," + dynGet(1).toString() + ")";
 		}
 	}
 	
@@ -214,11 +228,6 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 		public double get(int i) { return x[i % 3]; }
 		public void set(Vector3D v) { for(int i = 0; i < 3; ++i) x[i] = v.x[i]; }
-
-		public String asString() {
-			double r = 10;
-			return "(" + Math.round(x[0]*r)/r + "," + Math.round(x[1]*r)/r + "," + Math.round(x[2]*r)/r + ")";
-		}
 	}
 		
 	static public class Point3D extends Vector3D {
@@ -983,7 +992,25 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public String toString() {
 			try {
-				return height.toString() + " = " + Math.round(normal.get(0)*10)*0.1 + "∙x + " + Math.round(normal.get(1)*10)*0.1 + "∙y + " + Math.round(normal.get(2)*10)*0.1 + "∙z";
+				return height.toString() + " = " + normal.dynGet(0).toString() + "∙x + " + normal.dynGet(1).toString() + "∙y + " + normal.dynGet(2).toString() + "∙z";
+			} catch (Exception e) {
+				return "undefined";
+			}
+		}
+
+		public String toString_x_p_n_equ_zero() {
+			try {
+				return "((x,y,z) - " + point.toString() + ") * " + normal.toString() + " = 0";
+			} catch (Exception e) {
+				return "undefined";
+			}
+		}
+
+		public String toStringParameterForm() {
+			try {
+				DynVector3D v1 = normal.someOrthogonal();
+				DynVector3D v2 = normal.crossProduct(v1.norminated());				
+				return basePoint().toString() + " + s∙" + v1.toString() + " + t∙" + v2.toString();
 			} catch (Exception e) {
 				return "undefined";
 			}
@@ -1072,9 +1099,30 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		Vector3DUpdater setAllowZero(boolean v) { allowZero = v; return this; }
 	}
 
+	static public class FloatUpdater implements FrameUpdate {
+		Float point;
+		DynFloat updater;
+		public FloatUpdater(Float p, DynFloat u) {
+			point = p; updater = u; 
+			try { p.x = u.get(); } catch (Exception e) {} 
+		}
+		public FloatUpdater(Float p, DynFloat u, boolean immediateSet) {
+			point = p; updater = u;
+			if(immediateSet)
+				try { p.x = u.get(); } catch (Exception e) {}
+		}
+		
+		public void doFrameUpdate(Vector3D diff) {
+			try {
+				point.x = updater.get();
+			} catch (Exception e) {}
+		}
+	}
+
 	static public class MoveablePoint extends Point {
 		List<FrameUpdate> updater = new LinkedList<FrameUpdate>();
 		double snapGrid = 0;
+		int clickPriority = 0; 
 		public MoveablePoint(Vector3D p, Color c) { super(p, c); }
 		public Point3D pointForPos(java.awt.Point p) { return null; }
 
@@ -1282,7 +1330,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			} catch (Exception e) {
 				dist += ";failed";
 			}
-			g.drawString(viewport.eyeDir.asString() + viewport.eyePoint.fixed().asString() + dist, 0, 10);
+			g.drawString(viewport.eyeDir.toString() + viewport.eyePoint.toString() + dist, 0, 10);
 		}
 		
 		// means we are moving a point right now
@@ -1290,11 +1338,11 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		if(p == null) p = mouseOverPt;
 		if(p != null) {
 			g.setColor(p.color);
-			String s = "bad";
-			try {
-				s = p.point.fixed().asString();
-			} catch (Exception e) {}
-			g.drawString(s, 0, 10); 
+			g.drawString(p.point.toString(), 0, 10); 
+			if(p instanceof MoveablePointDynamic) {
+				g.setFont(Applet.defaultFont);
+				g.drawString(((MoveablePointDynamic)p).getUsageDescription(), 0, 25);
+			}
 		}
 	}
 	
@@ -1442,6 +1490,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	public MoveablePoint moveablePointAt(final java.awt.Point p) {
 		SortedSet<MoveablePoint> pts = new TreeSet<MoveablePoint>(new Comparator<MoveablePoint>() {
 			public int compare(MoveablePoint o1, MoveablePoint o2) {
+				if(o1.clickPriority != o2.clickPriority) return o2.clickPriority - o1.clickPriority;
 				try {
 					double d1 = p.distance( viewport.translate(o1.point.fixed()) );
 					double d2 = p.distance( viewport.translate(o2.point.fixed()) );
