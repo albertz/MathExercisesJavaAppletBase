@@ -1,0 +1,86 @@
+Der Syntax ist ähnlich wie LaTeX.
+Die meisten mathematischen Basis-Tags die man von LaTeX kennt gibt es auch in VTMeta.
+
+Alle erlaubten Tags werden in der Funktion VTMeta.handleTag bearbeitet.
+
+Tags können verschiedene Parameter haben:
+	baseparam :		alles in {...}
+	extparam :		alles in [...]
+	lowerparam :	alles in _...
+	upperparam :	alles in ^...
+
+Diese Parameter werden je nach Tag behandelt oder auch ignoriert.
+
+Für manche Tags kann man bestimmte Eigenschaften (meist in extparam) nach Name setzen, das sieht dann so aus:
+	name1="value1", name2="value2", ...
+
+
+Es gibt folgende Tags:
+
+text
+	Texteingabeform. extparam definiert Objektname und folgende Eigenschaften:
+	width
+		Definiert die Breite. 40 ist standard.
+	Falls der Name sN ist, wird dieses Textfeld bei der Überprüfung mitberücksichtigt.
+	
+selector
+	Auswahlfeld. extparam definiert Objektname, baseparam definiert Auswahlmöglichkeiten.
+	Die Elemente der Liste in baseparam sind getrennt durch Kommas, jedes Element
+	sollte in Anführungszeichen stehen.
+	Falls der Name sN ist, wird dieses Auswahlfeld bei der Überprüfung mitberücksichtigt.
+
+label
+	Label mit speziellem Namen, um an anderer Stelle darauf zuzugreifen.
+	Der Name des Objektes wird in extparam definiert.
+	Falls der Name resN ist, wird hier vom Überprüfen-Button die Ergebnis-Meldung gespeichert.
+
+button
+	Button. In extparam kann man weitere Eigenschaften setzen. Es gibt folgende Eigenschaften:
+	type
+		=check
+			Überprüfen-Button
+		=help
+			Hilfe-Button
+	index
+		Beim Überprüfen/Hilfe Button ist dies der Index für die automatische Check-Funktion, d.h.
+		der Anfangs-Index der s* Objekte.
+	source
+		Hier kann alternatives Überprüfungs-Objekt angegeben werden.
+		Das Objekt muss Applet.CorrectCheck implementieren.
+		
+container
+	Ein Container für Weiteres. Der Name des Objektes wird in extparam festgelegt.
+	Falls der Name cN_correct oder cN_wrong ist, wird der Container vom Überprüfen-Button
+	jenachdem sichtbar oder unsichtbar gemacht.
+	
+object
+	Bindet Objekt mit Namen aus extparam ein, welches in Content.java definiert werden kann.
+
+define
+	Definiert die Eigenschaften in extparam als spezielle globale Variablen.
+	Die "s{Nummer}"-Variablen definieren die richtigen Antworten für den automatischen Check-Button.
+
+	
+
+Folgende Tags dienen nur zur Darstellung:
+
+m
+	Alles in baseparam wird in einem speziellen mathematischen Modus dargestellt.
+
+frac
+	lowerparam ist unten, upperparam ist oben.
+
+lim
+	lowerparam ist unter dem Limes, baseparam rechts daneben.
+	
+alpha, beta, gamma, delta, eps, theta, lamda, mu, pi
+R, Z, N, Q
+rightarrow, Rightarrow, Leftrightarrow
+empty, subset, supset, subseteq, supseteq, subsetneq, supsetneq
+in, notin, infty
+cap, cup
+circ
+cdot, times, div, pm, dash
+neq, leq, approx
+sqrt
+\ { } [ ] n ^

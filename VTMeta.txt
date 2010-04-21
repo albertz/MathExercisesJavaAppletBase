@@ -1,0 +1,40 @@
+VTMeta
+======
+
+Eigentlich ist VTMeta nur ein Element der aktuell mit Java programmierten Applets, aber es hat sich durchgebürgert, dass wir diese Applets die VTMeta-Applets nennen, da VTMeta meist das zentrale Element in diesen Applets ist.
+
+Es gibt viele weitere wichtige Elemente in diesen Applets, auf die ich hier später kurz eingehe.
+
+
+   Arbeit mit dem Code
+
+Jedes Applet hat eine eigene Kopie vom VTMeta Code und auch von allen anderen Sachen. Es gibt keinen Code, den Applets sich teilen. Der Grund dafür war, dass ich es explizit vermeiden wollte, dass durch irgendwelche Änderungen in VTMeta alte Applets auf einmal anfangen, nicht mehr korrekt zu funktionieren.
+
+Auf der anderen Seite habe ich versucht, bei neuen Elementen oder bei sonstigen Änderungen darauf zu achten, die Schnittstelle und das Verhalten an sich in etwa gleich zu halten, so dass es prinzipiell möglich ist, mit relativ geringem Aufwand die aktuelle VTMeta Klasse und auch anderen Code in einem älteren Applet zu benutzen - z.B. falls irgendwelche Fehler so korrigiert werden können.
+
+Aufgrund dieser Organisation gibt es immer ein Applet, was den aktuellsten Code von VTMeta und auch allem anderen hat. Welches dieses Applet ist, steht immer in der Datei Funktionen.txt. Dieses Applet enthält selbst alle Funktionen (3D plotten, 2D plotten, Matrixen darstellen, usw.), allerdings werden lange nicht alle Funktionen angewendet. Die Funktionen.txt enthält genau eine Liste, wo man eine gute Beispielanwendung einer konkreten Funktion findet. Trotzdem sollte immer das aktuellste Applet als Basis für ein neues Applet dienen.
+
+Will man nun ein neues Applet erstellen, sollte man am besten das aktuellste einfach kopieren, d.h. alle enthaltenen Dateien kopieren. Das geht am einfachsten mit Eclipse, denn die erste Zeile in dem Java Code enthält immer den Paketnamen (z.B. package applets.AnalytischeGeometrieundLA_01a_2DGeradenSchnittParallel;) und dieser muss natürlich angepasst werden, was Eclipse automatisch machen kann.
+
+Ich selbst gehe immer genau so in Eclipse im Package Explorer vor (im Falle dass das Code Verzeichnis für die Lehreinheit bereits existiert):
+* Neues Paket erstellen. Dazu Rechtsklick auf das Code-Verzeichnis der Lehreinheit -> New -> Package. Den Name des Pakets muss in der Form "applets.Lehreinheitname_irgendwas" sein. Lehreinheitname muss exakt dem Verzeichnisnamen der Lehreinheit entsprechen. Enthält der Lehreinheitname ein Leerzeichen (z.B. "Komplexe Zahlen"), muss dieses durch ein $ ersetzt werden (also "Komplexe$Zahlen"). Das "irgendwas" ist meistens eine Zahl gefolgt von einer ganz knappen Beschreibung (1-3 Wörter).
+* Vom aktuellsten Applet das Paket aufklappen im Package Explorer und alle enthaltenen Dateien markieren. Dann via Drag&Drop die Dateien in das neu erstelle Paket kopieren. Wichtig ist beim Loslassen der Dateien die Taste Alt gleichzeitig zu drücken. Das nämlich kopiert die Dateien anstatt sie zu verschieben. Eclipse zeigt das an, indem es so ein "+" beim Mauszeiger anzeigt.
+
+Eigentlich ist man nun fertig. Ich mache direkt schon ein SVN Commit an dieser Stelle (ohne eine wirkliche Änderung zu haben), damit ich die neue Codebasis zu diesem Status direkt im SVN hat. Das macht es sehr viel leichter, wenn man sehen will, was genau nun in diesem Applet neues gemacht wurde.
+
+Das Code Verzeichnis erstellen im Package Explorer geht so (vorausgesetzt das Lehreinheits Verzeichnis existiert bereits):
+* Rechtsklick auf Ilias (erster Eintrag im Package Explorer).
+* New -> Source Folder
+* Folder name: Lehreinheiten/XY/Code wobei XY die konkrete Lehreinheit ist
+
+
+
+
+   Code Übersicht
+
+Man sollte am besten sich den Code bzw. die Klassenübersicht des aktuellsten Applets parallel zu diesem Dokument ansehen, um die Beschreibung besser nachvollziehen zu können.
+
+In den meisten Fällen, wenn bereits alle Funktionen die man braucht vorhanden sind, muss man nichts weiter anpassen als die Dateien:
+* content.vtmeta
+* Content.java
+
