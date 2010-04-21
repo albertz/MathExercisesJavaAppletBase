@@ -29,6 +29,21 @@ Das Code Verzeichnis erstellen im Package Explorer geht so (vorausgesetzt das Le
 
 
 
+   Geschichte zum Code
+
+Alle Java Applets im gesamten Ilias Projekt entstanden auf genau die Art und Weise, wie es oben beschrieben wurde. D.h. es gab immer ein Applet, an dem ich gearbeitet habe, wo ich Funktionen hinzugefügt habe etc., bis es fertig war. Für ein neues Applet habe ich nun dieses letzte und aktuellste Applet genommen, kopiert und mir weitere Funktionen hinzugefügt.
+
+Auf diese Art und Weise ist der Code immer weiter gewachsen. Anfangs war es nur eine einzelne Datei, später wurde dieser Code unterteilt auf mehrere Dateien.
+
+Bereits sehr früh entstand die Basisklasse VisualThing und verschiedene konkrete VT-Klassen auf dieser Basis. Das war z.B. VTLabel, VTText, VTButton und VTSelector. Alle diese Klassen entstanden für so grundlegende Applets, in denen es Text gab mit einigen auszufüllenden Stellen (entweder einfach eine Textbox oder eine Combobox) und am Ende eine Richtigkeitsüberprüfung mit entsprechender Rückmeldung. Evtl. auch noch eine Hilfefunktion. Die Idee dieser VT-Klassen war, dass die Anordnung der entsprechenden Java zugrundeliegenden Komponenten (JLabel, JText, usw.) automatisch erfolgt und ich mich nicht konkret darum mehr kümmern muss. Ich  musste nur noch ein Array von solchen VisualThing Objekten haben und der Rest ging automatisch. Das hat dann alles die Funktionn addVisualThings (im Moment findet man die in Applet.java) gemacht.
+
+Später wurde mir das ganze Spezifizieren dieses VT-Objektarrays via Java zu umständlich (man siehe sich mal alte Applets an, wo es noch kein VTMeta gab, die das tun). Ich wollte eine Möglichkeit, wo ich einfach den Inhalt des Applets in einer Datei mit einer LateX ähnlichen Sprache definieren konnte. Aus dieser Idee entstand die VTMeta Klasse, die genau das tut. Sie bekommt als Eingabe diesen LateX ähnlichen Text und erstellt die ganzen VT-Objekte auf Basis des Textes (man siehe sich den Code mal an, eigentlich ist er relativ simpel). Das Applet selbst suchte nun nach dieser Inhalts-Datei (die ich content.vtmeta genannt habe), las sie ein und übergab den Rest an VTMeta.
+
+VTMeta selbst ist nun die Basis für alle weiteren Applets. Später stellte sich heraus, dass es spezielle Fälle gibt, wo Java Code trotzdem einfacher zu handhaben war, als irgendwelcher LateX ähnlicher Code. Das ist vor allem dann der Fall, wenn es sich um sehr interaktive Elemente handelt, wie z.B. 2D oder 3D Darstellungen und die konkrete Spezifizierung der Objekte darin. So entstand die Datei Content.java (oder konkret die Klasse Content), die dafür gedacht ist, genau so etwas zu spezifizieren.
+
+Mit der Zeit kamen dann weitere Komponenten hinzu. Lange Zeit gab es nichts außer VTButton, VTLabel, VTSelector und VTText. Es kamen dann später noch kleinere Elemente hinzu, die es ermöglichten, Brüche (VTFrac) oder ähnliches leicht darzustellen. PGraph, PZuweisung oder PGraph3D sind dann die sehr viel größeren Komponenten, die später hinzukamen.
+
+
 
    Code Übersicht
 
