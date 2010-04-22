@@ -53,3 +53,106 @@ In den meisten Fällen, wenn bereits alle Funktionen die man braucht vorhanden s
 * content.vtmeta
 * Content.java
 
+  Content.java
+
+Diese Klasse definiert die Größe des Applets und kann sonstige Umgebungsobjekte initialisieren und managen. Die Idee war, dass man in VTMeta via dem \object[meinobj] Objekte einbinden kann, die in dieser Content Klasse initialisiert und spezifiziert werden.
+
+Mit der Zeit hat sich die Klasse noch um ein paar optionale Kleinigkeiten erweitert.
+
+In der Klasse müssen dabei mindestens die folgenden Funktionen implementiert werden:
+* Konstruktor Content(Applet applet)
+* void init() mit applet.setSize(..,..)
+  Diese Zeile wird automatisch ausgelesen von dem update_jars.sh Skript.
+  Die Funktion wird ganz am Anfang aufgerufen.
+* void postinit()
+  Die Funktion wird ganz am Ende des initialen Ladevorgangs aufgerufen.
+  Kann einfach leer gelassen werden.
+* void next(int i)
+  Gibt es ein "next"-Button, wird diese Funktion automatisch aufgerufen.
+  Kann einfach leer gelassen werden.
+* boolean isCorrect(int i, String sel)
+  Diese Funktion führt eine benutzerdefinierte Richtigkeitsüberprüfung aus.
+  i ist der Eingabe-Index.
+  Kann einfach leer gelassen werden.
+* void run()
+  Wird während des Ladevorgangs aufgerufen, noch vor dem Laden der content.vtmeta. Hier geschieht üblicherweise das Spezifizieren der Objekte.
+
+  Spezifizieren von Objekten
+
+applet.vtmeta.setExtern ist die eigentliche zentrale Funktion hierbei. Sie bekommt ein Array von VisualThing als Parameter. Jedes VT-Objekt hat automatisch auch einen Namen (z.B. "meinobj") und kann über diesen Namen via der content.vtmeta an passender Stelle eingebunden werden.
+
+Z.B.:
+
+applet.vtmeta.setExtern(new VisualThing[] {
+	new VTImage("graph", 10, 20, graph.W, graph.H, graph),
+	new VTMatrix("A", 0, 0, new VisualThing[][] {
+		new VisualThing[] { new VTLabel("A0", "www", 0, 0) },
+		new VisualThing[] { new VTLabel("A1", "www", 0, 0) }
+	}),
+	new VTMatrix("B", 0, 0, new VisualThing[][] {
+		new VisualThing[] { new VTLabel("B0", "www", 0, 0) },
+		new VisualThing[] { new VTLabel("B1", "www", 0, 0) }
+	})
+});
+
+Registriert 3 Objekte: "graph", "A" und "B". Ein entsprechender content.vtmeta Inhalt kann so aussehen:
+
+Dies ist ein Test. Es gilt \m{x = \sqrt y} und \m{1 = 1}. Siehe hier:
+\object[graph]
+Und \m{p = \object[A]} und \m{u = \object[B]}.
+
+  VT Klassen
+
+Inzwischen gibt es eine ganze Reihe von VT Klassen. Da die meisten automatisch via VTMeta erzeugt werden, gehe ich hier nur ein bisschen näher auf diejenigen ein, die man eher/ausschließlich über die Content Klasse definiert.
+
+Die restlichen Klassen sollten auch anhand des Namens selbsterklärend sein.
+
+In allen Fällen gilt immer, die beste Referenz bieten andere vorhandene Beispiele dazu (man siehe Funktionen.txt oder suche einfach via Eclipse) und auch der Code der entsprechenden Klasse.
+
+  VTImage
+
+Dies ist die wichtigste Klasse in vielen Fällen außerhalb der Basisklassen. Alles, was in irgendeiner Form bildlich dargestellt wird, läuft über diese Klasse. Die Klasse selbst dient dabei nur für die Einbettung im VTMeta System und hat mit dem Zeichnen selbst nichts zu tun.
+
+Für den konkreten Inhalt gibt es das PainterAndListener Interface. Für die genaue Spezifikation betrachte man die Deklaration.
+
+In der Regel ist es aber nicht notwendig, einen PainterAndListener selbst zu implementieren, da es einige bereits sehr mächtige Objekte gibt, die das tun.
+
+Da diese ansonsten nichts mit VTImage zu tun haben, gehe ich erst später auf die konkreten bereits vorhandenen PainterAndListener ein. Das sind z.B. alle Funktionen zur 2D und 3D Darstellung.
+
+Im obigen Beispiel wird so ein VTImage Objekt erstellt. Der letzte Parameter graph im Beispiel ist dabei ein PainterAndListener Objekt (das nicht im Beispiel definiert wurde, man siehe dazu anderen Beispielcode).
+
+  VTContainer
+
+Kann mehrere VT Objekte zusammenfassen zu einem Oberobjekt. Das kann nützlich sein, wenn man z.B. eine ganze Gruppe von Objekten (un)sichtbar machen will.
+
+  VTMatrix
+
+Ist im Prinzip ein etwas komplexerer VTContainer, der Objekte in Matrix Form anordnen kann.
+
+  PainterAndListener Klassen
+
+Wie bereits beschrieben, sind das die eigentlichen Implementationen für grafische Darstellungen, die via VTImage im VTMeta System eingebunden werden können.
+
+Alle P-Klassen sind solche Implementationen.
+
+In allen Fällen gilt wieder, sich am besten konkrete Beispielimplementationen anzusehen (via Funktionen.txt oder Eclipse Suche zu finden).
+
+Generell gilt auch, jegliche grafische Darstellungen in diesen VTMeta Applets benutzen eine dieser Klassen. Aus dem Blickwinkel, wenn man sich die Applets selbst ansieht, wird deutlich, wie dynamisch man diese Klassen anwenden kann.
+
+  PGraph
+
+Diese Klasse dient zum Plotten von beliebigen Funktionen im 2D Raum. Auch das Auswählen von bestimmten X/Y Punkten auf einer Funktion oder im beliebigen 2D Raum ist möglich und kann beliebig angepasst werden.
+
+  PGraph3D
+
+Das ist im Moment die neueste dieser Klassen.
+
+Mit ihr sind beliebige 3D Darstellung möglich. Auch Funktionen zum Bewegen von Punkten im 3D Raum sind möglich.
+
+Das mächtigste Element von diesem PGraph3D Framework ist die Möglichkeit, Punkte/Geometrieobjekte dynamisch auf Basis von Berechnungen (z.B. Kreuzprodukt, Schnittpunkt, oder ähnliches) zu erzeugen. Hat man eine Linie so auf Basis von 2 Punkten definiert und eine andere Linie entsprechend und nun einen dynamischen Punkt als Schnittpunkt dieser beiden Linien und bewegt man einen der Linienendpunkte, so bewegt sich auch automatisch der dynamische Schnittpunkt. Entsprechendes hat man auch bei der Schnittgeraden zweier Ebenen. Und jede andere beliebige Verknüpfung ist möglich.
+
+Die Objekte von PGraph3D sind Punkte, beschränkte Linien, unendliche Linien, Vektoren (im Prinzip beschränkte Linien mit einem Pfeil am Ende), Ebenen und Texte.
+
+  PZuweisung[Extended[2]]
+
+Alle diese Klassen dienen für die Zuweisungsdiagramme, wo zwei Mengen als Menge von Punkten dargestellt werden und man Verknüpfungen dieser beiden Mengen definieren kann.
