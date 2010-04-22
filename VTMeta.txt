@@ -129,6 +129,14 @@ Kann mehrere VT Objekte zusammenfassen zu einem Oberobjekt. Das kann nützlich s
 
 Ist im Prinzip ein etwas komplexerer VTContainer, der Objekte in Matrix Form anordnen kann.
 
+  VTMeta / content.vtmeta
+
+Das ist, wie bereits beschrieben, die Klasse, die für den Inhalt der content.vtmeta benutzt wird. Die Klasse selbst ist wie eine Art VTContainer.
+
+Für eine Übersicht der Sprache siehe man die Datei
+ VTMeta content.vtmeta Beschreibungssprache.txt 
+oder für eine genaue Spezifikation einfach den Code selbst (der leicht verständlich ist).
+
   PainterAndListener Klassen
 
 Wie bereits beschrieben, sind das die eigentlichen Implementationen für grafische Darstellungen, die via VTImage im VTMeta System eingebunden werden können.
