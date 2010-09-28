@@ -1,4 +1,4 @@
-package applets.AnalytischeGeometrieundLA_13_Kavalierprojektion;
+package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Color;
 import java.awt.Graphics;

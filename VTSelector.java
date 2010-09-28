@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.AnalytischeGeometrieundLA_13_Kavalierprojektion;
+package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Component;
 import java.awt.event.ItemEvent;
