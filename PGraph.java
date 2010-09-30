@@ -13,9 +13,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
-
-
 class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	// Funktionsplotter / Graphzeichner
 	
@@ -55,13 +52,18 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	
 	static public class Point {
 		double x, y;
-		public Point() {}
-		public Point(double _x, double _y) { x = _x; y = _y; }
-		public Point diff(Point p) { return new Point(x - p.x, y - p.y); }
-		public double abs() { return Math.sqrt(x*x + y*y); }
-		public double distance(Point p) { return diff(p).abs(); }
-		public Point transform(PGraph g) { return new Point(g.transformX(x), g.transformY(y)); }
-		public Point retransform(PGraph g) { return new Point(g.retransformX(Math.round(x)), g.retransformY(Math.round(y))); }
+		Point() {}
+		Point(double _x, double _y) { x = _x; y = _y; }
+		
+		Point sum(Point p) { return new Point(x + p.x, y + p.y); }
+		Point diff(Point p) { return new Point(x - p.x, y - p.y); }
+		Point mult(double f) { return new Point(x * f, y * f); }
+		Point rot90() { return new Point(y, -x); }
+		double abs() { return Math.sqrt(x*x + y*y); }
+		double distance(Point p) { return diff(p).abs(); }
+		
+		Point transform(PGraph g) { return new Point(g.transformX(x), g.transformY(y)); }
+		Point retransform(PGraph g) { return new Point(g.retransformX(Math.round(x)), g.retransformY(Math.round(y))); }
 	};
 	
 	static public class GraphPoint {
@@ -79,7 +81,12 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		}
 	};
 	
+	static abstract class GraphObject {
+		abstract void draw(PGraph p, Graphics g);
+	}
+	
 	public List<GraphPoint> dragablePoints = new LinkedList<GraphPoint>();
+	public List<GraphObject> graphObjects = new LinkedList<GraphObject>();
 	public ActionListener OnDragablePointMoved;
 	
 	public void setXYValuesInversFrom(PGraph src) {
@@ -135,6 +142,13 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 				drawVector(g, p.color, new Point(0,0), p.point);
 			else
 				drawPoint(g, p.color, p.point);
+		}
+
+		// other custom objects
+		Color c = g.getColor();
+		for(GraphObject o : graphObjects) {
+			o.draw(this, g);
+			g.setColor(c);
 		}
 	}
 	
@@ -396,6 +410,11 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			new ExcSet(0.25), new ExcSet(-1), new ExcSet(3.5), new ExcSet(0),
 			new ExcSet(2.25), new ExcSet(-0.5), new ExcSet(-3.25), 
 	};
+	
+	void clear() {
+		dragablePoints.clear();
+		graphObjects.clear();
+	}
 	
 	public void reset() {
 /*		ExcSet e = exs[excNr];
