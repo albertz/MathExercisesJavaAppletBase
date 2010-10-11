@@ -83,7 +83,7 @@ public class VTMeta extends VTContainer  {
 			System.err.println("getThingsByContentStr: not parsed until end");
 		for(int i = 0; i < things.size(); i++) {
 			// debug
-			System.out.println(((VisualThing) things.get(i)).getDebugString());
+			//System.out.println(((VisualThing) things.get(i)).getDebugString());
 		}
 		return getArrayByThingList(things);
 	}
