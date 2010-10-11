@@ -25,7 +25,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(518, 498);
+		applet.setSize(518, 420);
 	}
 
 	void postinit() {}
@@ -35,7 +35,7 @@ public class Content {
 	public void run() {
 		graph = new PGraph(applet, 480, 400);
 		ElectronicCircuit e = new ElectronicCircuit();
-		e.randomSetup(4, 4);
+		e.randomSetup(2, 2);
 		e.registerOnPGraph(graph);
 		
 		applet.vtmeta.setExtern(new VisualThing[] {

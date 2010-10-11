@@ -102,4 +102,20 @@ public class Utils {
     	return candidates;
     }
 
+    static <T> int indexInArray(T[] a, T obj) {
+    	for(int i = 0; i < a.length; ++i)
+    		if(a[i] == obj) return i;
+    	return -1;
+    }
+    
+	static interface Function<X,Y> {
+		Y eval(X obj);
+	}
+    
+    static <X,Y> List<Y> map(Iterable<? extends X> coll, Function<X,Y> func) {
+    	List<Y> l = new LinkedList<Y>();
+    	for(X obj : coll) l.add(func.eval(obj));
+    	return l;
+    }
+    
 }

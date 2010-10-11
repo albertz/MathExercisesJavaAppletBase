@@ -84,17 +84,17 @@ public class ElectronicCircuit {
 		VoltageSource() { this.var = new VariableSymbol(Unit.Volt); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
-			PGraph.Point diff2 = diff.mult(1.0/12.0);
+			PGraph.Point diff2 = diff.mult(1.0/24.0);
 			PGraph.Point p1 = start.sum(diff).diff(diff2);
 			PGraph.Point p2 = start.sum(diff).sum(diff2);
 			g.drawLine((int)start.x, (int)start.y, (int)p1.x, (int)p1.y);
 			g.drawLine((int)p2.x, (int)p2.y, (int)end.x, (int)end.y);
 			
-			PGraph.Point diff3 = diff2.rot90();
+			PGraph.Point diff3 = diff.mult(1.0/12.0).rot90();
 			PGraph.Point p3 = p1.diff(diff3.mult(3.0));
 			PGraph.Point p4 = p1.sum(diff3.mult(3.0));
-			PGraph.Point p5 = p2.diff(diff3.mult(2.5));
-			PGraph.Point p6 = p2.sum(diff3.mult(2.5));
+			PGraph.Point p5 = p2.diff(diff3.mult(1.8));
+			PGraph.Point p6 = p2.sum(diff3.mult(1.8));
 			g.drawLine((int)p3.x, (int)p3.y, (int)p4.x, (int)p4.y);
 			g.drawLine((int)p5.x, (int)p5.y, (int)p6.x, (int)p6.y);
 		}
@@ -302,7 +302,23 @@ public class ElectronicCircuit {
 		for(Conn c : allConns()) conns.add(new ConnObj(c, nodes.get(c.start), nodes.get(c.end)));
 		
 		graph.dragablePoints.addAll(nodes.values());
-		graph.graphObjects.addAll(conns);		
+		graph.graphObjects.addAll(conns);
+		
+		double borderSize = 0.1;
+		graph.x_l = Collections.min(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.x; }
+		})) - borderSize;
+		graph.x_r = Collections.max(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.x; }
+		})) + borderSize;
+		graph.y_o = Collections.min(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.y; }
+		})) - borderSize;
+		graph.y_u = Collections.max(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.y; }
+		})) + borderSize;
+		
+		graph.showAxes = false;
 	}
 	
 	void clear() {
@@ -321,10 +337,10 @@ public class ElectronicCircuit {
 	}
 	
 	private void randomLine(Node[] nodes, int minEffObjs) {
-		int numEffObjs = minEffObjs + r.nextInt(nodes.length - minEffObjs);
-		int numERes = (minEffObjs >= 2) ? (1 + r.nextInt(numEffObjs - 1)) : (r.nextInt(numEffObjs + 1));
+		int numEffObjs = 2; //minEffObjs + r.nextInt(nodes.length - minEffObjs);
+		int numERes = 1; // (minEffObjs >= 2) ? (1 + r.nextInt(numEffObjs - 1)) : (r.nextInt(numEffObjs + 1));
 		int numVoltSrc = numEffObjs - numERes;
-		shuffleArray(nodes);
+		//shuffleArray(nodes);
 		for(int i = 0; i < nodes.length - 1; ++i) {
 			Conn c;
 			if(i < numERes) c = new EResistance();
@@ -335,12 +351,6 @@ public class ElectronicCircuit {
 			s.addOut(c);
 			e.addIn(c);
 		}
-	}
-
-	private void randomCircle(Node[] nodes, int minEffObjs) {
-		Node[] circle = Arrays.copyOf(nodes, nodes.length + 1);
-		circle[nodes.length] = nodes[0];
-		randomLine(circle, minEffObjs);
 	}
 	
 	private void randomSetup(int W, int H, Node[] nodes) {
@@ -409,13 +419,44 @@ public class ElectronicCircuit {
 	void randomSetup(int W, int H) {		
 		Node[] nodes = new Node[W * H];
 		for(int i = 0; i < W*H; ++i) nodes[i] = new Node();
-		randomCircle(new Node[] { nodes[0], nodes[W-1], nodes[W*H-1], nodes[W*(H-1)] }, 2);
+		List<Node> border = new LinkedList<Node>();
+		for(int i = 0; i < W; ++i) border.add(nodes[i]);
+		for(int i = 1; i < H; ++i) border.add(nodes[i*W + W-1]);
+		for(int i = W - 2; i >= 0; --i) border.add(nodes[W*(H-1) + i]);
+		for(int i = H - 2; i >= 0; --i) border.add(nodes[i*W]);
+		randomLine(border.toArray(new Node[] {}), 2);
 		randomSetup(W, H, nodes);
 		
 		clear();
 		rootNode = nodes[0];
+		
+		dump(nodes);
 	}
 	
-	
+	void dump(Node[] nodes) {
+		System.out.println("[");
+		boolean first = true;
+		for(int i = 0; i < nodes.length; ++i) {
+			if(!first) System.out.println(",");
+			System.out.print("( in: {");
+			boolean first2 = true;
+			for(Conn c : nodes[i].in) {
+				if(!first2) System.out.print(",");
+				System.out.print( "" + Utils.indexInArray(nodes, c.start) + "→" + Utils.indexInArray(nodes, c.end) );
+				first2 = false;
+			}
+			System.out.print("}, out: {");
+			first2 = true;
+			for(Conn c : nodes[i].out) {
+				if(!first2) System.out.print(",");
+				System.out.print( "" + Utils.indexInArray(nodes, c.start) + "→" + Utils.indexInArray(nodes, c.end) );
+				first2 = false;
+			}
+			System.out.print("} )");
+			first = false;
+		}
+		System.out.println("");
+		System.out.println("]");
+	}
 	
 }

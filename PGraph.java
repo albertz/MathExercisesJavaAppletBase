@@ -27,6 +27,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	public int xspace_l = 30, xspace_r = 30;
 	public int yspace_u = 30, yspace_o = 30;
 	
+	public boolean showAxes = true;
 	public double axeXStep = 1;
 	public double axeXMult = 1;
 	public int axeXTextStep = 1;
@@ -40,6 +41,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	public String[] stateMsgs = new String[] {};
 	public int stateMsgX = 25, stateMsgY = 25;
 	
+	public boolean supportSelection = false; 
 	public double selectedX1 = 0, selectedX2 = 0;
 	public double selectedX = 0;
 	public double selectedY = -100;
@@ -115,16 +117,18 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		g.setColor(new Color(250, 250, 250));
 		g.fillRect(0, 0, W, H);
 		
-		drawAchsen(g);
-		drawAchsentext(g);
-		
-		if(showPolarcircles) {
-			drawPolarcircles(g);
+		if(showAxes) {
+			drawAchsen(g);
+			drawAchsentext(g);
 		}
 		
-		drawSelectionXPos(g);
-		drawSelectionYPos(g);
-		drawSelectionXRange(g);
+		if(showPolarcircles) drawPolarcircles(g);
+		
+		if(supportSelection) {
+			drawSelectionXPos(g);
+			drawSelectionYPos(g);
+			drawSelectionXRange(g);
+		}
 		//drawSimulationX2Y(g);
 		drawStateMsg(g);
 		
@@ -504,17 +508,20 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	
 	GraphPoint draggedPoint = null;
 	public void mouseMoved(MouseEvent e) {
-/*		if(state < 2) {
-			doSelectionXRange(state, e.getX());
-			applet.updater.run();
-			applet.repaint();
-		} */
-		doSelectionXPos(e.getX(), false);
-		for(Function2D function : functions) {
-			doSelectionYPos(transformY(function.get(selectedX)), false);
-			break;
+		if(supportSelection) {
+			/*
+			if(state < 2) {
+				doSelectionXRange(state, e.getX());
+				applet.updater.run();
+				applet.repaint();
+			} */
+			doSelectionXPos(e.getX(), false);
+			for(Function2D function : functions) {
+				doSelectionYPos(transformY(function.get(selectedX)), false);
+				break;
+			}
 		}
-
+		
 		{
 			Point retransformedPoint = new Point(retransformX(e.getX()), retransformY(e.getY()));
 			if(true /*e.getButton() == MouseEvent.BUTTON1*/ ) {
