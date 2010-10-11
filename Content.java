@@ -35,8 +35,7 @@ public class Content {
 	public void run() {
 		graph = new PGraph(applet, 480, 400);
 		ElectronicCircuit e = new ElectronicCircuit();
-		e.randomSetup(2, 2);
-		e.registerOnPGraph(graph);
+		e.registerOnPGraph(graph, e.randomSetup(4, 4));
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 20, 480, 400, graph),

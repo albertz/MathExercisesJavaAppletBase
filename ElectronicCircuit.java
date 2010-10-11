@@ -282,8 +282,10 @@ public class ElectronicCircuit {
 	}
 
 	void registerOnPGraph(PGraph graph) {		
-		Map<Point,Node> visuallyOrderedPoints = visuallyOrderPoints();
-
+		registerOnPGraph(graph, visuallyOrderPoints());
+	}
+	
+	void registerOnPGraph(PGraph graph, Map<Point,Node> visuallyOrderedPoints) {
 		Map<Node, NodePoint> nodes = new HashMap<Node, NodePoint>();
 		for(Point p : visuallyOrderedPoints.keySet()) {
 			Node n = visuallyOrderedPoints.get(p);
@@ -339,40 +341,43 @@ public class ElectronicCircuit {
 	}
 	
 	private void randomLine(Node[] nodes, int minEffObjs) {
-		int numEffObjs = 2; //minEffObjs + r.nextInt(nodes.length - minEffObjs);
-		int numERes = 1; // (minEffObjs >= 2) ? (1 + r.nextInt(numEffObjs - 1)) : (r.nextInt(numEffObjs + 1));
+		int numEffObjs = minEffObjs + r.nextInt(nodes.length - minEffObjs);
+		int numERes = (minEffObjs >= 2) ? (1 + r.nextInt(numEffObjs - 1)) : (r.nextInt(numEffObjs + 1));
 		int numVoltSrc = numEffObjs - numERes;
-		//shuffleArray(nodes);
-		for(int i = 0; i < nodes.length - 1; ++i) {
+		
+		Integer[] nodeIndexes = new Integer[nodes.length - 1];
+		for(int i = 0; i < nodes.length - 1; ++i) nodeIndexes[i] = i;
+		shuffleArray(nodeIndexes);
+		
+		for(int i = 0; i < nodeIndexes.length; ++i) {
 			Conn c;
 			if(i < numERes) c = new EResistance();
 			else if(i < numERes + numVoltSrc) c = new VoltageSource();
 			else c = new Conn();
 
-			Node s = nodes[i], e = nodes[i + 1];
+			Node s = nodes[nodeIndexes[i]], e = nodes[nodeIndexes[i] + 1];
 			s.addOut(c);
 			e.addIn(c);
 		}
 	}
 	
 	private void randomSetup(int W, int H, Node[] nodes) {
-		int w = W - 2, h = H - 2;
-		if(h <= 0 || w <= 0) return; // one of them ready -> stop (don't fill the rest possible ones)
-		boolean horiz = (h <= 0) ? false : r.nextBoolean();
+		if(H <= 2 || W <= 2) return; // one of them ready -> stop (don't fill the rest possible ones)
+		boolean horiz = (H <= 2) ? false : r.nextBoolean();
 		Node[][] ns;
 		Node[] line;
 		int[] ws = new int[] {W,W};
 		int[] hs = new int[] {H,H};		
 		if(horiz) {
-			int y = r.nextInt(w);
+			int y = r.nextInt(W - 2) + 1;
 			ns = splitHoriz(W, H, y, nodes);
 			line = getHorizLine(W, H, y, nodes);
 			hs[0] = y + 1; hs[1] = H - y;
 		}
 		else {			
-			int x = r.nextInt(h);
+			int x = r.nextInt(H - 2) + 1;
 			ns = splitVert(W, H, x, nodes);
-			line = getVertLine(W, H, x, nodes);		
+			line = getVertLine(W, H, x, nodes);
 			ws[0] = x + 1; ws[1] = W - x;
 		}
 		randomLine(line, 1);
@@ -418,7 +423,8 @@ public class ElectronicCircuit {
 		return line;
 	}
 	
-	void randomSetup(int W, int H) {		
+	// returns straightforward visual ordered points
+	Map<Point,Node> randomSetup(int W, int H) {		
 		Node[] nodes = new Node[W * H];
 		for(int i = 0; i < W*H; ++i) nodes[i] = new Node();
 		List<Node> border = new LinkedList<Node>();
@@ -433,6 +439,12 @@ public class ElectronicCircuit {
 		rootNode = nodes[0];
 		
 		dump(nodes);
+		
+		Map<Point,Node> visualOrderedPoints = new HashMap<Point,Node>();
+		for(int x = 0; x < W; ++x)
+			for(int y = 0; y < H; ++y)
+				visualOrderedPoints.put(new Point(x,y), nodes[y*W + x]);
+		return visualOrderedPoints;
 	}
 	
 	void dump(Node[] nodes) {
