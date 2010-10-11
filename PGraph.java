@@ -22,8 +22,8 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	public List<Function2D> functions = new LinkedList<Function2D>();
 	public List<Color> functionColors = new LinkedList<Color>();
 	
-	public double x_l = -8, x_r = 8;
-	public double y_u = -1, y_o = 1;
+	public double x_l = -4, x_r = 4;
+	public double y_u = -4, y_o = 4;
 	public int xspace_l = 30, xspace_r = 30;
 	public int yspace_u = 30, yspace_o = 30;
 	
