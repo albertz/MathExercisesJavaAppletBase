@@ -237,7 +237,9 @@ public class ElectronicCircuit {
 		for(int r = 1; ; ++r) {
 			List<Point> pts = new LinkedList<Point>();
 			for(int x = -r; x <= r; ++x)
-				for(int y = -r; y <= r; y += ((Math.abs(x) == r) ? 1 : (2 * r))) {
+				for(int y = -r; y <= r; ++y) {
+					if(x == 0 && y == 0) continue;
+					if(x*x + y*y < (r-1)*(r-1) || x*x + y*y > r*r) continue;
 					Point newPt = new Point( srcPoint.x + x, srcPoint.y + y );
 					if(!grid.containsKey(newPt))
 						pts.add(newPt);
