@@ -14,8 +14,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
-import com.sun.corba.se.spi.copyobject.CopierManager;
-
 public class Utils {
 
 	static interface Predicate<T> {
@@ -388,7 +386,7 @@ public class Utils {
     		public Iterator<RawString> iterator() { return new RawStringIterator(iterator); }
     	}
     	
-    	private static ParseStrResult parseNonNestedString(OperatorTree ot, String s, Set<String> equalPriorityOps, String defaultAnonBinOp) {
+    	private static ParseStrResult parseNonNestedString(OperatorTree ot, String s, Set<String> equalPriorityOps) {
     		ParseStrResult result = new ParseStrResult();
     		result.iterator = new RawStringIterator();
     		result.iterator.stateStack.push(new RawStringIterator.State(ot.entities.size(), ot));
@@ -426,16 +424,16 @@ public class Utils {
 			return result;
     	}
     	
-    	static Entity parseNonNestedString(String s, List<Set<String>> ops, String defaultAnonBinOp) {
-    		OperatorTree ot = parseNonNestedString(new OperatorTree(), s, ops, defaultAnonBinOp).ot;
+    	static Entity parseNonNestedString(String s, List<Set<String>> ops) {
+    		OperatorTree ot = parseNonNestedString(new OperatorTree(), s, ops).ot;
     		if(ot.entities.size() == 0) throw new AssertionError("something is wrong when parsing '" + s + "'");
     		else if(ot.entities.size() == 1) return ot.entities.get(0);
     		return new Subtree(ot);
     	}
     	    	
-    	static ParseStrResult parseNonNestedString(final OperatorTree origOt, final String s, final List<Set<String>> binOps, String defaultAnonBinOp) {
+    	static ParseStrResult parseNonNestedString(final OperatorTree origOt, final String s, final List<Set<String>> binOps) {
     		//String old = origOt.toString();
-    		ParseStrResult parseStrRes = parseNonNestedString(origOt, s, binOps.get(0), defaultAnonBinOp);
+    		ParseStrResult parseStrRes = parseNonNestedString(origOt, s, binOps.get(0));
     		//System.out.println("after " + ops.get(0).iterator().next().toString() + ": " + parseStrRes.ot + " ; old: " + old + " ; input: '" + s + "'");
     		
     		List<Set<String>> opsSublist = binOps.subList(1, binOps.size());
@@ -446,15 +444,31 @@ public class Utils {
 	    			if(i.lastTree() == parseStrRes.ot && i.wasEndOfTree() && first) {
 	    				OperatorTree ot = i.lastTree();
 	    				ot.entities.remove(ot.entities.size() - 1); // remove last
-	    				return parseNonNestedString(ot, rs, opsSublist, defaultAnonBinOp);
+	    				return parseNonNestedString(ot, rs, opsSublist);
 	    			} else
-	    				i.replace( parseNonNestedString(rs, opsSublist, defaultAnonBinOp) );
+	    				i.replace( parseNonNestedString(rs, opsSublist) );
 	    			first = false;
 	    		}
     		
     		return parseStrRes;
     	}
-    	    	
+    	
+    	static Entity parseDefaultAnonBinOp(String s, String defaultAnonBinOp) {
+    		String[] tokens = s.split(" +");
+    		if(tokens.length == 0) throw new AssertionError("we should not have an empty string here");
+    		if(tokens.length == 1) return new RawString(s);
+    		OperatorTree subtree = new OperatorTree();
+    		subtree.op = defaultAnonBinOp;
+    		for(String t : tokens)
+    			subtree.entities.add(new RawString(t));
+    		return new Subtree(subtree);
+    	}
+    	 
+    	static void parseDefaultAnonBinOp(RawStringIterator rawStrings, String defaultAnonBinOp) {
+    		for(RawStringIterator i = rawStrings; i.hasNext();)
+				i.replace( parseDefaultAnonBinOp(i.next().content, defaultAnonBinOp) );
+    	}
+    	
     	static OperatorTree parse(OperatorTree t, List<Set<String>> binOps, Set<String> unaryOps, String defaultAnonBinOp) {
     		OperatorTree ot = new OperatorTree();
     		ot.op = t.op;
@@ -462,7 +476,8 @@ public class Utils {
     		for(Entity e : t.entities) {
     			if(e instanceof RawString) {
 					String rs = ((RawString)e).content;
-					ParseStrResult parseStrRes = parseNonNestedString(ot, rs, binOps, defaultAnonBinOp); 
+					ParseStrResult parseStrRes = parseNonNestedString(ot, rs, binOps);
+					parseDefaultAnonBinOp(parseStrRes.iterator.copy(), defaultAnonBinOp);
    					ot = parseStrRes.ot;
    					nextOpWanted = parseStrRes.nextOpWanted;
    					if(ot.entities.size() == 2 && ot.op.isEmpty()) ot.op = defaultAnonBinOp;

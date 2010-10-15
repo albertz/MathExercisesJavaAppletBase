@@ -31,10 +31,11 @@ public class Content {
 		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
 		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) (5 + 6)");
 		debugUtilsParsingOpTree("1 * 2 (3)");
+		debugUtilsParsingOpTree("1 * 2 3 / 4 * 5");
 	}
 	
 	public void run() {
-		//debugUtilsParsingOpTree();
+		debugUtilsParsingOpTree();
 		
 		graph = new PGraph(applet, 480, 400);
 		ElectronicCircuit e = new ElectronicCircuit();
