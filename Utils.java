@@ -1,6 +1,8 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,6 +12,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.Set;
+import java.util.Stack;
 
 import com.sun.corba.se.spi.copyobject.CopierManager;
 
@@ -274,13 +277,13 @@ public class Utils {
     }
     
     static class OperatorTree {
-    	String op;
+    	String op = "";
     	abstract static class Entity {}
     	static class RawString extends Entity {
     		String content = "";
     		RawString() {}
     		RawString(String s) { content = s; }
-    		@Override public String toString() { return content; }
+    		@Override public String toString() { return "{" + content + "}"; }
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
@@ -291,84 +294,206 @@ public class Utils {
     	OperatorTree() {}
     	OperatorTree(String op, Entity e) { this.op = op; entities.add(e); } 
     	
-    	static OperatorTree parseNonNestedString(OperatorTree ot, String s, Set<String> equalPriorityOps) {
+    	static class RawStringIterator implements Iterator<RawString> {
+    		static class State {
+    			int entityIndex = 0;
+    			OperatorTree ot;
+    			State(int i, OperatorTree t) { entityIndex = i; ot = t; }
+    			State(OperatorTree t) { ot = t; }
+    			State(State s) { entityIndex = s.entityIndex; ot = s.ot; }
+    			boolean hasNext() { return entityIndex < ot.entities.size(); }
+    			Entity current() { return ot.entities.get(entityIndex); }
+    			void remove() { ot.entities.remove(entityIndex); }
+    			void replace(Entity e) { ot.entities.set(entityIndex, e); }
+    			boolean isAtEnd() { return entityIndex == ot.entities.size() - 1; }
+    		}
+    		Stack<State> stateStack = new Stack<State>();
+    		State lastState;
+    		RawStringIterator() {}    		
+    		RawStringIterator(OperatorTree t) { stateStack.push(new State(t)); walkSubtrees(); }    		
+    		@SuppressWarnings("unchecked" /* because of the clone() */) RawStringIterator(RawStringIterator i) { 
+    			stateStack = (Stack<State>) i.stateStack.clone();
+    			lastState = i.lastState; // this is safe because we never manipulate lastState
+    		}
+    		RawStringIterator copy() { return new RawStringIterator(this); }
+    		
+    		public boolean hasNext() { return !stateStack.empty() && stateStack.peek().hasNext(); }
+
+    		void walkdown() {
+				while(!stateStack.empty() && !stateStack.peek().hasNext()) {
+					stateStack.pop();
+					if(!stateStack.empty())
+						stateStack.peek().entityIndex++;						
+				}
+    		}
+    		
+    		void walkSubtrees() {
+    			walkdown();
+				while(!stateStack.empty() && stateStack.peek().current() instanceof Subtree) {
+					stateStack.push(new State( ((Subtree)stateStack.peek().current()).content ));
+					walkdown();
+				}
+    		}
+    		
+    		public RawString peek() {
+				if(!hasNext()) throw new NoSuchElementException();
+				return (RawString) stateStack.peek().current();
+    		}
+    		    		
+			public RawString next() {
+				if(!hasNext()) throw new NoSuchElementException();
+				
+				lastState = new State(stateStack.peek());
+				
+				stateStack.peek().entityIndex++;
+				walkSubtrees();
+				
+				return (RawString) lastState.current();
+			}
+
+			public void remove() {
+				if(lastState == null) throw new IllegalStateException();
+				lastState.remove();
+				for(State s : stateStack) {
+					if(s.ot == lastState.ot) {
+						if(s.entityIndex == lastState.entityIndex) throw new AssertionError("should not happen that we delete currently pointed-to entry");
+						if(s.entityIndex > lastState.entityIndex)
+							s.entityIndex--;
+					}
+				}
+				lastState = null;
+			}
+			
+			// replaces last element returned by next() with e in underlying container
+			public void replace(Entity e) {
+				if(lastState == null) throw new IllegalStateException();
+				lastState.replace(e);
+			}
+			
+    		public boolean wasEndOfTree() {
+				if(lastState == null) throw new IllegalStateException();
+    			return lastState.isAtEnd();
+    		}
+    		
+    		public OperatorTree lastTree() {
+				if(lastState == null) throw new IllegalStateException();
+    			return lastState.ot;
+    		}
+    	}
+    	
+    	private static class ParseStrResult implements Iterable<RawString> {
+    		OperatorTree ot;
+    		RawStringIterator iterator;
+    		boolean nextOpWanted = true;
+    		public Iterator<RawString> iterator() { return new RawStringIterator(iterator); }
+    	}
+    	
+    	private static ParseStrResult parseNonNestedString(OperatorTree ot, String s, Set<String> equalPriorityOps, String defaultAnonBinOp) {
+    		ParseStrResult result = new ParseStrResult();
+    		result.iterator = new RawStringIterator();
+    		result.iterator.stateStack.push(new RawStringIterator.State(ot.entities.size(), ot));
 			boolean havePreviousContent = !ot.entities.isEmpty();
     		RawString lastStr = new RawString();
 			ot.entities.add(lastStr);
 			for(Character c : iterableString(s)) {
 				if(havePreviousContent && equalPriorityOps.contains("" + c)) {
 					lastStr.content = lastStr.content.trim();
+					if(lastStr.content.isEmpty()) ot.entities.remove(ot.entities.size() - 1);
 					lastStr = new RawString();
 					havePreviousContent = false;
 					
 					final String op = "" + c;
-					if(!ot.op.equals(op))
+					if(ot.op.isEmpty())
+						ot.op = op;
+					else if(!ot.op.equals(op)) {
 						ot = new OperatorTree(op, new Subtree(ot));
+						result.iterator.stateStack.add(0, new RawStringIterator.State(ot)); // add at the bottom of the stack -> we are reversing it
+					}
 					ot.entities.add(lastStr);
 				}
 				else if(!lastStr.content.isEmpty() || c != ' ') {
 					lastStr.content += c;
-					havePreviousContent = true;	
+					havePreviousContent = true;
 				}
 			}
 			lastStr.content = lastStr.content.trim();
-			return ot;
+			if(lastStr.content.isEmpty()) {
+				ot.entities.remove(ot.entities.size() - 1);
+				result.nextOpWanted = havePreviousContent;
+			}
+			result.ot = ot;
+			result.iterator.walkSubtrees(); // walk to next real entry
+			return result;
     	}
     	
-    	static Entity parseNonNestedString(String s, List<Set<String>> ops) {
-    		OperatorTree ot = parseNonNestedString(new OperatorTree(), s, ops);
-    		if(ot.entities.size() == 0) throw new AssertionError("something is wrong");
+    	static Entity parseNonNestedString(String s, List<Set<String>> ops, String defaultAnonBinOp) {
+    		OperatorTree ot = parseNonNestedString(new OperatorTree(), s, ops, defaultAnonBinOp).ot;
+    		if(ot.entities.size() == 0) throw new AssertionError("something is wrong when parsing '" + s + "'");
     		else if(ot.entities.size() == 1) return ot.entities.get(0);
     		return new Subtree(ot);
     	}
     	    	
-    	static OperatorTree parseNonNestedString(final OperatorTree origOt, String s, List<Set<String>> ops) {
-    		OperatorTree ot = origOt;
-    		int startIndex = ot.entities.size();
-    		int opIndex = 0;
-	    	ot = parseNonNestedString(ot, s, ops.get(opIndex++));
-    		if(ot != origOt) startIndex = 0;
-    		if(ot.entities.size() - startIndex == 0) throw new AssertionError("something is wrong, no addition for " + ops.get(opIndex-1));	    	
-
+    	static ParseStrResult parseNonNestedString(final OperatorTree origOt, final String s, final List<Set<String>> binOps, String defaultAnonBinOp) {
+    		//String old = origOt.toString();
+    		ParseStrResult parseStrRes = parseNonNestedString(origOt, s, binOps.get(0), defaultAnonBinOp);
+    		//System.out.println("after " + ops.get(0).iterator().next().toString() + ": " + parseStrRes.ot + " ; old: " + old + " ; input: '" + s + "'");
     		
-    		
-    		for(; opIndex < ops.size(); ++opIndex) {
-	    		for(int i = startIndex; i < ot.entities.size(); ++i) {
-	    			RawString rs = castOrNull(ot.entities.get(i), RawString.class);
-	    			if(rs != null) {
-	    				//if(i > 0)
-	    				//	ot.entities.set(i, parseNonNestedString(rs.content, ops.get(opIndex)));
-	    				//else {
-	    				//	ot = parseNonNestedString();
-	    				//}
-	    			}
+    		List<Set<String>> opsSublist = binOps.subList(1, binOps.size());
+    		boolean first = true;
+    		if(!opsSublist.isEmpty())
+	    		for(RawStringIterator i = parseStrRes.iterator.copy(); i.hasNext();) {
+	    			String rs = i.next().content;
+	    			if(i.lastTree() == parseStrRes.ot && i.wasEndOfTree() && first) {
+	    				OperatorTree ot = i.lastTree();
+	    				ot.entities.remove(ot.entities.size() - 1); // remove last
+	    				return parseNonNestedString(ot, rs, opsSublist, defaultAnonBinOp);
+	    			} else
+	    				i.replace( parseNonNestedString(rs, opsSublist, defaultAnonBinOp) );
+	    			first = false;
 	    		}
-    		}
-    		return ot;
+    		
+    		return parseStrRes;
     	}
     	    	
-    	static OperatorTree parse(OperatorTree t, List<Set<String>> ops) {
+    	static OperatorTree parse(OperatorTree t, List<Set<String>> binOps, Set<String> unaryOps, String defaultAnonBinOp) {
     		OperatorTree ot = new OperatorTree();
     		ot.op = t.op;
+    		boolean nextOpWanted = true;
     		for(Entity e : t.entities) {
     			if(e instanceof RawString) {
 					String rs = ((RawString)e).content;
-    				if(ot.op.isEmpty())
-    					ot = parseNonNestedString(ot, rs, ops);
-    				else
-    					ot.entities.add(parseNonNestedString(rs, ops));
+					ParseStrResult parseStrRes = parseNonNestedString(ot, rs, binOps, defaultAnonBinOp); 
+   					ot = parseStrRes.ot;
+   					nextOpWanted = parseStrRes.nextOpWanted;
+   					if(ot.entities.size() == 2 && ot.op.isEmpty()) ot.op = defaultAnonBinOp;
     			}
     			else {
+   					if(ot.entities.size() == 1 && ot.op.isEmpty()) ot.op = defaultAnonBinOp;
     				OperatorTree subtree = ((Subtree)e).content;
     				if(!ot.entities.isEmpty()) {
-    					RawString lastRs = castOrNull(ot.entities.get(ot.entities.size() - 1), RawString.class);
-    					if(lastRs == null) throw new AssertionError("'(..)(..)' not allowed, there must be something in between");
-	    				if(!lastRs.content.isEmpty())
+						RawString lastRs = castOrNull(ot.entities.get(ot.entities.size() - 1), RawString.class);
+						// check if we have an unary op
+						if(lastRs != null && unaryOps.contains(lastRs.content)) {
 	    					// for example, there was a "-" just before, e.g. "- ( ..."
 	    					subtree = new OperatorTree(lastRs.content, new Subtree(subtree));
-    					ot.entities.remove(ot.entities.size() - 1);
+	    					ot.entities.remove(ot.entities.size() - 1);
+						}						
+						// we want a new op but didn't got any -> use defaultAnonBinOp
+						else if(nextOpWanted) {
+							if(!defaultAnonBinOp.equals(ot.op)) {
+								// move last entry from this tree into a new sub tree and defaultOp with current subtree
+		    					OperatorTree subsubtree = new OperatorTree(defaultAnonBinOp, ot.entities.get(ot.entities.size() - 1));
+		    					ot.entities.remove(ot.entities.size() - 1);
+		    					subsubtree.entities.add( new Subtree( parse(subtree, binOps, unaryOps, defaultAnonBinOp) ) );
+		    					subtree = null; // don't parse anymore
+		    					ot.entities.add( new Subtree(subsubtree) );
+							}
+							//throw new AssertionError("'(..)(..)' not allowed, there must be something in between");
+						}
     				}
-					ot.entities.add( new Subtree( parse(subtree, ops) ) );
+    				if(subtree != null)
+    					ot.entities.add( new Subtree( parse(subtree, binOps, unaryOps, defaultAnonBinOp) ) );
+					nextOpWanted = true;
     			}
     		}
     		return ot;
@@ -403,8 +528,17 @@ public class Utils {
 			return opl;
     	}
     	
-    	static OperatorTree parse(String str, String ops) { return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(ops) ); }
-    	static OperatorTree parse(String str) { return parse(str, "= +- */"); }
+    	static Set<String> simpleOpList(String ops) {
+    		Set<String> opSet = new HashSet<String>();
+    		for(Character c : iterableString(ops))
+    			opSet.add("" + c);
+    		return opSet;
+    	}
+    	
+    	static OperatorTree parse(String str, String binOps, String unaryOps, String defaultAnonBinOp) {
+    		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), simpleOpList(unaryOps), defaultAnonBinOp );
+    	}
+    	static OperatorTree parse(String str) { return parse(str, "= +- */", "-", "*"); }
     	
     	@Override public String toString() { return (entities.size() == 1) ? (op + entities.get(0).toString()) : concat(entities, " " + op + " "); }
     }
