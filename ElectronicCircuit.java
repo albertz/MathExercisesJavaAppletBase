@@ -16,15 +16,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class ElectronicCircuit {
-	
-	static enum Unit { Volt, Ohm, Ampere }
-	
-	static class VariableSymbol {
-		Unit unit;
-		String name;
-		VariableSymbol(Unit unit) { this.unit = unit; }		
-	}
-	
+		
 	static class Conn {
 		Node start, end;
 		void clear() {
@@ -56,11 +48,11 @@ public class ElectronicCircuit {
 	
 	// the intention for this is that it really has an effect and thus also some kind of variable
 	static abstract class EffectiveConn extends Conn {
-		VariableSymbol var;
+		EquationSystem.VariableSymbol var;
 	}
 	
 	static class EResistance extends EffectiveConn {
-		EResistance() { this.var = new VariableSymbol(Unit.Ohm); }
+		EResistance() { this.var = new EquationSystem.VariableSymbol("Ω"); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/3.0);			
 			PGraph.Point p1 = start.sum(diff);
@@ -81,7 +73,7 @@ public class ElectronicCircuit {
 	}
 	
 	static class VoltageSource extends EffectiveConn {
-		VoltageSource() { this.var = new VariableSymbol(Unit.Volt); }
+		VoltageSource() { this.var = new EquationSystem.VariableSymbol("V"); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
 			PGraph.Point diff2 = diff.mult(1.0/24.0);
