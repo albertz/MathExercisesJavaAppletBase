@@ -281,7 +281,7 @@ public class Utils {
     		String content = "";
     		RawString() {}
     		RawString(String s) { content = s; }
-    		@Override public String toString() { return "{" + content + "}"; }
+    		@Override public String toString() { return debugOperatorTreeDump ? ("{" + content + "}") : content; }
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
@@ -557,4 +557,6 @@ public class Utils {
     	
     	@Override public String toString() { return (entities.size() == 1) ? (op + entities.get(0).toString()) : concat(entities, " " + op + " "); }
     }
+    
+    static boolean debugOperatorTreeDump = false;
 }
