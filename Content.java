@@ -18,7 +18,12 @@ public class Content {
 	boolean isCorrect(int i, String sel) { return false; }
 	
 	void debugUtilsParsingOpTree(String s) {
-		System.out.println("parsed " + s + " -> " + Utils.OperatorTree.parse(s).toString());
+		Utils.OperatorTree.debugOperatorTreeDump = true;
+		String debugStr = Utils.OperatorTree.parse(s).toString();
+		Utils.OperatorTree.debugOperatorTreeDump = false;
+		String normalStr = Utils.OperatorTree.parse(s).toString();
+		String simplifiedStr = Utils.OperatorTree.parse(s).simplify().toString();
+		System.out.println("parsed " + s + " -> " + debugStr + " -> " + normalStr + " -> " + simplifiedStr);
 	}
 	
 	void debugUtilsParsingOpTree() {
@@ -30,8 +35,11 @@ public class Content {
 		debugUtilsParsingOpTree("1 + -2 + 3");
 		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
 		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) (5 + 6)");
-		debugUtilsParsingOpTree("1 * 2 (3)");
-		debugUtilsParsingOpTree("1 * 2 3 / 4 * 5");
+		debugUtilsParsingOpTree("1 + 2 (3)");
+		debugUtilsParsingOpTree("1 + 2 3 / 4 * 5");
+		debugUtilsParsingOpTree("1 = (2 + 3)");
+		debugUtilsParsingOpTree("a + b = c + d");
+		debugUtilsParsingOpTree("(a + b) = c + d");
 	}
 	
 	public void run() {

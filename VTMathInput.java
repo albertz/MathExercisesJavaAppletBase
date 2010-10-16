@@ -11,6 +11,8 @@ import java.awt.event.KeyListener;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.CaretEvent;
+import javax.swing.event.CaretListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AttributeSet;
@@ -40,6 +42,7 @@ public class VTMathInput extends VisualThing {
 	private String name = null;
 	private JTextField text = null;
 	private Runnable changeListener = null;
+	private Utils.OperatorTree operatorTree = new Utils.OperatorTree();
 
 	public Component getComponent() {
 		if (text == null) {
@@ -50,19 +53,56 @@ public class VTMathInput extends VisualThing {
 				@Override
 				public void insertString(FilterBypass fb, int offset,
 						String string, AttributeSet attr)
-						throws BadLocationException {
-					//super.insertString(fb, offset, string, attr);
+						throws BadLocationException {					
+					replace(fb, offset, 0, string, attr);
 				}
 				@Override
 				public void remove(FilterBypass fb, int offset, int length)
 						throws BadLocationException {
-					//super.remove(fb, offset, length);
+					String s = operatorTree.toString();
+					setNewString(fb, s, s.substring(0, offset) + s.substring(offset + length));
 				}
 				@Override
 				public void replace(FilterBypass fb, int offset, int length,
-						String text, AttributeSet attrs)
+						String string, AttributeSet attrs)
 						throws BadLocationException {
-					//super.replace(fb, offset, length, text, attrs);
+					String s = operatorTree.toString();
+					boolean insertedDummyChar = false;
+					boolean insertedBrackets = false;
+					if(length == 0 && string.matches("\\+|-|\\*|/|=")) {
+						string = string + "_";
+						insertedDummyChar = true;
+					}
+					else if(string.matches("\\(")) {
+						string = "(" + s.substring(offset, offset + length) + ")";
+						insertedBrackets = true;
+					}
+					else if(string.matches("\\)"))
+						return; // ignore that
+					setNewString(fb, s, s.substring(0, offset) + string + s.substring(offset + length));
+					
+					if(insertedDummyChar) {
+						int p = text.getText().indexOf('_');
+						if(p >= 0) {
+							text.setCaretPosition(p);
+							text.moveCaretPosition(p + 1);						
+						}
+					}
+					else if(insertedBrackets) {
+						// move just before the ')'
+						if(text.getCaretPosition() > 0) text.setCaretPosition(text.getCaretPosition() - 1);
+					}
+				}
+
+				synchronized void setNewString(FilterBypass fb, String oldStr, String tempStr) throws BadLocationException {
+					operatorTree = Utils.OperatorTree.parse(tempStr).simplify();
+					String newStr = operatorTree.toString();
+					int commonStart = Utils.equalStartLen(oldStr, newStr);
+					int commonEnd = Utils.equalEndLen(oldStr, newStr);
+					if(commonEnd + commonStart >= Math.min(oldStr.length(), newStr.length()))
+						commonEnd = Math.min(oldStr.length(), newStr.length()) - commonStart;
+					//System.out.println("setNewString: " + oldStr + " -> " + tempStr + " -> " + newStr + " ; s = " + commonStart + ", e = " + commonEnd);
+					super.replace(fb, commonStart, oldStr.length() - commonEnd - commonStart, newStr.substring(commonStart, newStr.length() - commonEnd), null);
 				}
 			});
 			

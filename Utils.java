@@ -145,11 +145,39 @@ public class Utils {
 		public void remove() { throw new AssertionError("removing in string iterator not supported"); }
 	}
     
+	static class StringReverseIterator implements Iterator<Character> {
+		String str; int pos;
+		StringReverseIterator(String str) { this.str = str; pos = str.length() - 1; }
+		public boolean hasNext() { return pos >= 0; }
+		public Character next() { return str.charAt(pos--); }
+		public void remove() { throw new AssertionError("removing in string iterator not supported"); }
+	}
+
 	static Iterable<Character> iterableString(final String s) {
 		return new Iterable<Character>() {
 			public Iterator<Character> iterator() { return new StringIterator(s); }
 		};
 	}
+
+	static Iterable<Character> iterableStringReversed(final String s) {
+		return new Iterable<Character>() {
+			public Iterator<Character> iterator() { return new StringReverseIterator(s); }
+		};
+	}
+
+	static <T> int equalLen(Iterable<? extends T> c1, Iterable<? extends T> c2) {
+		Iterator<? extends T> i1 = c1.iterator();
+		Iterator<? extends T> i2 = c2.iterator();
+		int len = 0;
+		while(i1.hasNext() && i2.hasNext()) {
+			if(!i1.next().equals(i2.next())) break;
+			len++;
+		}
+		return len;
+	}
+	
+	static int equalStartLen(String s1, String s2) { return equalLen(iterableString(s1), iterableString(s2)); }
+	static int equalEndLen(String s1, String s2) { return equalLen(iterableStringReversed(s1), iterableStringReversed(s2)); }
 	
     static <T> T castOrNull(Object obj, Class<T> clazz) {
         if(clazz.isInstance(obj))
@@ -286,7 +314,7 @@ public class Utils {
     	static class Subtree extends Entity {
     		OperatorTree content;
     		Subtree(OperatorTree t) { content = t; }
-    		@Override public String toString() { return "(" + content.toString() + ")"; }
+    		@Override public String toString() { return content.canBeInterpretedAsUnaryPrefixed() ? content.toString() : ("(" + content.toString() + ")"); }
     	}
     	List<Entity> entities = new LinkedList<Entity>();
     	OperatorTree() {}
@@ -434,17 +462,22 @@ public class Utils {
     	static ParseStrResult parseNonNestedString(final OperatorTree origOt, final String s, final List<Set<String>> binOps) {
     		//String old = origOt.toString();
     		ParseStrResult parseStrRes = parseNonNestedString(origOt, s, binOps.get(0));
-    		//System.out.println("after " + ops.get(0).iterator().next().toString() + ": " + parseStrRes.ot + " ; old: " + old + " ; input: '" + s + "'");
+    		//System.out.println("old tree: '" + old + "', input str: '" + s + "', parsing op '" + binOps.get(0).iterator().next().toString() + "' -> tree '" + parseStrRes.ot + "' with op '" + parseStrRes.ot.op + "'");
     		
     		List<Set<String>> opsSublist = binOps.subList(1, binOps.size());
+    		boolean alreadySetKnownOp = false;
+    		for(Set<String> ops : opsSublist)
+    			alreadySetKnownOp |= ops.contains(parseStrRes.ot.op);
     		boolean first = true;
     		if(!opsSublist.isEmpty())
 	    		for(RawStringIterator i = parseStrRes.iterator.copy(); i.hasNext();) {
 	    			String rs = i.next().content;
-	    			if(i.lastTree() == parseStrRes.ot && i.wasEndOfTree() && first) {
+	    			if(i.lastTree() == parseStrRes.ot && i.wasEndOfTree() && first && (alreadySetKnownOp || parseStrRes.ot.op.isEmpty())) {
 	    				OperatorTree ot = i.lastTree();
 	    				ot.entities.remove(ot.entities.size() - 1); // remove last
-	    				return parseNonNestedString(ot, rs, opsSublist);
+	    				ParseStrResult newParseRes = parseNonNestedString(ot, rs, opsSublist);
+	    				newParseRes.nextOpWanted &= parseStrRes.nextOpWanted;
+	    				return newParseRes;
 	    			} else
 	    				i.replace( parseNonNestedString(rs, opsSublist) );
 	    			first = false;
@@ -489,12 +522,16 @@ public class Utils {
 						RawString lastRs = castOrNull(ot.entities.get(ot.entities.size() - 1), RawString.class);
 						// check if we have an unary op
 						if(lastRs != null && unaryOps.contains(lastRs.content)) {
-	    					// for example, there was a "-" just before, e.g. "- ( ..."
-	    					subtree = new OperatorTree(lastRs.content, new Subtree(subtree));
-	    					ot.entities.remove(ot.entities.size() - 1);
+	    					// for example, there was a "-" just before, e.g. "- ( ..."							
+	    					OperatorTree unaryopSubtree = new OperatorTree(lastRs.content, new Subtree(new OperatorTree()));
+	    					unaryopSubtree.entities.add(new Subtree( parse(subtree, binOps, unaryOps, defaultAnonBinOp) ));
+	    					ot.entities.set(ot.entities.size() - 1, new Subtree(unaryopSubtree));
+	    					//System.out.println("unary op subtree: " + unaryopSubtree);
+	    					subtree = null; // don't parse anymore	    					
 						}						
 						// we want a new op but didn't got any -> use defaultAnonBinOp
 						else if(nextOpWanted) {
+							//System.out.println("nextOpWanted: " + ot + " with op " + ot.op);
 							if(!defaultAnonBinOp.equals(ot.op)) {
 								// move last entry from this tree into a new sub tree and defaultOp with current subtree
 		    					OperatorTree subsubtree = new OperatorTree(defaultAnonBinOp, ot.entities.get(ot.entities.size() - 1));
@@ -553,10 +590,155 @@ public class Utils {
     	static OperatorTree parse(String str, String binOps, String unaryOps, String defaultAnonBinOp) {
     		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), simpleOpList(unaryOps), defaultAnonBinOp );
     	}
-    	static OperatorTree parse(String str) { return parse(str, "= +- */", "-", "*"); }
+    	static OperatorTree parse(String str) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", "-", "∙"); }
     	
-    	@Override public String toString() { return (entities.size() == 1) ? (op + entities.get(0).toString()) : concat(entities, " " + op + " "); }
+    	boolean canBeInterpretedAsUnaryPrefixed() {
+    		return entities.size() == 2 && entities.get(0) instanceof Subtree && ((Subtree)entities.get(0)).content.entities.isEmpty();	
+    	}
+    	
+    	@Override public String toString() {
+    		if(debugOperatorTreeDump)
+        		return "[" + op + "] " + concat(entities, ", ");    			
+    		if(canBeInterpretedAsUnaryPrefixed())
+    			// this is a special case used for unary ops (or ops which look like those)
+    			return op + entities.get(1);
+    		return concat(entities, " " + op + " ");
+    	}
+        static boolean debugOperatorTreeDump = false;
+        
+        OperatorTree simplify() {
+        	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
+        		return ((Subtree) entities.get(0)).content.simplify();
+        	
+        	OperatorTree ot = new OperatorTree();
+        	ot.op = op;
+        	for(Entity e : entities) {
+        		if(e instanceof RawString)
+        			ot.entities.add(e);
+        		else {
+        			OperatorTree subtree = ((Subtree) e).content.simplify();
+        			if(subtree.op.equals(ot.op))
+        				ot.entities.addAll(subtree.entities);
+        			else
+        				ot.entities.add(new Subtree(subtree));
+        		}
+        	}
+        	return ot;
+        }
+        
+        static abstract class PositionInfo {
+        	int absolutePos = 0;
+        	BetweenEntities parent = null;
+        	
+        	abstract PositionInfo next();
+        	int prefixLen() { return 0; }
+        	int postfixLen() { return 0; }
+        	BetweenEntities currentTreePos() { return parent; }
+        	
+        	PositionInfo nextInStack() {
+        		if(parent == null) return null;
+        		BetweenEntities pos = new BetweenEntities();
+        		pos.parent = parent.parent;
+        		pos.ot = parent.ot;
+        		pos.index = parent.index + 1;
+        		pos.absolutePos = absolutePos + postfixLen();
+        		return pos;
+        	}
+        	
+            static class StringPos extends PositionInfo {
+            	RawString rs;
+            	int pos;            	
+
+            	@Override PositionInfo next() {
+					if(pos >= rs.content.length()) return nextInStack();
+					StringPos pos = new StringPos();
+					pos.absolutePos = absolutePos + 1;
+					pos.parent = parent;
+					pos.rs = rs;
+					pos.pos = this.pos + 1;
+					return pos;
+				}
+            }
+            static class BetweenEntities extends PositionInfo {
+            	OperatorTree ot;
+            	int index; // of following index. 0 .. ot.entities.size()
+            	boolean beforeOp = true;
+            	@Override int prefixLen() { return 1; /* bracket '(' */ }
+            	@Override int postfixLen() { return 1; /* bracket ')' */ }
+            	@Override BetweenEntities currentTreePos() { return this; }
+            	@Override PositionInfo next() {
+					if(index >= ot.entities.size()) return nextInStack();
+					if(beforeOp) {
+						BetweenEntities pos = new BetweenEntities();
+						pos.ot = ot;
+						pos.index = index;
+						pos.beforeOp = false;
+						pos.parent = parent;
+						pos.absolutePos = absolutePos + 1/*space*/ + ot.op.length() + 1/*space*/;
+						return pos;
+					}
+					Entity nextEntity = ot.entities.get(index);
+					PositionInfo pos = null;
+					if(nextEntity instanceof RawString) {
+						StringPos spos = new StringPos();
+						spos.rs = (RawString) nextEntity;
+						spos.pos = 0;
+						pos = spos;
+					}
+					else {
+						BetweenEntities spos = new BetweenEntities();
+						spos.ot = ((Subtree) nextEntity).content;
+						spos.index = 0;
+						pos = spos;
+					}
+					pos.absolutePos = absolutePos + pos.prefixLen();
+					pos.parent = this;
+            		return pos;
+            	}
+            }
+            
+            static PositionInfo start(OperatorTree ot) {
+            	BetweenEntities pos = new BetweenEntities();
+            	pos.ot = ot;
+            	return pos;
+            }
+            
+            static PositionInfo posAt(OperatorTree ot, int pos) {
+            	PositionInfo p = start(ot);
+            	while(p.absolutePos < pos) {
+            		PositionInfo next = p.next();
+            		if(next == null) return p; // guarantees that we return something != null
+            		p = next;
+            	}
+            	return p;
+            }
+        }
+        
+        PositionInfo posAt(int pos) { return PositionInfo.posAt(this, pos); }
+        
+        Iterator<PositionInfo> positionIterator() {
+        	return new Iterator<PositionInfo>() {
+        		PositionInfo next = PositionInfo.start(OperatorTree.this);        		
+				public boolean hasNext() { return next != null; }
+				public PositionInfo next() {
+					if(!hasNext()) throw new NoSuchElementException();
+					PositionInfo res = next;
+					next = next.next();
+					return res;
+				}
+				public void remove() { throw new UnsupportedOperationException(); }        	
+			};
+        }
+                
+        Iterable<PositionInfo> position() {
+        	return new Iterable<PositionInfo>() {
+        		public Iterator<PositionInfo> iterator() { return positionIterator(); }
+			};
+        }
+
+        
+        
     }
     
-    static boolean debugOperatorTreeDump = false;
+    
 }
