@@ -361,13 +361,13 @@ public class ElectronicCircuit {
 		int[] ws = new int[] {W,W};
 		int[] hs = new int[] {H,H};		
 		if(horiz) {
-			int y = r.nextInt(W - 2) + 1;
+			int y = r.nextInt(H - 2) + 1;
 			ns = splitHoriz(W, H, y, nodes);
 			line = getHorizLine(W, H, y, nodes);
 			hs[0] = y + 1; hs[1] = H - y;
 		}
 		else {			
-			int x = r.nextInt(H - 2) + 1;
+			int x = r.nextInt(W - 2) + 1;
 			ns = splitVert(W, H, x, nodes);
 			line = getVertLine(W, H, x, nodes);
 			ws[0] = x + 1; ws[1] = W - x;
