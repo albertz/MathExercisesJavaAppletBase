@@ -6,12 +6,9 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 import java.awt.Component;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-
 import javax.swing.JTextField;
-
-
-
-
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 
 public class VTText extends VisualThing {
@@ -42,11 +39,14 @@ public class VTText extends VisualThing {
 			text = new JTextField();
 			text.setName(name);
 			if (changeListener != null)
-				text.addKeyListener(new KeyListener() {
-					public void keyPressed(KeyEvent e) {}
-					public void keyReleased(KeyEvent e) {}
-
-					public void keyTyped(KeyEvent e) {
+				text.getDocument().addDocumentListener(new DocumentListener() {
+					public void removeUpdate(DocumentEvent e) {
+						changeListener.run();
+					}				
+					public void insertUpdate(DocumentEvent e) {
+						changeListener.run();
+					}				
+					public void changedUpdate(DocumentEvent e) {
 						changeListener.run();
 					}
 				});
