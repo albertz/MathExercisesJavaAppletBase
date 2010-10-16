@@ -4,11 +4,19 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Component;
+import java.awt.event.InputMethodEvent;
+import java.awt.event.InputMethodListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DocumentFilter;
+import javax.swing.text.PlainDocument;
 
 public class VTMathInput extends VisualThing {
 
@@ -37,13 +45,36 @@ public class VTMathInput extends VisualThing {
 		if (text == null) {
 			text = new JTextField();
 			text.setName(name);
+			PlainDocument d = (PlainDocument) text.getDocument();
+			d.setDocumentFilter(new DocumentFilter() {
+				@Override
+				public void insertString(FilterBypass fb, int offset,
+						String string, AttributeSet attr)
+						throws BadLocationException {
+					//super.insertString(fb, offset, string, attr);
+				}
+				@Override
+				public void remove(FilterBypass fb, int offset, int length)
+						throws BadLocationException {
+					//super.remove(fb, offset, length);
+				}
+				@Override
+				public void replace(FilterBypass fb, int offset, int length,
+						String text, AttributeSet attrs)
+						throws BadLocationException {
+					//super.replace(fb, offset, length, text, attrs);
+				}
+			});
+			
 			if (changeListener != null)
-				text.addKeyListener(new KeyListener() {
-					public void keyPressed(KeyEvent e) {}
-					public void keyReleased(KeyEvent e) {}
-
-					public void keyTyped(KeyEvent e) {
-						
+				text.getDocument().addDocumentListener(new DocumentListener() {
+					public void removeUpdate(DocumentEvent e) {
+						changeListener.run();
+					}				
+					public void insertUpdate(DocumentEvent e) {
+						changeListener.run();
+					}				
+					public void changedUpdate(DocumentEvent e) {
 						changeListener.run();
 					}
 				});
