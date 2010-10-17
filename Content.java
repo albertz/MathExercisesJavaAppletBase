@@ -19,10 +19,11 @@ public class Content {
 	
 	void debugUtilsParsingOpTree(String s) {
 		Utils.OperatorTree.debugOperatorTreeDump = true;
-		String debugStr = Utils.OperatorTree.parse(s).toString();
+		Utils.OperatorTree ot = Utils.OperatorTree.parse(s); 
+		String debugStr = ot.toString();
 		Utils.OperatorTree.debugOperatorTreeDump = false;
-		String normalStr = Utils.OperatorTree.parse(s).toString();
-		String simplifiedStr = Utils.OperatorTree.parse(s).simplify().toString();
+		String normalStr = ot.toString();
+		String simplifiedStr = ot.simplify().toString();
 		System.out.println("parsed " + s + " -> " + debugStr + " -> " + normalStr + " -> " + simplifiedStr);
 	}
 	
@@ -40,6 +41,7 @@ public class Content {
 		debugUtilsParsingOpTree("1 = (2 + 3)");
 		debugUtilsParsingOpTree("a + b = c + d");
 		debugUtilsParsingOpTree("(a + b) = c + d");
+		debugUtilsParsingOpTree("a = (b * c) + d");
 	}
 	
 	public void run() {

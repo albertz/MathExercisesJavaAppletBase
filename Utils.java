@@ -317,8 +317,11 @@ public class Utils {
     		@Override public String toString() { return content.canBeInterpretedAsUnaryPrefixed() ? content.toString() : ("(" + content.toString() + ")"); }
     	}
     	List<Entity> entities = new LinkedList<Entity>();
+    	
     	OperatorTree() {}
     	OperatorTree(String op, Entity e) { this.op = op; entities.add(e); } 
+    	OperatorTree(String op, List<Entity> entities) { this.op = op; this.entities = entities; }    	
+    	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
     	
     	static class RawStringIterator implements Iterator<RawString> {
     		static class State {
@@ -420,22 +423,49 @@ public class Utils {
     		result.iterator.stateStack.push(new RawStringIterator.State(ot.entities.size(), ot));
 			boolean havePreviousContent = !ot.entities.isEmpty();
     		RawString lastStr = new RawString();
+    		OperatorTree lastStrParent = ot;
 			ot.entities.add(lastStr);
 			for(Character c : iterableString(s)) {
-				if(havePreviousContent && equalPriorityOps.contains("" + c)) {
+				if(equalPriorityOps.contains("" + c)) {
 					lastStr.content = lastStr.content.trim();
-					if(lastStr.content.isEmpty()) ot.entities.remove(ot.entities.size() - 1);
+					boolean mustAddEntrySubtree = false;
+					if(lastStr.content.isEmpty())
+						lastStrParent.entities.remove(lastStrParent.entities.size() - 1);
+					if(!havePreviousContent)
+						// empty subtree. this handles unary prefix ops
+						mustAddEntrySubtree = true;
 					lastStr = new RawString();
 					havePreviousContent = false;
 					
 					final String op = "" + c;
-					if(ot.op.isEmpty())
+					if(ot.op.isEmpty()) {
+						if(mustAddEntrySubtree) ot.entities.add(new Subtree(new OperatorTree()));
 						ot.op = op;
-					else if(!ot.op.equals(op)) {
-						ot = new OperatorTree(op, new Subtree(ot));
-						result.iterator.stateStack.add(0, new RawStringIterator.State(ot)); // add at the bottom of the stack -> we are reversing it
+						ot.entities.add(lastStr); lastStrParent = ot;
+					} else if(!ot.op.equals(op)) {
+						if(!mustAddEntrySubtree && equalPriorityOps.contains(ot.op)) {
+							ot = new OperatorTree(op, new Subtree(ot));
+							result.iterator.stateStack.add(0, new RawStringIterator.State(ot)); // add at the bottom of the stack -> we are reversing it
+							ot.entities.add(lastStr); lastStrParent = ot;
+						}
+						else {
+							Entity lastEntity = ot.entities.get(ot.entities.size() - 1);
+							Subtree subtree = null;
+							if(!mustAddEntrySubtree && lastEntity instanceof Subtree && ((Subtree) lastEntity).content.op.equals(op)) {
+								subtree = (Subtree) lastEntity;
+								subtree.content.entities.add(lastStr);
+							}
+							else {
+								subtree = new Subtree(new OperatorTree());
+								if(mustAddEntrySubtree) subtree.content.entities.add(new Subtree(new OperatorTree()));
+								subtree.content.entities.add(lastStr);
+								ot.entities.add(subtree);
+							}
+							lastStrParent = subtree.content;
+						}
 					}
-					ot.entities.add(lastStr);
+					else
+						ot.entities.add(lastStr);
 				}
 				else if(!lastStr.content.isEmpty() || c != ' ') {
 					lastStr.content += c;
@@ -444,7 +474,7 @@ public class Utils {
 			}
 			lastStr.content = lastStr.content.trim();
 			if(lastStr.content.isEmpty()) {
-				ot.entities.remove(ot.entities.size() - 1);
+				lastStrParent.entities.remove(lastStrParent.entities.size() - 1);
 				result.nextOpWanted = havePreviousContent;
 			}
 			result.ot = ot;
@@ -452,17 +482,134 @@ public class Utils {
 			return result;
     	}
     	
+    	private static ParseStrResult parseNextStr(OperatorTree ot, String s, OperatorTree restTree, Set<String> equalPriorityOps) {
+    		ParseStrResult result = new ParseStrResult();
+    		result.iterator = new RawStringIterator();
+    		result.iterator.stateStack.push(new RawStringIterator.State(ot.entities.size(), ot));
+
+    		boolean havePreviousContent = !ot.entities.isEmpty();
+    		RawString lastStr = new RawString();
+    		OperatorTree lastStrParent = ot;
+			ot.entities.add(lastStr);
+			for(Character c : iterableString(s)) {
+				if(havePreviousContent && !equalPriorityOps.contains("" + c)) {
+					Entity lastEntity = ot.entities.get(ot.entities.size() - 1);
+					Subtree subtree = null;
+					if(lastEntity instanceof Subtree && ((Subtree) lastEntity).content.op.equals(op)) {
+						subtree = (Subtree) lastEntity;
+						subtree.content.entities.add(lastStr);
+					}
+					else {
+						subtree = new Subtree(new OperatorTree());
+						if(mustAddEntrySubtree) subtree.content.entities.add(new Subtree(new OperatorTree()));
+						subtree.content.entities.add(lastStr);
+						ot.entities.add(subtree);
+					}
+					lastStrParent = subtree.content;
+				}
+				
+				if(equalPriorityOps.contains("" + c)) {
+					lastStr.content = lastStr.content.trim();
+					boolean mustAddEntrySubtree = false;
+					if(lastStr.content.isEmpty())
+						lastStrParent.entities.remove(lastStrParent.entities.size() - 1);
+					if(!havePreviousContent)
+						// empty subtree. this handles unary prefix ops
+						mustAddEntrySubtree = true;
+					lastStr = new RawString();
+					havePreviousContent = false;
+					
+					final String op = "" + c;
+					if(ot.op.isEmpty()) {
+						if(mustAddEntrySubtree) ot.entities.add(new Subtree(new OperatorTree()));
+						ot.op = op;
+						ot.entities.add(lastStr); lastStrParent = ot;
+					} else if(!ot.op.equals(op)) {
+						if(!mustAddEntrySubtree && equalPriorityOps.contains(ot.op)) {
+							ot = new OperatorTree(op, new Subtree(ot));
+							result.iterator.stateStack.add(0, new RawStringIterator.State(ot)); // add at the bottom of the stack -> we are reversing it
+							ot.entities.add(lastStr); lastStrParent = ot;
+						}
+						else {
+							Entity lastEntity = ot.entities.get(ot.entities.size() - 1);
+							Subtree subtree = null;
+							if(!mustAddEntrySubtree && lastEntity instanceof Subtree && ((Subtree) lastEntity).content.op.equals(op)) {
+								subtree = (Subtree) lastEntity;
+								subtree.content.entities.add(lastStr);
+							}
+							else {
+								subtree = new Subtree(new OperatorTree());
+								if(mustAddEntrySubtree) subtree.content.entities.add(new Subtree(new OperatorTree()));
+								subtree.content.entities.add(lastStr);
+								ot.entities.add(subtree);
+							}
+							lastStrParent = subtree.content;
+						}
+					}
+					else
+						ot.entities.add(lastStr);
+				}
+				else if(!lastStr.content.isEmpty() || c != ' ') {
+					lastStr.content += c;
+					havePreviousContent = true;
+				}
+			}
+			lastStr.content = lastStr.content.trim();
+			if(lastStr.content.isEmpty()) {
+				lastStrParent.entities.remove(lastStrParent.entities.size() - 1);
+				result.nextOpWanted = havePreviousContent;
+			}
+			result.ot = ot;
+			result.iterator.walkSubtrees(); // walk to next real entry
+			return result;
+    	}
+
     	static Entity parseNonNestedString(String s, List<Set<String>> ops) {
     		OperatorTree ot = parseNonNestedString(new OperatorTree(), s, ops).ot;
     		if(ot.entities.size() == 0) throw new AssertionError("something is wrong when parsing '" + s + "'");
     		else if(ot.entities.size() == 1) return ot.entities.get(0);
     		return new Subtree(ot);
     	}
-    	    	
+    	
+    	static Entity parseOpsInEntity(final Entity source, final Set<String> binOps) {
+    		if(source instanceof RawString) {
+    			RawString rs = (RawString) source;
+    			OperatorTree ot = parseNonNestedString(new OperatorTree(), rs.content, binOps).ot;
+        		if(ot.entities.size() == 0) throw new AssertionError("something is wrong when parsing '" + rs.content + "'");
+        		else if(ot.entities.size() == 1) return ot.entities.get(0);
+        		return new Subtree(ot);        		
+    		}
+    		else
+    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps));
+    	}
+
+    	static OperatorTree parseOpsInTree(final OperatorTree source, final Set<String> binOps) {
+    		OperatorTree ot = new OperatorTree();
+    		if(!source.op.isEmpty()) {
+    			ot.op = source.op;
+    			for(Entity e : source.entities)
+    				ot.entities.add(parseOpsInEntity(e, binOps));
+    			return ot;
+    		}
+    		
+    		boolean nextOpWanted = false;
+			for(Entity e : source.entities) {
+				if(e instanceof RawString) {
+					RawString rs = (RawString) e;
+					ParseStrResult parseRes = parseNonNestedString(ot, rs.content, binOps);
+				}
+				ot.entities.add(parseOpsInEntity(e, binOps));
+			}
+    	}
+    	
+    	static OperatorTree parseOpsInTree(final OperatorTree source, final List<Set<String>> binOps) {
+    		
+    	}
+    	
     	static ParseStrResult parseNonNestedString(final OperatorTree origOt, final String s, final List<Set<String>> binOps) {
-    		//String old = origOt.toString();
+    		String old = origOt.toString();
     		ParseStrResult parseStrRes = parseNonNestedString(origOt, s, binOps.get(0));
-    		//System.out.println("old tree: '" + old + "', input str: '" + s + "', parsing op '" + binOps.get(0).iterator().next().toString() + "' -> tree '" + parseStrRes.ot + "' with op '" + parseStrRes.ot.op + "'");
+    		System.out.println("old tree: '" + old + "', input str: '" + s + "', parsing op '" + binOps.get(0).iterator().next().toString() + "' -> tree '" + parseStrRes.ot + "' with op '" + parseStrRes.ot.op + "'");
     		
     		List<Set<String>> opsSublist = binOps.subList(1, binOps.size());
     		boolean alreadySetKnownOp = false;
