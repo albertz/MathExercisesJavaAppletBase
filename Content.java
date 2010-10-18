@@ -17,44 +17,27 @@ public class Content {
 	void next(int i) {}	
 	boolean isCorrect(int i, String sel) { return false; }
 	
-	void debugUtilsParsingOpTree(String s) {
-		Utils.OperatorTree.debugOperatorTreeDump = true;
-		Utils.OperatorTree ot = Utils.OperatorTree.parse(s); 
-		String debugStr = ot.toString();
-		Utils.OperatorTree.debugOperatorTreeDump = false;
-		String normalStr = ot.toString();
-		String simplifiedStr = ot.simplify().toString();
-		System.out.println("parsed " + s + " -> " + debugStr + " -> " + normalStr + " -> " + simplifiedStr);
+	static void opTreeDebugOutput(String desc, Utils.OperatorTree ot) {
+		System.out.println(desc + ": " + ot.toString() + " ; simplified: " + ot.simplify().toString());
 	}
-	
-	void debugUtilsParsingOpTree() {
-		debugUtilsParsingOpTree("a * b = c");
-		debugUtilsParsingOpTree("a + b * d");
-		debugUtilsParsingOpTree("1 + 2 - 3 - 4 + 5");
-		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) - 5");
-		debugUtilsParsingOpTree("(1 + 2) - (3) - 4");
-		debugUtilsParsingOpTree("1 + -2 + 3");
-		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
-		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) (5 + 6)");
-		debugUtilsParsingOpTree("1 + 2 (3)");
-		debugUtilsParsingOpTree("1 + 2 3 / 4 * 5");
-		debugUtilsParsingOpTree("1 = (2 + 3)");
-		debugUtilsParsingOpTree("a + b = c + d");
-		debugUtilsParsingOpTree("(a + b) = c + d");
-		debugUtilsParsingOpTree("a = (b * c) + d");
-		debugUtilsParsingOpTree("a + (b * )");
+	static void doSomeDebugStuffWithOpTree(Utils.OperatorTree ot) {		
+		opTreeDebugOutput("minustoplus", ot.transformMinusToPlus());
 	}
 	
 	public void run() {
-		debugUtilsParsingOpTree();
+		Utils.debugUtilsParsingOpTree();
 		
 		graph = new PGraph(applet, 480, 400);
 		ElectronicCircuit e = new ElectronicCircuit();
 		e.registerOnPGraph(graph, e.randomSetup(4, 4));
-		
+				
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 20, 480, 400, graph),
-				new VTText("math", 10, 10, 400, null, MathTextField.class),
+				new VTText("math", 10, 10, 400, new Utils.Callback<VTText>() {
+					public void run(VTText obj) {
+						doSomeDebugStuffWithOpTree(((MathTextField) obj.getComponent()).getOperatorTree());						
+					}
+				}, MathTextField.class),
 		});
 	}
 	
