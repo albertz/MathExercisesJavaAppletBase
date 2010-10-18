@@ -1,11 +1,14 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -156,6 +159,19 @@ public class Utils {
     	return s;
     }
 
+    static <T> Iterable<T> iterableReverseList(final List<T> l) {
+    	return new Iterable<T>() {
+    		public Iterator<T> iterator() {
+    			return new Iterator<T>() {
+    				ListIterator<T> listIter = l.listIterator(l.size() - 1);    				
+					public boolean hasNext() { return listIter.hasPrevious(); }
+					public T next() { return listIter.previous(); }
+					public void remove() { listIter.remove(); }    				
+				};
+    		}
+		};
+    }
+    
 	static class StringIterator implements Iterator<Character> {
 		String str; int pos = 0;
 		StringIterator(String str) { this.str = str; }
@@ -325,7 +341,7 @@ public class Utils {
     	String op = "";
     	abstract static class Entity {
     		OperatorTree asTree() { return new OperatorTree("", this); }
-    		OperatorTree prefixed(String op) {
+    		OperatorTree prefixed(final String op) {
 				// empty subtree at the beginning is the mark for a prefix op
     			OperatorTree ot = new OperatorTree(op, new Subtree(new OperatorTree()));
     			ot.entities.add(this);
@@ -341,7 +357,7 @@ public class Utils {
     	static class Subtree extends Entity {
     		OperatorTree content;
     		Subtree(OperatorTree t) { content = t; }
-    		@Override public String toString() { return content.canBeInterpretedAsUnaryPrefixed() ? content.toString() : ("(" + content.toString() + ")"); }
+    		@Override public String toString() { return (content.canBeInterpretedAsUnaryPrefixed() && !debugOperatorTreeDump) ? content.toString() : ("(" + content.toString() + ")"); }
     		@Override OperatorTree asTree() { return content; }
     	}
     	List<Entity> entities = new LinkedList<Entity>();
@@ -484,18 +500,18 @@ public class Utils {
     		return res;
     	}
     	
-    	static Entity parseOpsInEntity(final Entity source, final Set<String> binOps) {
+    	static Entity parseOpsInEntity(final Entity source, final Set<String> binOps, List<Set<String>> binOpList) {
     		if(source instanceof RawString) {
-    			OperatorTree ot = parseOpsInTree(new OperatorTree("", source), binOps);
+    			OperatorTree ot = parseOpsInTree(new OperatorTree("", source), binOps, binOpList);
         		if(ot.entities.size() == 0) throw new AssertionError("something is wrong");
         		else if(ot.entities.size() == 1) return ot.entities.get(0);
         		return new Subtree(ot);        		
     		}
     		else
-    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps));
+    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList));
     	}
 
-    	static OperatorTree grabUnaryPrefixedOpFromSplitted(String op, Iterator<Entity> rest) {
+    	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<Entity> rest) {
     		Entity obj = null;
     		
     		if(rest.hasNext()) {
@@ -517,12 +533,106 @@ public class Utils {
     		return obj.prefixed(op);
     	}
     	
-    	static OperatorTree parseOpsInTree(final OperatorTree source, final Set<String> binOps) {
+    	static OperatorTree grabUnaryPrefixedOpFromSplitted(OperatorTree splitted) {
+    		OperatorTree ot = new OperatorTree();
+    		boolean nextOpWanted = false;
+			for(Iterator<Entity> eit = splitted.entities.iterator(); eit.hasNext();) {
+				Entity e = eit.next();
+				if(e instanceof RawString) {
+					String op = ((RawString) e).content;
+					if(!nextOpWanted) {
+						//System.out.println("prefix: " + op + " in " + splitted);
+						ot.entities.add(new Subtree(grabUnaryPrefixedOpFromSplitted(op, eit)));
+						//System.out.println("last prefixed: " + ((Subtree) ot.entities.get(ot.entities.size() - 1)).content);
+						nextOpWanted = true;
+					} else {
+						ot.entities.add(e);
+						nextOpWanted = false;
+					}
+				}
+				else { // e instanceof Subtree
+					if(nextOpWanted) throw new AssertionError("should not happen by the way splitByOps works");
+					ot.entities.add(e);
+					nextOpWanted = true;
+				}
+			}
+			return ot;
+    	}
+    	
+    	static OperatorTree splitSplittedByOps(final OperatorTree splitted, Set<String> ops) {
+    		OperatorTree ot = new OperatorTree();
+    		OperatorTree lastSubtree = new OperatorTree();
+    		
+    		for(Entity e : splitted.entities) {
+    			if(e instanceof RawString) {
+    				String op = ((RawString) e).content;
+    				if(ops.contains(op)) {
+    					if(!lastSubtree.entities.isEmpty())
+    			    		ot.entities.add(new Subtree(lastSubtree));
+    					ot.entities.add(e);
+    					lastSubtree = new OperatorTree();
+    					continue;
+    				}
+    			}
+    			lastSubtree.entities.add(e);
+    		}
+			if(!lastSubtree.entities.isEmpty())
+	    		ot.entities.add(new Subtree(lastSubtree));
+    		return ot;
+    	}
+    	
+    	static OperatorTree handleOpsInSplitted(OperatorTree splitted, List<Set<String>> binOps) {
+    		if(binOps.isEmpty()) {
+    			if(splitted.entities.size() == 1 && splitted.entities.get(0) instanceof Subtree)
+    				return ((Subtree) splitted.entities.get(0)).content;
+    			return splitted;
+    		}
+    		
+    		Set<String> equallyPriorityOps = binOps.get(0);
+    		List<Set<String>> restBinOps = binOps.subList(1, binOps.size());
+    		    		
+			splitted = splitSplittedByOps(splitted, equallyPriorityOps);
+			if(splitted.entities.size() == 1)
+				return handleOpsInSplitted( ((Subtree) splitted.entities.get(0)).content, restBinOps );
+			
+    		OperatorTree ot = new OperatorTree();
+    		boolean nextOpWanted = false;
+			for(Entity e : splitted.entities) {
+				if(e instanceof RawString) {
+					String op = ((RawString) e).content;
+					if(!nextOpWanted) throw new AssertionError("we should have handled that already in grabUnaryPrefixedOpFromSplitted");
+					if(ot.op.isEmpty())
+						ot.op = op;
+					else
+						// it must be an op in equallyPriorityOps because of splitSplittedByOps
+						ot = new OperatorTree(op, new Subtree(ot));
+					nextOpWanted = false;
+				}
+				else { // e instanceof Subtree
+					if(nextOpWanted) throw new AssertionError("should not happen by the way splitByOps works; ops = " + binOps + ", splitted = " + splitted + ", current = " + ot + ", next = " + ((Subtree) e).content);
+					OperatorTree subtree = ((Subtree) e).content;
+					//if(subtree.entities.size() == 1 && subtree.entities.get(0) instanceof Subtree)
+					//	subtree = ((Subtree) subtree.entities.get(0)).content;
+					subtree = handleOpsInSplitted( subtree, restBinOps );
+					if(subtree.entities.size() == 1)
+						ot.entities.add(subtree.entities.get(0));
+					else
+						ot.entities.add(new Subtree(subtree));
+					nextOpWanted = true;
+				}				
+			}
+			
+			return ot;
+    	}
+    	
+    	static OperatorTree parseOpsInTree(final OperatorTree source, final Set<String> binOps, List<Set<String>> binOpList) {
+    		if(source.entities.isEmpty()) return source;
+    		
     		OperatorTree ot = new OperatorTree();
     		if(!source.op.isEmpty()) {
     			ot.op = source.op;
     			for(Entity e : source.entities)
-    				ot.entities.add(parseOpsInEntity(e, binOps));
+    				ot.entities.add(parseOpsInEntity(e, binOps, binOpList));
     			return ot;
     		}
     		
@@ -533,51 +643,18 @@ public class Utils {
     				if(e instanceof RawString)
     					ot.entities.add(e); // we already parsed that in splitByOps
     				else
-    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps )));
+    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList )));
     			}
     			return ot;
     		}
     		
-    		boolean nextOpWanted = false;
-			for(Iterator<Entity> eit = splitted.entities.iterator(); eit.hasNext();) {
-				Entity e = eit.next();
-				if(e instanceof RawString) {
-					String op = ((RawString) e).content;
-					if(!nextOpWanted) {
-						ot.entities.add(new Subtree(parseOpsInTree( grabUnaryPrefixedOpFromSplitted(op, eit), binOps )));
-						nextOpWanted = true;
-					} else {						
-						if(ot.op.isEmpty())
-							ot.op = op;
-						else if(!ot.op.equals(op))
-							ot = new OperatorTree(op, new Subtree(ot));
-						nextOpWanted = false;
-					}
-				}
-				else { // e instanceof Subtree
-					if(nextOpWanted) throw new AssertionError("should not happen by the way splitByOps works; ops = " + binOps + ", source = " + source + ", splitted = " + splitted + ", current = " + ot + ", next = " + ((Subtree) e).content);
-					OperatorTree subtree = parseOpsInTree( ((Subtree) e).content, binOps );
-					if(subtree.entities.size() == 1)
-						ot.entities.add(subtree.entities.get(0));
-					else
-						ot.entities.add(new Subtree(subtree));
-					nextOpWanted = true;
-				}
-			}
-			
-			if(ot.entities.size() == 1 && ot.entities.get(0) instanceof Subtree)
-				ot = ((Subtree) ot.entities.get(0)).content;
-			
-			return ot;
+    		splitted = grabUnaryPrefixedOpFromSplitted(splitted);
+    		//System.out.println("after unary prefix grab: " + splitted);
+    		splitted = handleOpsInSplitted(splitted, binOpList);
+    		//System.out.println("after op handling: " + splitted);
+    		return parseOpsInTree( splitted, binOps, binOpList );
     	}
-    	
-    	static OperatorTree parseOpsInTree(final OperatorTree source, final List<Set<String>> binOps) {
-    		OperatorTree ot = source;
-    		for(Set<String> equalPriorityOps : binOps)
-    			ot = parseOpsInTree(ot, equalPriorityOps);
-    		return ot;
-    	}
-    	
+    	    	
     	static OperatorTree parseDefaultAnonBinOpInTree(final OperatorTree source, String defaultOp) {
     		OperatorTree ot = new OperatorTree();
     		ot.op = source.op;
@@ -593,8 +670,13 @@ public class Utils {
     		return ot;
     	}
     	    	
-    	static OperatorTree parse(OperatorTree t, List<Set<String>> binOps, String defaultAnonBinOp) {
-    		t = parseOpsInTree(t, binOps);
+    	static OperatorTree parse(OperatorTree t, List<Set<String>> binOpList, String defaultAnonBinOp) {
+    		Set<String> binOps = new HashSet<String>();
+    		for(Set<String> ops : binOpList)
+    			binOps.addAll(ops);
+    			
+    		t = parseOpsInTree(t, binOps, binOpList);
+    		//System.out.println("before defaultop: " + t);
     		t = parseDefaultAnonBinOpInTree(t, defaultAnonBinOp);
     		return t;
     	}
@@ -627,6 +709,18 @@ public class Utils {
 			if(opl.isEmpty()) throw new AssertionError("bad oplist str - no operators");
 			return opl;
     	}
+    	
+    	static Set<String> simpleParseOps(String ops) {
+    		Set<String> opSet = new HashSet<String>();
+    		for(Character c : iterableString(ops)) {
+    			if(c == ' ')
+    				throw new AssertionError("bad oplist str");
+    			else
+    				opSet.add("" + c);
+    		}
+			if(opSet.isEmpty()) throw new AssertionError("bad oplist str");
+			return opSet;
+    	}
     	    	
     	static OperatorTree parse(String str, String binOps, String defaultAnonBinOp) {
     		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), defaultAnonBinOp );
@@ -647,9 +741,9 @@ public class Utils {
     	}
         static boolean debugOperatorTreeDump = false;
         
-        OperatorTree simplify() {
+        OperatorTree mergeOps(Set<String> ops) {
         	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
-        		return ((Subtree) entities.get(0)).content.simplify();
+        		return ((Subtree) entities.get(0)).content.mergeOps(ops);
         	
         	OperatorTree ot = new OperatorTree();
         	ot.op = op;
@@ -657,8 +751,8 @@ public class Utils {
         		if(e instanceof RawString)
         			ot.entities.add(e);
         		else {
-        			OperatorTree subtree = ((Subtree) e).content.simplify();
-        			if(subtree.op.equals(ot.op))
+        			OperatorTree subtree = ((Subtree) e).content.mergeOps(ops);
+        			if(subtree.op.equals(ot.op) && ops.contains(op))
         				ot.entities.addAll(subtree.entities);
         			else
         				ot.entities.add(new Subtree(subtree));
@@ -666,6 +760,32 @@ public class Utils {
         	}
         	return ot;
         }
+        
+        OperatorTree mergeOpsFromRight(Set<String> ops) {
+        	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
+        		return ((Subtree) entities.get(0)).content.mergeOpsFromRight(ops);
+        	
+        	OperatorTree ot = new OperatorTree();
+        	boolean first = true;
+        	ot.op = op;
+        	for(Entity e : entities) {
+        		if(e instanceof RawString)
+        			ot.entities.add(e);
+        		else {
+        			OperatorTree subtree = ((Subtree) e).content.mergeOpsFromRight(ops);
+        			if(first && subtree.op.equals(ot.op) && ops.contains(op))
+        				ot = subtree;
+        			else
+        				ot.entities.add(new Subtree(subtree));
+        		}
+        		first = false;
+        	}
+        	return ot;
+        }        
+        
+        OperatorTree mergeOps(String ops) { return mergeOps(simpleParseOps(ops)); }        
+        OperatorTree mergeOpsFromRight(String ops) { return mergeOpsFromRight(simpleParseOps(ops)); }        
+        OperatorTree simplify() { return mergeOps("+.").mergeOpsFromRight("-/"); }
         
         OperatorTree transformOp(String oldOp, String newOp, Function<Entity,Entity> leftTransform, Function<Entity,Entity> rightTransform) {
         	OperatorTree ot = new OperatorTree();
@@ -680,6 +800,7 @@ public class Utils {
             	return ot;
         	}
         	
+        	ot.op = newOp;
         	boolean first = true;
         	for(Entity e : entities) {
         		if(e instanceof Subtree)
@@ -833,8 +954,6 @@ public class Utils {
 		debugUtilsParsingOpTree("1 + 2 - 3 - 4 + 5");
 		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) - 5");
 		debugUtilsParsingOpTree("(1 + 2) - (3) - 4");
-		debugUtilsParsingOpTree("1 + -2 + 3");
-		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
 		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) (5 + 6)");
 		debugUtilsParsingOpTree("1 + 2 (3)");
 		debugUtilsParsingOpTree("1 + 2 3 / 4 * 5");
@@ -843,6 +962,12 @@ public class Utils {
 		debugUtilsParsingOpTree("(a + b) = c + d");
 		debugUtilsParsingOpTree("a = (b * c) + d");
 		debugUtilsParsingOpTree("a + (b * )");
+		debugUtilsParsingOpTree("a * -b");
+		debugUtilsParsingOpTree("a * --b");
+		debugUtilsParsingOpTree("a * -+-b");
+		debugUtilsParsingOpTree("1 + -2 + 3");
+		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
+		debugUtilsParsingOpTree("a - (b - c)");
 	}
     
     
