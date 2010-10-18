@@ -7,8 +7,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.ParseError;
-
 public class EquationSystem {
 
 	Set<String> baseUnits = new HashSet<String>();
@@ -106,11 +104,9 @@ public class EquationSystem {
 			}
 			List<Frac> entries = new LinkedList<Frac>();
 			@Override public String toString() { return Utils.concat(entries, " + "); }
-			void parse(Utils.ParseTree trimmedTree) throws ParseError {
-				List<Utils.ParseTree> l = trimmedTree.split("+");
-				entries.clear();
-				for(Utils.ParseTree t : l)
-					entries.add(new Frac(t));
+			
+			void parse(Utils.OperatorTree ot) throws ParseError {
+				
 			}
 		}
 		FracSum left = new FracSum(), right = new FracSum();
@@ -120,11 +116,17 @@ public class EquationSystem {
 		class ParseError extends Exception {
 			public ParseError(String msg) { super(msg); }			
 		}
-		void parse(String s) throws ParseError {
-			List<Utils.ParseTree> l = new Utils.ParseTree(s).trim().split("=");
-			if(l.size() != 2) throw new ParseError("bad number of '=' found. exactly one expected");
-			left.parse(l.get(0));
-			right.parse(l.get(1));
+		void parse(Utils.OperatorTree ot) throws ParseError {
+			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.");
+			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.");
+			if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.");
+			if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.");
+			left.parse(ot.entities.get(0).asTree());
+			right.parse(ot.entities.get(1).asTree());
+		}
+		
+		static void debugEquationParsing() {
+			
 		}
 	}
 	
