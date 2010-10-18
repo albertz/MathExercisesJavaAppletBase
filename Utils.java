@@ -731,12 +731,17 @@ public class Utils {
     		return entities.size() == 2 && entities.get(0) instanceof Subtree && ((Subtree)entities.get(0)).content.entities.isEmpty();	
     	}
     	
+    	Entity unaryPrefixedContent() {
+    		if(!canBeInterpretedAsUnaryPrefixed()) throw new AssertionError("we expect the OT to be unary prefixed");
+    		return entities.get(1);
+    	}
+    	
     	@Override public String toString() {
     		if(debugOperatorTreeDump)
         		return "[" + op + "] " + concat(entities, ", ");    			
     		if(canBeInterpretedAsUnaryPrefixed())
     			// this is a special case used for unary ops (or ops which look like those)
-    			return op + entities.get(1);
+    			return op + unaryPrefixedContent();
     		return concat(entities, " " + op + " ");
     	}
         static boolean debugOperatorTreeDump = false;
@@ -785,7 +790,7 @@ public class Utils {
         
         OperatorTree mergeOps(String ops) { return mergeOps(simpleParseOps(ops)); }        
         OperatorTree mergeOpsFromRight(String ops) { return mergeOpsFromRight(simpleParseOps(ops)); }        
-        OperatorTree simplify() { return mergeOps("+.").mergeOpsFromRight("-/"); }
+        OperatorTree simplify() { return mergeOps("=+∙").mergeOpsFromRight("-/"); }
         
         OperatorTree transformOp(String oldOp, String newOp, Function<Entity,Entity> leftTransform, Function<Entity,Entity> rightTransform) {
         	OperatorTree ot = new OperatorTree();

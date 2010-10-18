@@ -77,59 +77,131 @@ public class EquationSystem {
 		Unit unit;
 		String name;
 		VariableSymbol(String unit) { this.unit = new Unit(unit); }
+		VariableSymbol(String name, String unit) { this.name = name; this.unit = new Unit(unit); }
 	}
-
+	
+	Map<String, VariableSymbol> variableSymbols = new HashMap<String, VariableSymbol>();	
+	void registerVariableSymbol(VariableSymbol var) { variableSymbols.put(var.name, var); }	
+	void registerVariableSymbol(String name, String unit) { registerVariableSymbol(new VariableSymbol(name, unit)); }
+	
 	static class Equation {
 		static class FracSum {
 			static class Frac {
 				static class Sum {		
 					static class Prod {
-						int fac;
+						int fac = 1;
 						static class Pot {
 							VariableSymbol sym;
-							int pot;
-							@Override public String toString() { return sym.name + ((pot != 1) ? ("^" + pot) : ""); }					
-						}
+							int pot = 1;
+							@Override public String toString() { return sym.name + ((pot != 1) ? ("^" + pot) : ""); }		
+							Pot(VariableSymbol s) { sym = s; }
+						}						
 						List<Pot> facs = new LinkedList<Pot>();
-						@Override public String toString() { return ((fac != 1) ? "" + fac + " " : "") + Utils.concat(facs, " "); }
+						@Override public String toString() { return ((fac != 1) ? "" + fac + " ∙ " : "") + Utils.concat(facs, " ∙ "); }						
+						Prod() {}
+						Prod(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError { parse(ot, vars); }
+						void parse(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
+							if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
+								fac = -fac;
+								parse(ot.unaryPrefixedContent().asTree(), vars);
+							}
+							else if(ot.op.equals("∙") || ot.entities.size() <= 1) {
+								for(Utils.OperatorTree.Entity e : ot.entities) {
+									if(e instanceof Utils.OperatorTree.RawString) {
+										String s = ((Utils.OperatorTree.RawString) e).content;
+										try {
+											fac *= Integer.parseInt(s);
+										}
+										catch(NumberFormatException ex) {
+											VariableSymbol var = vars.get(s);
+											if(var != null)
+												facs.add(new Pot(var));
+											else
+												throw new ParseError("Variable '" + s + "' is unknown.");
+										}
+									}
+									else
+										parse( ((Utils.OperatorTree.Subtree) e).content, vars );
+								}
+							}
+							else
+								throw new ParseError("'" + ot + "' must be a product.");
+							
+							if(facs.isEmpty())
+								throw new ParseError("'" + ot + "' must contain at least one variable.");
+						}
 					}
 					List<Prod> entries = new LinkedList<Prod>();
 					@Override public String toString() { return ((entries.size() > 1) ? "(" : "") + Utils.concat(entries, " + ") + ((entries.size() > 1) ? ")" : ""); }
+					boolean isEmpty() { return entries.isEmpty(); }
+					Sum() {}
+					Sum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
+						if(ot.op.equals("+") || ot.entities.size() <= 1) {
+							for(Utils.OperatorTree.Entity e : ot.entities)
+								entries.add( new Prod(e.asTree(), vars) );
+						}
+						else
+							entries.add( new Prod(ot, vars) );
+					}
 				}
-				Sum numerator = new Sum(), denominator = new Sum();
-				@Override public String toString() { return numerator.toString() + " / " + denominator.toString(); }
+				Sum numerator = new Sum(), denominator = null;
+				@Override public String toString() { return numerator.toString() + ((denominator != null) ? " / " + denominator.toString() : ""); }
 				Frac() {}
-				Frac(Utils.ParseTree trimmedTree) throws ParseError { parse(trimmedTree); }
-				void parse(Utils.ParseTree trimmedTree) throws ParseError {}
+				Frac(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
+					if(!ot.op.equals("/"))
+						numerator = new Sum(ot, vars);
+					else {
+						if(ot.entities.size() != 2) throw new ParseError("The fraction '" + ot + "' must be of the form 'a / b'.");
+						numerator = new Sum(ot.entities.get(0).asTree(), vars);
+						denominator = new Sum(ot.entities.get(1).asTree(), vars);
+					}
+				}
 			}
 			List<Frac> entries = new LinkedList<Frac>();
 			@Override public String toString() { return Utils.concat(entries, " + "); }
-			
-			void parse(Utils.OperatorTree ot) throws ParseError {
-				
+			FracSum() {}
+			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
+				if(ot.op.equals("+") || ot.entities.size() <= 1) {
+					for(Utils.OperatorTree.Entity e : ot.entities)
+						entries.add( new Frac(e.asTree(), vars) );
+				}
+				else
+					entries.add( new Frac(ot, vars) );
 			}
 		}
-		FracSum left = new FracSum(), right = new FracSum();
+		FracSum left = new FracSum(), right = new FracSum();		
 		@Override public String toString() { return left.toString() + " = " + right.toString(); }
-		
-		void clear() { left = new FracSum(); right = new FracSum(); }
-		class ParseError extends Exception {
-			public ParseError(String msg) { super(msg); }			
-		}
-		void parse(Utils.OperatorTree ot) throws ParseError {
+		Equation() {}
+		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.");
 			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.");
 			if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.");
 			if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.");
-			left.parse(ot.entities.get(0).asTree());
-			right.parse(ot.entities.get(1).asTree());
+			left = new FracSum(ot.entities.get(0).asTree(), vars);
+			right = new FracSum(ot.entities.get(1).asTree(), vars);			
+		}		
+
+		static class ParseError extends Exception {
+			private static final long serialVersionUID = 1L;
+			public ParseError(String msg) { super(msg); }			
 		}
 		
-		static void debugEquationParsing() {
-			
+	}
+
+	void debugEquation(Utils.OperatorTree ot) {
+		ot = ot.simplify().transformMinusToPlus();
+		System.out.print("normalised: " + ot + ", ");
+		try {
+			System.out.println("parsed: " + new Equation(ot, variableSymbols));
+		} catch (Equation.ParseError e) {
+			System.out.println("error while parsing " + ot + ": " + e.getMessage());
 		}
 	}
 	
+	static void debugEquationParsing() {
+		
+	}
+
 	List<Equation> equations = new LinkedList<Equation>();
 	
 }
