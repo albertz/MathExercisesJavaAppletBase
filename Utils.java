@@ -13,6 +13,16 @@ import java.util.Stack;
 
 public class Utils {
 
+	static interface Callback<T> {
+		void run(T obj);
+	}
+	
+	static <T> Callback<T> runnableToCallback(final Runnable r) {
+		return new Callback<T>() {
+			public void run(T obj) { r.run(); }
+		};
+	}
+	
 	static interface Predicate<T> {
 		boolean apply(T obj);
 	}
@@ -115,7 +125,19 @@ public class Utils {
 	static interface Function<X,Y> {
 		Y eval(X obj);
 	}
-    
+
+	static <X> Function<X,X> identifyFunc() {
+		return new Function<X,X>() {
+			public X eval(X obj) { return obj; }
+		};
+	}	
+	
+	static <Y, X extends Y> Function<X,Y> identifyFunc2() {
+		return new Function<X,Y>() {
+			public Y eval(X obj) { return obj; }
+		};
+	}
+	
 	static interface CopyableIterator<X> extends Iterator<X>, Cloneable {}
 	
     static <X,Y> List<Y> map(Iterable<? extends X> coll, Function<X,Y> func) {
@@ -301,7 +323,15 @@ public class Utils {
     
     static class OperatorTree {
     	String op = "";
-    	abstract static class Entity {}
+    	abstract static class Entity {
+    		OperatorTree asTree() { return new OperatorTree("", this); }
+    		OperatorTree prefixed(String op) {
+				// empty subtree at the beginning is the mark for a prefix op
+    			OperatorTree ot = new OperatorTree(op, new Subtree(new OperatorTree()));
+    			ot.entities.add(this);
+    			return ot;
+    		}
+    	}
     	static class RawString extends Entity {
     		String content = "";
     		RawString() {}
@@ -312,6 +342,7 @@ public class Utils {
     		OperatorTree content;
     		Subtree(OperatorTree t) { content = t; }
     		@Override public String toString() { return content.canBeInterpretedAsUnaryPrefixed() ? content.toString() : ("(" + content.toString() + ")"); }
+    		@Override OperatorTree asTree() { return content; }
     	}
     	List<Entity> entities = new LinkedList<Entity>();
     	
@@ -465,27 +496,25 @@ public class Utils {
     	}
 
     	static OperatorTree grabUnaryPrefixedOpFromSplitted(String op, Iterator<Entity> rest) {
-    		OperatorTree subtree = new OperatorTree(op,
-    				// empty subtree at the beginning is the mark for a prefix op
-    				new Subtree(new OperatorTree()));
+    		Entity obj = null;
     		
     		if(rest.hasNext()) {
     			Entity e = rest.next();
     			if(e instanceof Subtree) {
     				OperatorTree eSubtree = ((Subtree) e).content;
     				if(eSubtree.entities.size() == 1)
-    					subtree.entities.add(eSubtree.entities.get(0));
+    					obj = eSubtree.entities.get(0);
     				else
-    					subtree.entities.add(e);
+    					obj = e;
     			} else // e instanceof RawString -> another unary prefix
-    				subtree.entities.add(new Subtree(grabUnaryPrefixedOpFromSplitted(((RawString) e).content, rest)));    			
+    				obj = new Subtree(grabUnaryPrefixedOpFromSplitted(((RawString) e).content, rest));    			
     		}
     		else
     			// we have expected another entry but there is none anymore.
     			// add a dummy empty subtree so that it looks like an unary prefixed op.
-    			subtree.entities.add(new Subtree(new OperatorTree()));
+    			obj = new Subtree(new OperatorTree());
     		
-    		return subtree;
+    		return obj.prefixed(op);
     	}
     	
     	static OperatorTree parseOpsInTree(final OperatorTree source, final Set<String> binOps) {
@@ -638,6 +667,44 @@ public class Utils {
         	return ot;
         }
         
+        OperatorTree transformOp(String oldOp, String newOp, Function<Entity,Entity> leftTransform, Function<Entity,Entity> rightTransform) {
+        	OperatorTree ot = new OperatorTree();
+        	if(!op.equals(oldOp) || canBeInterpretedAsUnaryPrefixed()) {
+        		ot.op = op;
+            	for(Entity e : entities) {
+            		if(e instanceof Subtree)
+            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform) ) );
+            		else // e instanceof RawString
+            			ot.entities.add(e);
+            	}
+            	return ot;
+        	}
+        	
+        	boolean first = true;
+        	for(Entity e : entities) {
+        		if(e instanceof Subtree)
+        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform) );
+        		if(first) {
+        			if(leftTransform != null) e = leftTransform.eval(e);
+        		} else {
+        			if(rightTransform != null) e = rightTransform.eval(e);
+        		}
+        		ot.entities.add(e);
+        		first = false;
+        	}
+        	return ot;
+        }
+        
+        static Function<Entity,Entity> prefixByOp(final String op) {
+        	return new Function<Entity,Entity>() {
+        		public Entity eval(Entity obj) { return new Subtree(obj.prefixed(op)); }
+        	};
+        }
+        
+        OperatorTree transformMinusToPlus() {
+			return transformOp("-", "+", null, prefixByOp("-"));
+        }
+        
         static abstract class PositionInfo {
         	int absolutePos = 0;
         	BetweenEntities parent = null;
@@ -747,10 +814,36 @@ public class Utils {
         		public Iterator<PositionInfo> iterator() { return positionIterator(); }
 			};
         }
-
-        
         
     }
+
+	static void debugUtilsParsingOpTree(String s) {
+		OperatorTree.debugOperatorTreeDump = true;
+		OperatorTree ot = OperatorTree.parse(s); 
+		String debugStr = ot.toString();
+		OperatorTree.debugOperatorTreeDump = false;
+		String normalStr = ot.toString();
+		String simplifiedStr = ot.simplify().toString();
+		System.out.println("parsed " + s + " -> " + debugStr + " -> " + normalStr + " -> " + simplifiedStr);
+	}
+
+	static void debugUtilsParsingOpTree() {
+		debugUtilsParsingOpTree("a * b = c");
+		debugUtilsParsingOpTree("a + b * d");
+		debugUtilsParsingOpTree("1 + 2 - 3 - 4 + 5");
+		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) - 5");
+		debugUtilsParsingOpTree("(1 + 2) - (3) - 4");
+		debugUtilsParsingOpTree("1 + -2 + 3");
+		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
+		debugUtilsParsingOpTree("(1 + 2) + (3 + 4) (5 + 6)");
+		debugUtilsParsingOpTree("1 + 2 (3)");
+		debugUtilsParsingOpTree("1 + 2 3 / 4 * 5");
+		debugUtilsParsingOpTree("1 = (2 + 3)");
+		debugUtilsParsingOpTree("a + b = c + d");
+		debugUtilsParsingOpTree("(a + b) = c + d");
+		debugUtilsParsingOpTree("a = (b * c) + d");
+		debugUtilsParsingOpTree("a + (b * )");
+	}
     
     
 }
