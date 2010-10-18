@@ -10,7 +10,6 @@ import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-
 public class VTText extends VisualThing {
 
 	public VTText(String name, int stepX, int stepY, Runnable changeListener) {
@@ -21,22 +20,30 @@ public class VTText extends VisualThing {
 	}
 
 	public VTText(String name, int stepX, int stepY, int width, Runnable changeListener) {
-		this.name = name;
-		this.stepX = stepX;
-		this.stepY = stepY;
+		this(name, stepX, stepY, changeListener);
 		this.width = width;
-		this.changeListener = changeListener;
 	}
 	
+	public VTText(String name, int stepX, int stepY, int width, Runnable changeListener, Class<? extends JTextField> clazz) {
+		this(name, stepX, stepY, changeListener);
+		this.width = width;
+		this.textClass = clazz;
+	}
+
 	private int stepX, stepY;
 	private int width = 40;
 	private String name = null;
 	private JTextField text = null;
 	private Runnable changeListener = null;
-
+	private Class<? extends JTextField> textClass = JTextField.class;
+	
 	public Component getComponent() {
 		if (text == null) {
-			text = new JTextField();
+			try {
+				text = textClass.newInstance();
+			} catch (Exception e) {
+				throw new AssertionError(e);
+			}
 			text.setName(name);
 			if (changeListener != null)
 				text.getDocument().addDocumentListener(new DocumentListener() {

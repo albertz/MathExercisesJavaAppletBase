@@ -54,7 +54,7 @@ public class Content {
 		
 		applet.vtmeta.setExtern(new VisualThing[] {
 				new VTImage("graph", 10, 20, 480, 400, graph),
-				new VTMathInput("math", 10, 10, 400, null),
+				new VTText("math", 10, 10, 400, null, MathTextField.class),
 		});
 	}
 	
