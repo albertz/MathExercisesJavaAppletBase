@@ -1,8 +1,6 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
@@ -409,79 +406,7 @@ public class Utils {
     			return lastState.ot;
     		}
     	}
-    	
-    	private static class ParseStrResult implements Iterable<RawString> {
-    		OperatorTree ot;
-    		RawStringIterator iterator;
-    		boolean nextOpWanted = true;
-    		public Iterator<RawString> iterator() { return new RawStringIterator(iterator); }
-    	}
-    	
-    	private static ParseStrResult parseNonNestedString(OperatorTree ot, String s, Set<String> equalPriorityOps) {
-    		ParseStrResult result = new ParseStrResult();
-    		result.iterator = new RawStringIterator();
-    		result.iterator.stateStack.push(new RawStringIterator.State(ot.entities.size(), ot));
-			boolean havePreviousContent = !ot.entities.isEmpty();
-    		RawString lastStr = new RawString();
-    		OperatorTree lastStrParent = ot;
-			ot.entities.add(lastStr);
-			for(Character c : iterableString(s)) {
-				if(equalPriorityOps.contains("" + c)) {
-					lastStr.content = lastStr.content.trim();
-					boolean mustAddEntrySubtree = false;
-					if(lastStr.content.isEmpty())
-						lastStrParent.entities.remove(lastStrParent.entities.size() - 1);
-					if(!havePreviousContent)
-						// empty subtree. this handles unary prefix ops
-						mustAddEntrySubtree = true;
-					lastStr = new RawString();
-					havePreviousContent = false;
-					
-					final String op = "" + c;
-					if(ot.op.isEmpty()) {
-						if(mustAddEntrySubtree) ot.entities.add(new Subtree(new OperatorTree()));
-						ot.op = op;
-						ot.entities.add(lastStr); lastStrParent = ot;
-					} else if(!ot.op.equals(op)) {
-						if(!mustAddEntrySubtree && equalPriorityOps.contains(ot.op)) {
-							ot = new OperatorTree(op, new Subtree(ot));
-							result.iterator.stateStack.add(0, new RawStringIterator.State(ot)); // add at the bottom of the stack -> we are reversing it
-							ot.entities.add(lastStr); lastStrParent = ot;
-						}
-						else {
-							Entity lastEntity = ot.entities.get(ot.entities.size() - 1);
-							Subtree subtree = null;
-							if(!mustAddEntrySubtree && lastEntity instanceof Subtree && ((Subtree) lastEntity).content.op.equals(op)) {
-								subtree = (Subtree) lastEntity;
-								subtree.content.entities.add(lastStr);
-							}
-							else {
-								subtree = new Subtree(new OperatorTree());
-								if(mustAddEntrySubtree) subtree.content.entities.add(new Subtree(new OperatorTree()));
-								subtree.content.entities.add(lastStr);
-								ot.entities.add(subtree);
-							}
-							lastStrParent = subtree.content;
-						}
-					}
-					else
-						ot.entities.add(lastStr);
-				}
-				else if(!lastStr.content.isEmpty() || c != ' ') {
-					lastStr.content += c;
-					havePreviousContent = true;
-				}
-			}
-			lastStr.content = lastStr.content.trim();
-			if(lastStr.content.isEmpty()) {
-				lastStrParent.entities.remove(lastStrParent.entities.size() - 1);
-				result.nextOpWanted = havePreviousContent;
-			}
-			result.ot = ot;
-			result.iterator.walkSubtrees(); // walk to next real entry
-			return result;
-    	}
-    	
+    	    	
     	/* Resulting tree contains subtrees which each parts and rawstrings
     	 * with the specific op.
     	 */
@@ -527,13 +452,6 @@ public class Utils {
     		
     		return res;
     	}
-
-    	static Entity parseNonNestedString(String s, List<Set<String>> ops) {
-    		OperatorTree ot = parseNonNestedString(new OperatorTree(), s, ops).ot;
-    		if(ot.entities.size() == 0) throw new AssertionError("something is wrong when parsing '" + s + "'");
-    		else if(ot.entities.size() == 1) return ot.entities.get(0);
-    		return new Subtree(ot);
-    	}
     	
     	static Entity parseOpsInEntity(final Entity source, final Set<String> binOps) {
     		if(source instanceof RawString) {
@@ -553,9 +471,13 @@ public class Utils {
     		
     		if(rest.hasNext()) {
     			Entity e = rest.next();
-    			if(e instanceof Subtree)
-    				subtree.entities.add(e);
-    			else // e instanceof RawString -> another unary prefix
+    			if(e instanceof Subtree) {
+    				OperatorTree eSubtree = ((Subtree) e).content;
+    				if(eSubtree.entities.size() == 1)
+    					subtree.entities.add(eSubtree.entities.get(0));
+    				else
+    					subtree.entities.add(e);
+    			} else // e instanceof RawString -> another unary prefix
     				subtree.entities.add(new Subtree(grabUnaryPrefixedOpFromSplitted(((RawString) e).content, rest)));    			
     		}
     		else
@@ -614,8 +536,7 @@ public class Utils {
 				}
 			}
 			
-			if(ot.entities.size() == 1)
-				// it must be a subtree because of the construction
+			if(ot.entities.size() == 1 && ot.entities.get(0) instanceof Subtree)
 				ot = ((Subtree) ot.entities.get(0)).content;
 			
 			return ot;
@@ -642,102 +563,11 @@ public class Utils {
     		}
     		return ot;
     	}
-    	
-    	static ParseStrResult parseNonNestedString(final OperatorTree origOt, final String s, final List<Set<String>> binOps) {
-    		String old = origOt.toString();
-    		ParseStrResult parseStrRes = parseNonNestedString(origOt, s, binOps.get(0));
-    		System.out.println("old tree: '" + old + "', input str: '" + s + "', parsing op '" + binOps.get(0).iterator().next().toString() + "' -> tree '" + parseStrRes.ot + "' with op '" + parseStrRes.ot.op + "'");
-    		
-    		List<Set<String>> opsSublist = binOps.subList(1, binOps.size());
-    		boolean alreadySetKnownOp = false;
-    		for(Set<String> ops : opsSublist)
-    			alreadySetKnownOp |= ops.contains(parseStrRes.ot.op);
-    		boolean first = true;
-    		if(!opsSublist.isEmpty())
-	    		for(RawStringIterator i = parseStrRes.iterator.copy(); i.hasNext();) {
-	    			String rs = i.next().content;
-	    			if(i.lastTree() == parseStrRes.ot && i.wasEndOfTree() && first && (alreadySetKnownOp || parseStrRes.ot.op.isEmpty())) {
-	    				OperatorTree ot = i.lastTree();
-	    				ot.entities.remove(ot.entities.size() - 1); // remove last
-	    				ParseStrResult newParseRes = parseNonNestedString(ot, rs, opsSublist);
-	    				newParseRes.nextOpWanted &= parseStrRes.nextOpWanted;
-	    				return newParseRes;
-	    			} else
-	    				i.replace( parseNonNestedString(rs, opsSublist) );
-	    			first = false;
-	    		}
-    		
-    		return parseStrRes;
-    	}
-    	
-    	static Entity parseDefaultAnonBinOp(String s, String defaultAnonBinOp) {
-    		String[] tokens = s.split(" +");
-    		if(tokens.length == 0) throw new AssertionError("we should not have an empty string here");
-    		if(tokens.length == 1) return new RawString(s);
-    		OperatorTree subtree = new OperatorTree();
-    		subtree.op = defaultAnonBinOp;
-    		for(String t : tokens)
-    			subtree.entities.add(new RawString(t));
-    		return new Subtree(subtree);
-    	}
-    	 
-    	static void parseDefaultAnonBinOp(RawStringIterator rawStrings, String defaultAnonBinOp) {
-    		for(RawStringIterator i = rawStrings; i.hasNext();)
-				i.replace( parseDefaultAnonBinOp(i.next().content, defaultAnonBinOp) );
-    	}    	    	
-    	
-    	static OperatorTree parse(OperatorTree t, List<Set<String>> binOps, Set<String> unaryOps, String defaultAnonBinOp) {
+    	    	
+    	static OperatorTree parse(OperatorTree t, List<Set<String>> binOps, String defaultAnonBinOp) {
     		t = parseOpsInTree(t, binOps);
     		t = parseDefaultAnonBinOpInTree(t, defaultAnonBinOp);
     		return t;
-    		
-    		/*
-    		OperatorTree ot = new OperatorTree();
-    		ot.op = t.op;
-    		boolean nextOpWanted = true;
-    		for(Entity e : t.entities) {
-    			if(e instanceof RawString) {
-					String rs = ((RawString)e).content;
-					ParseStrResult parseStrRes = parseNonNestedString(ot, rs, binOps);
-					parseDefaultAnonBinOp(parseStrRes.iterator.copy(), defaultAnonBinOp);
-   					ot = parseStrRes.ot;
-   					nextOpWanted = parseStrRes.nextOpWanted;
-   					if(ot.entities.size() == 2 && ot.op.isEmpty()) ot.op = defaultAnonBinOp;
-    			}
-    			else {
-   					if(ot.entities.size() == 1 && ot.op.isEmpty()) ot.op = defaultAnonBinOp;
-    				OperatorTree subtree = ((Subtree)e).content;
-    				if(!ot.entities.isEmpty()) {
-						RawString lastRs = castOrNull(ot.entities.get(ot.entities.size() - 1), RawString.class);
-						// check if we have an unary op
-						if(lastRs != null && unaryOps.contains(lastRs.content)) {
-	    					// for example, there was a "-" just before, e.g. "- ( ..."							
-	    					OperatorTree unaryopSubtree = new OperatorTree(lastRs.content, new Subtree(new OperatorTree()));
-	    					unaryopSubtree.entities.add(new Subtree( parse(subtree, binOps, unaryOps, defaultAnonBinOp) ));
-	    					ot.entities.set(ot.entities.size() - 1, new Subtree(unaryopSubtree));
-	    					//System.out.println("unary op subtree: " + unaryopSubtree);
-	    					subtree = null; // don't parse anymore	    					
-						}						
-						// we want a new op but didn't got any -> use defaultAnonBinOp
-						else if(nextOpWanted) {
-							//System.out.println("nextOpWanted: " + ot + " with op " + ot.op);
-							if(!defaultAnonBinOp.equals(ot.op)) {
-								// move last entry from this tree into a new sub tree and defaultOp with current subtree
-		    					OperatorTree subsubtree = new OperatorTree(defaultAnonBinOp, ot.entities.get(ot.entities.size() - 1));
-		    					ot.entities.remove(ot.entities.size() - 1);
-		    					subsubtree.entities.add( new Subtree( parse(subtree, binOps, unaryOps, defaultAnonBinOp) ) );
-		    					subtree = null; // don't parse anymore
-		    					ot.entities.add( new Subtree(subsubtree) );
-							}
-							//throw new AssertionError("'(..)(..)' not allowed, there must be something in between");
-						}
-    				}
-    				if(subtree != null)
-    					ot.entities.add( new Subtree( parse(subtree, binOps, unaryOps, defaultAnonBinOp) ) );
-					nextOpWanted = true;
-    			}
-    		}
-    		return ot; */
     	}
     	
     	static OperatorTree undefinedOpTreeFromParseTree(ParseTree t) {
@@ -768,18 +598,11 @@ public class Utils {
 			if(opl.isEmpty()) throw new AssertionError("bad oplist str - no operators");
 			return opl;
     	}
-    	
-    	static Set<String> simpleOpList(String ops) {
-    		Set<String> opSet = new HashSet<String>();
-    		for(Character c : iterableString(ops))
-    			opSet.add("" + c);
-    		return opSet;
+    	    	
+    	static OperatorTree parse(String str, String binOps, String defaultAnonBinOp) {
+    		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), defaultAnonBinOp );
     	}
-    	
-    	static OperatorTree parse(String str, String binOps, String unaryOps, String defaultAnonBinOp) {
-    		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), simpleOpList(unaryOps), defaultAnonBinOp );
-    	}
-    	static OperatorTree parse(String str) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", "-", "∙"); }
+    	static OperatorTree parse(String str) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", "∙"); }
     	
     	boolean canBeInterpretedAsUnaryPrefixed() {
     		return entities.size() == 2 && entities.get(0) instanceof Subtree && ((Subtree)entities.get(0)).content.entities.isEmpty();	

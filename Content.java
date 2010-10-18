@@ -42,6 +42,7 @@ public class Content {
 		debugUtilsParsingOpTree("a + b = c + d");
 		debugUtilsParsingOpTree("(a + b) = c + d");
 		debugUtilsParsingOpTree("a = (b * c) + d");
+		debugUtilsParsingOpTree("a + (b * )");
 	}
 	
 	public void run() {
