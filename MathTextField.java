@@ -61,9 +61,15 @@ public class MathTextField extends JTextField {
 				String s = MathTextField.this.getText();
 				boolean insertedDummyChar = false;
 				boolean insertedBrackets = false;
+				if(string.equals(" ")) string = "*";
 				if(length == 0 && string.matches("\\+|-|\\*|/|=")) {
-					string = string + "_";
-					insertedDummyChar = true;
+					if(s.substring(offset).matches(" *(((\\+|-|∙|/|=|\\)).*)|)")) {
+						string = string + "_";
+						insertedDummyChar = true;
+					} else if(s.substring(offset).matches(" .*")) {
+						string = "_" + string;
+						insertedDummyChar = true;						
+					}
 				}
 				else if(string.matches("\\(")) {
 					string = "(" + s.substring(offset, offset + length) + ")";
