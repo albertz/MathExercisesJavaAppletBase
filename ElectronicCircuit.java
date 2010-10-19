@@ -273,7 +273,7 @@ public class ElectronicCircuit {
 		}
 	}
 
-	void registerOnPGraph(PGraph graph) {		
+	void registerOnPGraph(PGraph graph) {
 		registerOnPGraph(graph, visuallyOrderPoints());
 	}
 	
@@ -430,7 +430,7 @@ public class ElectronicCircuit {
 		clear();
 		rootNode = nodes[0];
 		
-		dump(nodes);
+		//dump(nodes);
 		
 		Map<Point,Node> visualOrderedPoints = new HashMap<Point,Node>();
 		for(int x = 0; x < W; ++x)
@@ -463,6 +463,11 @@ public class ElectronicCircuit {
 		}
 		System.out.println("");
 		System.out.println("]");
+	}
+
+	public EquationSystem getEquationSystem() {
+		EquationSystem eqSys = new EquationSystem();
+		return eqSys;
 	}
 	
 }

@@ -10,7 +10,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(518, 440);
+		applet.setSize(518, 440*2);
 	}
 
 	void postinit() {}
@@ -31,7 +31,7 @@ public class Content {
 	}
 	
 	public void run() {
-		Utils.debugUtilsParsingOpTree();
+		//Utils.debugUtilsParsingOpTree();
 		
 		graph = new PGraph(applet, 480, 400);
 		ElectronicCircuit e = new ElectronicCircuit();
@@ -44,6 +44,7 @@ public class Content {
 						doSomeDebugStuffWithOpTree(((MathTextField) obj.getComponent()).getOperatorTree());						
 					}
 				}, MathTextField.class),
+				new VTEquationInput("equ", 10, 10, 480, 400, e.getEquationSystem()),
 		});
 	}
 	

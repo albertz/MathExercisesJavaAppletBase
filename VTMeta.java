@@ -62,6 +62,7 @@ public class VTMeta extends VTContainer  {
 			if(extern[i].getComponent().getName().compareTo(name) == 0)
 				return extern[i];
 		}
+		System.err.println("getExternThing: '" + name + "' not found");
 		return null;
 	}
 	
