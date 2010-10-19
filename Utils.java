@@ -163,12 +163,30 @@ public class Utils {
     	return new Iterable<T>() {
     		public Iterator<T> iterator() {
     			return new Iterator<T>() {
-    				ListIterator<T> listIter = l.listIterator(l.size() - 1);    				
+    				ListIterator<T> listIter = l.listIterator(l.size());    				
 					public boolean hasNext() { return listIter.hasPrevious(); }
 					public T next() { return listIter.previous(); }
 					public void remove() { listIter.remove(); }    				
 				};
     		}
+		};
+    }
+    
+    static <T extends Comparable<T>> Comparator<Collection<T>> orderOnCollection() {
+    	return new Comparator<Collection<T>>() {
+    		public int compare(Collection<T> o1, Collection<T> o2) {
+    	        Iterator<T> i1 = o1.iterator();
+    	        Iterator<T> i2 = o2.iterator();
+    	        while(i1.hasNext() && i2.hasNext()) {
+    	            int c = i1.next().compareTo(i2.next());
+    	            if(c != 0) return c;
+    	        }
+    	        if(i1.hasNext())
+    	            return 1;
+    	        else if(i2.hasNext())
+    	            return -1;
+    	        return 0;
+    	    }
 		};
     }
     
