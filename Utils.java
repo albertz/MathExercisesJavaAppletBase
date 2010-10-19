@@ -14,8 +14,65 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Stack;
 
+import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation;
+
 public class Utils {
 
+	static abstract class LightCollection<E> implements Collection<E> {
+		public boolean isEmpty() { return !iterator().hasNext(); }
+		public int size() {
+			int c = 0;
+			for(Iterator<E> i = iterator(); i.hasNext(); ++c) i.next();
+			return c;
+		}
+		public boolean add(E e) { throw new UnsupportedOperationException(); }
+		public boolean addAll(Collection<? extends E> c) { throw new UnsupportedOperationException(); }
+		public void clear() { throw new UnsupportedOperationException(); }
+		public boolean contains(Object o) { throw new UnsupportedOperationException(); }
+		public boolean containsAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+		public boolean remove(Object o) { throw new UnsupportedOperationException(); }
+		public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+		public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
+		public Object[] toArray() { throw new UnsupportedOperationException(); }
+		public <T> T[] toArray(T[] a) { throw new UnsupportedOperationException(); }
+	}
+	
+	static <E> Collection<E> extendedCollectionView(final Collection<E> base, final Collection<E> extension) {
+		return new Utils.LightCollection<E>() {
+			@Override public boolean add(E e) { return extension.add(e); }
+			@Override public boolean addAll(Collection<? extends E> c) { return extension.addAll(c); }
+
+			public boolean isEmpty() { return base.isEmpty() && extension.isEmpty(); }
+			public int size() { return base.size() + extension.size(); }
+
+			public Iterator<E> iterator() {
+				return new Iterator<E>() {
+					Iterator<E> baseIterator = base.iterator();
+					Iterator<E> extendedIterator = extension.iterator();
+					boolean lastElementWasFromBase = true;
+					
+					public boolean hasNext() {
+						if(baseIterator.hasNext()) return true;
+						return extendedIterator.hasNext();
+					}
+
+					public E next() {
+						if(baseIterator.hasNext()) { lastElementWasFromBase = true; return baseIterator.next(); }
+						if(extendedIterator.hasNext()) { lastElementWasFromBase = false; return extendedIterator.next(); }
+						throw new NoSuchElementException();
+					}
+
+					public void remove() {
+						if(lastElementWasFromBase) baseIterator.remove();
+						else extendedIterator.remove();
+					}
+				};
+			}
+			
+			// Note that we could implement some more of Collection<E>. I just did not because I didn't needed it for now.
+		};
+	}
+	
 	static interface Callback<T> {
 		void run(T obj);
 	}
@@ -64,6 +121,39 @@ public class Utils {
 					}
 				};
 			}
+		};
+	}
+	
+	static <T> Collection<T> cuttedFromRight(final Iterable<T> coll, final Predicate<T> stopCondition) {
+		return new LightCollection<T>() {
+			public Iterator<T> iterator() {
+				return new Iterator<T>() {
+					Iterator<T> iter = coll.iterator();
+					Iterator<T> nextIter = coll.iterator();					
+					T nextObj = nextIter.hasNext() ? nextIter.next() : null;
+					boolean stop = false;
+					
+					public boolean hasNext() { return iter.hasNext() && !stop; }
+
+					public T next() {
+						if(!hasNext()) throw new NoSuchElementException();
+						T objToReturn = nextObj;
+						if(iter.next() != objToReturn) throw new AssertionError("something is wrong");
+						if(nextIter.hasNext()) {
+							nextObj = nextIter.next();
+							if(stopCondition.apply(nextObj))
+								stop = true;
+						}
+						else {
+							if(iter.hasNext()) throw new AssertionError("something is wrong");
+							nextObj = null;
+						}
+						return objToReturn;
+					}
+
+					public void remove() { iter.remove(); }
+				};
+			}			
 		};
 	}
 	
@@ -143,10 +233,25 @@ public class Utils {
 	
 	static interface CopyableIterator<X> extends Iterator<X>, Cloneable {}
 	
-    static <X,Y> List<Y> map(Iterable<? extends X> coll, Function<X,Y> func) {
-    	List<Y> l = new LinkedList<Y>();
-    	for(X obj : coll) l.add(func.eval(obj));
-    	return l;
+    static <X,Y> Iterable<Y> map(final Iterable<? extends X> coll, final Function<X,Y> func) {
+		return new Iterable<Y>() {
+			public Iterator<Y> iterator() {
+				return new Iterator<Y>() {
+					Iterator<? extends X> baseIter = coll.iterator();					
+					public boolean hasNext() { return baseIter.hasNext(); }
+					public Y next() { return func.eval(baseIter.next()); }
+					public void remove() { baseIter.remove(); }
+				};
+			}
+		};
+    }
+
+	static <X,Y> Collection<Y> map(final Collection<? extends X> coll, final Function<X,Y> func) {
+    	return new LightCollection<Y>() {
+			public boolean isEmpty() { return coll.isEmpty(); }
+			public int size() { return coll.size(); }
+			public Iterator<Y> iterator() { return map((Iterable<? extends X>) coll, func).iterator(); }
+    	};
     }
     
     static <X> String concat(Iterable<X> coll, String seperator) {
