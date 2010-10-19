@@ -1,5 +1,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +9,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
 
@@ -158,7 +161,7 @@ public class EquationSystem {
 											if(var != null)
 												facs.add(new Pot(var));
 											else
-												throw new ParseError("Variable '" + s + "' is unknown.");
+												throw new ParseError("Variable '" + s + "' is unknown.", "Die Variable '" + s + "' ist unbekannt.");
 										}
 									}
 									else
@@ -166,10 +169,10 @@ public class EquationSystem {
 								}
 							}
 							else
-								throw new ParseError("'" + ot + "' must be a product.");
+								throw new ParseError("'" + ot + "' must be a product.", "'" + ot + "' muss ein Produkt sein.");
 							
 							if(facs.isEmpty())
-								throw new ParseError("'" + ot + "' must contain at least one variable.");
+								throw new ParseError("'" + ot + "' must contain at least one variable.", "'" + ot + "' muss mindestens eine Variable enthalten.");
 						}
 					}
 					List<Prod> entries = new LinkedList<Prod>();
@@ -245,7 +248,7 @@ public class EquationSystem {
 					if(!ot.op.equals("/"))
 						numerator = new Sum(ot, vars);
 					else {
-						if(ot.entities.size() != 2) throw new ParseError("The fraction '" + ot + "' must be of the form 'a / b'.");
+						if(ot.entities.size() != 2) throw new ParseError("The fraction '" + ot + "' must be of the form 'a / b'.", "Der Bruch '" + ot + "' muss in der Form 'a / b' sein.");
 						numerator = new Sum(ot.entities.get(0).asTree(), vars);
 						denominator = new Sum(ot.entities.get(1).asTree(), vars);
 					}
@@ -322,17 +325,23 @@ public class EquationSystem {
 		Equation() {}
 		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
-			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.");
-			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.");
-			if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.");
-			if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.");
+			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
+			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
+			if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.", "'=' muss genau 2 Seiten haben.");
+			if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.", "'=' darf nicht mehr als 2 Seiten haben.");
 			left = new FracSum(ot.entities.get(0).asTree(), vars);
 			right = new FracSum(ot.entities.get(1).asTree(), vars);			
-		}		
+		}
+		void swap(Equation eq) {
+			Equation tmp = new Equation(left, right);
+			left = eq.left; right = eq.right;
+			eq.left = tmp.left; eq.right = tmp.right;
+		}
 
 		static class ParseError extends Exception {
 			private static final long serialVersionUID = 1L;
-			public ParseError(String msg) { super(msg); }			
+			String english, german;
+			public ParseError(String english, String german) { super(english); this.english = english; this.german = german; }			
 		}
 		
 	}
@@ -348,10 +357,42 @@ public class EquationSystem {
 		}
 	}
 	
-	static void debugEquationParsing() {
-		
+	Collection<Equation> equations = new LinkedList<Equation>();
+	
+	EquationSystem() {}
+	EquationSystem(Map<String, VariableSymbol> variableSymbols) { this.variableSymbols = variableSymbols; }
+	EquationSystem(Collection<Equation> equations, Map<String, VariableSymbol> variableSymbols) {
+		this.equations = equations;
+		this.variableSymbols = variableSymbols;
+	}
+	EquationSystem extendedSystem(Collection<Equation> additionalEquations) {
+		return new EquationSystem(
+				Utils.extendedCollectionView(equations, additionalEquations),
+				variableSymbols);
+	}
+	EquationSystem extendedSystem() { return extendedSystem(new LinkedList<Equation>()); }
+	EquationSystem normalized() {
+		return new EquationSystem(
+				Utils.map(equations, new Utils.Function<Equation,Equation>() {
+					public Equation eval(Equation obj) { return obj.normalize(); }
+				}),
+				variableSymbols);
+	}
+	
+	boolean contains(Equation eq) {
+		eq = eq.normalize();
+		Equation minusEq = eq.minusOne();		
+		for(Equation e : normalized().equations) {
+			if(eq.equals(e)) return true;
+			if(minusEq.equals(e)) return true;
+		}
+		return false;
+	}
+	
+	boolean canConcludeTo(Equation eq) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
-	List<Equation> equations = new LinkedList<Equation>();
 	
 }
