@@ -275,6 +275,12 @@ public class EquationSystem {
 			}
 			FracSum() {}
 			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
+				if(ot.entities.size() == 1
+						&& ot.entities.get(0) instanceof Utils.OperatorTree.RawString
+						&& ((Utils.OperatorTree.RawString) ot.entities.get(0)).content.equals("0"))
+					// empty entries list -> 0
+					return;
+				
 				if(ot.op.equals("+") || ot.entities.size() <= 1) {
 					for(Utils.OperatorTree.Entity e : ot.entities)
 						entries.add( new Frac(e.asTree(), vars) );
