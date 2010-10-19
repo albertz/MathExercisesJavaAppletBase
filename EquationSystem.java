@@ -8,10 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.FracSum.Frac;
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.FracSum.Frac.Sum;
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.FracSum.Frac.Sum.Prod;
+import java.util.TreeMap;
 
 public class EquationSystem {
 
@@ -129,7 +126,7 @@ public class EquationSystem {
 						Prod normalize() {
 							Prod prod = new Prod();
 							prod.fac = fac;
-							Map<VariableSymbol,Integer> vars = new HashMap<VariableSymbol,Integer>();
+							Map<VariableSymbol,Integer> vars = new TreeMap<VariableSymbol,Integer>();
 							for(Pot p : facs) {
 								if(!vars.containsKey(p.sym)) vars.put(p.sym, 0);
 								vars.put(p.sym, vars.get(p.sym) + p.pot);
@@ -232,7 +229,7 @@ public class EquationSystem {
 					}
 					return numerator.compareTo(o.numerator);					
 				}
-				Frac normalize() { return new Frac(numerator.normalize(), denominator.normalize()); }
+				Frac normalize() { return new Frac(numerator.normalize(), (denominator != null) ? denominator.normalize() : null); }
 				Frac minusOne() { return new Frac(numerator.minusOne(), denominator); }
 				Frac() {}
 				Frac(Sum numerator, Sum denominator) { this.numerator = numerator; this.denominator = denominator; }
@@ -247,7 +244,7 @@ public class EquationSystem {
 				}
 			}
 			List<Frac> entries = new LinkedList<Frac>();
-			@Override public String toString() { return Utils.concat(entries, " + "); }
+			@Override public String toString() { return entries.isEmpty() ? "0" : Utils.concat(entries, " + "); }
 			public int compareTo(FracSum o) { return Utils.<Frac>orderOnCollection().compare(entries, o.entries); }
 			FracSum normalize() {
 				List<Frac> newEntries = new LinkedList<Frac>();
@@ -318,9 +315,10 @@ public class EquationSystem {
 
 	void debugEquation(Utils.OperatorTree ot) {
 		ot = ot.simplify().transformMinusToPlus();
-		System.out.print("normalised: " + ot + ", ");
+		System.out.print("normalised input: " + ot + ", ");
 		try {
-			System.out.println("parsed: " + new Equation(ot, variableSymbols));
+			Equation eq = new Equation(ot, variableSymbols);
+			System.out.println("parsed: " + eq + ", normalised eq: " + eq.normalize());
 		} catch (Equation.ParseError e) {
 			System.out.println("error while parsing " + ot + ": " + e.getMessage());
 		}
