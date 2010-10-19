@@ -775,7 +775,7 @@ public class Utils {
         			ot.entities.add(e);
         		else {
         			OperatorTree subtree = ((Subtree) e).content.mergeOps(ops);
-        			if(subtree.op.equals(ot.op) && ops.contains(op))
+        			if(subtree.op.equals(ot.op) && ops.contains(op) && !subtree.canBeInterpretedAsUnaryPrefixed())
         				ot.entities.addAll(subtree.entities);
         			else
         				ot.entities.add(new Subtree(subtree));
@@ -796,7 +796,7 @@ public class Utils {
         			ot.entities.add(e);
         		else {
         			OperatorTree subtree = ((Subtree) e).content.mergeOpsFromRight(ops);
-        			if(first && subtree.op.equals(ot.op) && ops.contains(op))
+        			if(first && subtree.op.equals(ot.op) && ops.contains(op) && !subtree.canBeInterpretedAsUnaryPrefixed())
         				ot = subtree;
         			else
         				ot.entities.add(new Subtree(subtree));
@@ -991,6 +991,7 @@ public class Utils {
 		debugUtilsParsingOpTree("1 + -2 + 3");
 		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
 		debugUtilsParsingOpTree("a - (b - c)");
+		debugUtilsParsingOpTree("a + +b");
 	}
     
     
