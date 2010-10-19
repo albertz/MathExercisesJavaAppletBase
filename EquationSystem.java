@@ -108,12 +108,8 @@ public class EquationSystem {
 								return result;
 							}
 							@Override public boolean equals(Object obj) {
-								if (this == obj) return true;
-								if (obj == null) return false;
-								if (getClass() != obj.getClass()) return false;
-								Pot other = (Pot) obj;
-								if (pot != other.pot) return false;
-								return sym == other.sym;
+								if(!(obj instanceof Pot)) return false;
+								return compareTo((Pot) obj) == 0;
 							}
 						}						
 						List<Pot> facs = new LinkedList<Pot>();
@@ -121,6 +117,10 @@ public class EquationSystem {
 							int r = Utils.<Pot>orderOnCollection().compare(facs, o.facs);
 							if(r != 0) return r;
 							return fac - o.fac;
+						}
+						@Override public boolean equals(Object obj) {
+							if(!(obj instanceof Prod)) return false;
+							return compareTo((Prod) obj) == 0;
 						}
 						@Override public String toString() { return ((fac != 1) ? "" + fac + " ∙ " : "") + Utils.concat(facs, " ∙ "); }
 						Prod normalize() {
@@ -175,6 +175,10 @@ public class EquationSystem {
 					List<Prod> entries = new LinkedList<Prod>();
 					@Override public String toString() { return ((entries.size() > 1) ? "(" : "") + Utils.concat(entries, " + ") + ((entries.size() > 1) ? ")" : ""); }
 					public int compareTo(Sum o) { return Utils.<Prod>orderOnCollection().compare(entries, o.entries); }
+					@Override public boolean equals(Object obj) {
+						if(!(obj instanceof Sum)) return false;
+						return compareTo((Sum) obj) == 0;
+					}
 					boolean isEmpty() { return entries.isEmpty(); }
 					Sum normalize() {
 						Sum sum = new Sum();
@@ -229,6 +233,10 @@ public class EquationSystem {
 					}
 					return numerator.compareTo(o.numerator);					
 				}
+				@Override public boolean equals(Object obj) {
+					if(!(obj instanceof Frac)) return false;
+					return compareTo((Frac) obj) == 0;
+				}
 				Frac normalize() { return new Frac(numerator.normalize(), (denominator != null) ? denominator.normalize() : null); }
 				Frac minusOne() { return new Frac(numerator.minusOne(), denominator); }
 				Frac() {}
@@ -246,6 +254,10 @@ public class EquationSystem {
 			List<Frac> entries = new LinkedList<Frac>();
 			@Override public String toString() { return entries.isEmpty() ? "0" : Utils.concat(entries, " + "); }
 			public int compareTo(FracSum o) { return Utils.<Frac>orderOnCollection().compare(entries, o.entries); }
+			@Override public boolean equals(Object obj) {
+				if(!(obj instanceof FracSum)) return false;
+				return compareTo((FracSum) obj) == 0;
+			}
 			FracSum normalize() {
 				List<Frac> newEntries = new LinkedList<Frac>();
 				for(Frac f : entries) newEntries.add(f.normalize());
@@ -295,6 +307,10 @@ public class EquationSystem {
 			int r = left.compareTo(o.left); if(r != 0) return r;
 			return right.compareTo(o.right);
 		}
+		@Override public boolean equals(Object obj) {
+			if(!(obj instanceof Equation)) return false;
+			return compareTo((Equation) obj) == 0;
+		}
 		Equation normalize() {
 			Equation eq = new Equation();
 			eq.left.entries.addAll(left.entries);
@@ -302,7 +318,9 @@ public class EquationSystem {
 			eq.left = eq.left.normalize();
 			return eq;
 		}
+		Equation minusOne() { return new Equation(left.minusOne(), right.minusOne()); }
 		Equation() {}
+		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.");
 			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.");
