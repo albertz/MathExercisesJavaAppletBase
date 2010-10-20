@@ -1,5 +1,6 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -13,6 +14,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Stack;
+
+import javax.naming.OperationNotSupportedException;
 
 public class Utils {
 
@@ -34,6 +37,8 @@ public class Utils {
 		public Object[] toArray() { throw new UnsupportedOperationException(); }
 		public <T> T[] toArray(T[] a) { throw new UnsupportedOperationException(); }
 	}
+	
+	static abstract class LightSet<E> extends LightCollection<E> implements Set<E> {}
 	
 	static <E> Collection<E> extendedCollectionView(final Collection<E> base, final Collection<E> extension) {
 		return new Utils.LightCollection<E>() {
@@ -68,6 +73,75 @@ public class Utils {
 			}
 			
 			// Note that we could implement some more of Collection<E>. I just did not because I didn't needed it for now.
+		};
+	}
+	
+	static <E> Collection<E> concatCollectionView(final Iterable<? extends Collection<E>> colls) {
+		return new LightCollection<E>() {
+			public Iterator<E> iterator() {
+				return new Iterator<E>() {
+					Iterator<? extends Collection<E>> curSetsIter = colls.iterator();
+					Collection<E> curColl = null;
+					Iterator<E> curIterator = null;
+					
+					{
+						forward();
+					}
+					
+					void forward() {
+						while(curIterator == null || !curIterator.hasNext()) {
+							if(curSetsIter.hasNext()) {
+								curColl = curSetsIter.next();
+								curIterator = curColl.iterator();
+							}
+							else
+								break;
+						}
+					}
+					
+					public boolean hasNext() {
+						return curIterator != null && curIterator.hasNext();
+					}
+					public E next() {
+						if(!hasNext()) throw new NoSuchElementException();
+						E result = curIterator.next();
+						forward();
+						return result;
+					}
+					public void remove() {
+						if(curIterator == null) throw new IllegalStateException();
+						curIterator.remove();
+					}
+				};
+			}
+		};
+	}
+	
+	static <E> Iterable<E> iterableFromArray(final E[] arr) {
+		return new Iterable<E>() {
+			public Iterator<E> iterator() {
+				return new Iterator<E>() {
+					int i = 0;					
+					public boolean hasNext() { return i < arr.length; }
+					public E next() { if(!hasNext()) throw new NoSuchElementException(); return arr[i++]; } 
+					public void remove() { throw new UnsupportedOperationException(); }					
+				};
+			}
+		};
+	}
+	
+	static <E> Collection<E> concatCollectionView(final Collection<E>... colls) {		
+		return concatCollectionView(iterableFromArray(colls));
+	}
+	
+	static <E> Set<E> mergedSetView(final Iterable<? extends Set<E>> sets) {
+		return new LightSet<E>() {
+			public Iterator<E> iterator() {
+				// NOTE: Because of unique, this requires O(N) memory.
+				// It is possible to implement this with O(1) memory requirement;
+				// however, this is a bit complicated/annoying and this is enough for now.
+				return unique(concatCollectionView(sets)).iterator();
+			}
 		};
 	}
 	
@@ -117,6 +191,48 @@ public class Utils {
 						}
 						throw new NoSuchElementException();
 					}
+				};
+			}
+		};
+	}
+	
+	static <T> Set<T> filter(final Set<T> i, final Predicate<? super T> pred) {
+		return new LightSet<T>() {
+			public Iterator<T> iterator() {
+				return filter((Iterable<T>) i, pred).iterator();
+			}
+		};
+	}
+	
+	static <T> Iterable<T> filterNotIn(final Iterable<T> i, final Set<T> set) {
+		Predicate<T> filterNotInPred = new Predicate<T>() {
+			public boolean apply(T obj) { return !set.contains(obj); }						
+		};
+		return filter(i, filterNotInPred);
+	}
+	
+	static <T> Set<T> substractedSet(final Set<T> base, final Set<T> substract) {
+		return new LightSet<T>() {
+			public Iterator<T> iterator() {
+				return filterNotIn(base, substract).iterator();
+			}
+		};
+	}
+	
+	static <T> Iterable<T> unique(final Iterable<T> i) {
+		return new Iterable<T>() {
+			public Iterator<T> iterator() {
+				return new Iterator<T>() {
+					Set<T> objectsSoFar = new HashSet<T>();
+					Iterator<T> filteredIter = filterNotIn(i, objectsSoFar).iterator();
+					
+					public boolean hasNext() { return filteredIter.hasNext(); }
+					public T next() {
+						T obj = filteredIter.next();
+						objectsSoFar.add(obj);
+						return obj;
+					}
+					public void remove() { filteredIter.remove(); }
 				};
 			}
 		};

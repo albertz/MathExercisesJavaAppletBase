@@ -125,7 +125,11 @@ public class EquationSystem {
 							if(!(obj instanceof Prod)) return false;
 							return compareTo((Prod) obj) == 0;
 						}
-						@Override public String toString() { return ((fac != 1) ? "" + fac + " ∙ " : "") + Utils.concat(facs, " ∙ "); }
+						@Override public String toString() {
+							if(fac == 1) return Utils.concat(facs, " ");
+							if(fac == -1) return "-" + Utils.concat(facs, " ");
+							return fac + " " + Utils.concat(facs, " ");
+						}
 						Prod normalize() {
 							Prod prod = new Prod();
 							prod.fac = fac;
@@ -142,6 +146,7 @@ public class EquationSystem {
 						}
 						Prod minusOne() { return new Prod(-fac, facs); }
 						Prod() {}
+						Prod(VariableSymbol var) { facs.add(new Pot(var)); }
 						Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
 						Prod(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError { parse(ot, vars); }
 						void parse(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
@@ -210,6 +215,7 @@ public class EquationSystem {
 						return sum;
 					}
 					Sum() {}
+					Sum(VariableSymbol var) { entries.add(new Prod(var)); }
 					Sum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 						if(ot.op.equals("+") || ot.entities.size() <= 1) {
 							for(Utils.OperatorTree.Entity e : ot.entities)
@@ -243,6 +249,7 @@ public class EquationSystem {
 				Frac normalize() { return new Frac(numerator.normalize(), (denominator != null) ? denominator.normalize() : null); }
 				Frac minusOne() { return new Frac(numerator.minusOne(), denominator); }
 				Frac() {}
+				Frac(VariableSymbol var) { this(new Sum(var), null); }
 				Frac(Sum numerator, Sum denominator) { this.numerator = numerator; this.denominator = denominator; }
 				Frac(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 					if(!ot.op.equals("/"))
@@ -288,7 +295,14 @@ public class EquationSystem {
 				for(Frac f : entries) sum.entries.add(f.minusOne());
 				return sum;
 			}
+			FracSum sum(FracSum otherSum) {
+				FracSum sum = new FracSum();
+				for(Frac f : entries) sum.entries.add(f);
+				for(Frac f : otherSum.entries) sum.entries.add(f);
+				return sum;
+			}
 			FracSum() {}
+			FracSum(VariableSymbol var) { entries.add(new Frac(var)); }
 			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 				if(ot.entities.size() == 1
 						&& ot.entities.get(0) instanceof Utils.OperatorTree.RawString
@@ -392,6 +406,13 @@ public class EquationSystem {
 	boolean canConcludeTo(Equation eq) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	void dump() {
+		System.out.println("equations: [");
+		for(Equation e : equations)
+			System.out.println("  " + e + " ,");
+		System.out.println(" ]");
 	}
 
 	

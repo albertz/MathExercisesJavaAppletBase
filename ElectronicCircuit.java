@@ -44,15 +44,25 @@ public class ElectronicCircuit {
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			g.drawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y);
 		}
+
+		EquationSystem.Equation.FracSum getFlowFromIn() { return end.getFlow(this); }
+		EquationSystem.Equation.FracSum getFlowFromOut() { return start.getFlow(this); }
+		void initVarNames(int index) {}
 	}
-	
-	// the intention for this is that it really has an effect and thus also some kind of variable
-	static abstract class EffectiveConn extends Conn {
-		EquationSystem.VariableSymbol var;
-	}
-	
-	static class EResistance extends EffectiveConn {
-		EResistance() { this.var = new EquationSystem.VariableSymbol("Ω"); }
+			
+	static class EResistance extends Conn {
+		EquationSystem.VariableSymbol varRes = null;
+		EquationSystem.VariableSymbol varFlow = null;		
+		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
+		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
+		@Override void initVarNames(int index) {
+			varRes.name = "R" + index;
+			varFlow.name = "I" + index;
+		}
+		EResistance() {
+			 this.varRes = new EquationSystem.VariableSymbol("Ω");
+			 this.varFlow = new EquationSystem.VariableSymbol("A");
+		}
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/3.0);			
 			PGraph.Point p1 = start.sum(diff);
@@ -72,8 +82,10 @@ public class ElectronicCircuit {
 		}		
 	}
 	
-	static class VoltageSource extends EffectiveConn {
-		VoltageSource() { this.var = new EquationSystem.VariableSymbol("V"); }
+	static class VoltageSource extends Conn {
+		EquationSystem.VariableSymbol varVolt = null;
+		@Override void initVarNames(int index) { varVolt.name = "U" + index; }
+		VoltageSource() { this.varVolt = new EquationSystem.VariableSymbol("V"); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
 			PGraph.Point diff2 = diff.mult(1.0/24.0);
@@ -102,6 +114,57 @@ public class ElectronicCircuit {
 			conns.addAll(in); conns.addAll(out);
 			in.clear(); out.clear();
 			for(Conn c : conns) c.clear(); 
+		}
+
+		static class NodeCollection extends Node {
+			Set<Node> nodes = new HashSet<Node>();
+			Set<Conn> conns = new HashSet<Conn>();
+			
+			NodeCollection() {
+				Iterable<Set<Conn>> allInConns = Utils.map(nodes, new Utils.Function<Node,Set<Conn>>() {
+					public java.util.Set<Conn> eval(Node obj) { return obj.in; }
+				});
+				in = Utils.mergedSetView(allInConns);
+				in = Utils.substractedSet(in, conns);
+				Iterable<Set<Conn>> allOutConns = Utils.map(nodes, new Utils.Function<Node,Set<Conn>>() {
+					public java.util.Set<Conn> eval(Node obj) { return obj.out; }
+				});
+				out = Utils.mergedSetView(allOutConns);
+				out = Utils.substractedSet(out, conns);
+			}
+			
+			void addFlowInvariants(Node n) {
+				for(Conn c : Utils.concatCollectionView(n.in, n.out)) {
+					
+				}
+			}
+		}
+		
+		NodeCollection collectFlowInvariantGroup() {
+			NodeCollection coll = new NodeCollection();
+			//coll.nodes
+			return null;
+		}
+		
+		EquationSystem.Equation.FracSum getFlow() { return getFlow(null); }
+		EquationSystem.Equation.FracSum getFlow(Conn conn) {
+			EquationSystem.Equation.FracSum sum = new EquationSystem.Equation.FracSum();
+			for(Conn c : in)
+				if(c != conn)
+					sum = sum.sum(c.getFlowFromOut().minusOne());
+			for(Conn c : out)
+				if(c != conn)
+					sum = sum.sum(c.getFlowFromIn());
+			return sum;
+		}
+		EquationSystem.Equation getFlowEquation() {
+			EquationSystem.Equation.FracSum left = new EquationSystem.Equation.FracSum();
+			for(Conn c : in)
+				left = left.sum(c.getFlowFromOut());
+			EquationSystem.Equation.FracSum right = new EquationSystem.Equation.FracSum();
+			for(Conn c : out)
+				right = right.sum(c.getFlowFromIn());
+			return new EquationSystem.Equation(left, right);
 		}
 	}
 	
@@ -415,6 +478,14 @@ public class ElectronicCircuit {
 		return line;
 	}
 	
+	void initVarNames() {
+		int index = 1;
+		for(Conn c : allConns()) {
+			c.initVarNames(index);
+			index++;
+		}
+	}
+	
 	// returns straightforward visual ordered points
 	Map<Point,Node> randomSetup(int W, int H) {		
 		Node[] nodes = new Node[W * H];
@@ -429,6 +500,7 @@ public class ElectronicCircuit {
 		
 		clear();
 		rootNode = nodes[0];
+		initVarNames();
 		
 		//dump(nodes);
 		
@@ -467,6 +539,11 @@ public class ElectronicCircuit {
 
 	public EquationSystem getEquationSystem() {
 		EquationSystem eqSys = new EquationSystem();
+		for(Node n : allNodes()) {
+			if(n != rootNode) // leave one out so they are all linearly independent
+				eqSys.equations.add(n.getFlowEquation());
+		}
+		eqSys.dump();
 		return eqSys;
 	}
 	
