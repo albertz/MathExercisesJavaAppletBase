@@ -19,7 +19,7 @@ import javax.swing.JPanel;
 public class VTLineCombiner extends VTContainer {
 
 	public VTLineCombiner(String name, int stepX, int stepY, VisualThing[] things) {
-		super(name, stepX, stepY, things);
+		super((name == null || name.isEmpty()) ? "__VTLineCombiner" : name, stepX, stepY, things);
 	}
 	
 	protected void calcSize() {
@@ -37,6 +37,7 @@ public class VTLineCombiner extends VTContainer {
 	public Component getComponent() {
 		if (panel == null) {
 			panel = new JPanel();
+			panel.setName(name);
 			panel.setLayout(null);
 			addThings();
 		}

@@ -23,14 +23,15 @@ public class VTContainer extends VisualThing {
 
 	public VTContainer(String name, int stepX, int stepY,
 			VisualThing[] things) {
+		if(name == null || name.isEmpty()) name = "__" + this.getClass().getName() + "@" + this.hashCode();
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;
 		this.things = things;
 	}
 
-	private int stepX, stepY;
-	private String name;
+	protected int stepX, stepY;
+	protected String name;
 	protected JPanel panel = null;
 	protected VisualThing[] things;
 	protected Point size = null;

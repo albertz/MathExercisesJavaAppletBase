@@ -15,7 +15,7 @@ public class VTMeta extends VTContainer  {
 	private List vars = new LinkedList();
 	
 	public VTMeta(Applet applet, String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
-		super(name, stepX, stepY, null);
+		super((name == null || name.isEmpty()) ? ("__VTMeta") : name, stepX, stepY, null);
 		this.applet = applet;
 		this.extern = extern;
 		this.updater = updater;

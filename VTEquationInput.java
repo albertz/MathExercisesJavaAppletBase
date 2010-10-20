@@ -2,6 +2,8 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
@@ -11,6 +13,8 @@ import java.util.List;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
@@ -25,7 +29,7 @@ public class VTEquationInput extends VisualThing {
 		JButton removeButton = new JButton();
 		EquationSystem.Equation eq = new EquationSystem.Equation();
 		EquationSystem baseEqSystem = null;
-		static final int height = 20;
+		static final int height = 30;
 		boolean correct = false;
 		
 		abstract EquationSystem getBaseEqSystem();
@@ -43,17 +47,20 @@ public class VTEquationInput extends VisualThing {
 			removeButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) { onRemoveClick(); }
 			});
+			posComponents();
 			this.add(textField);
 			this.add(infoLabel);
 			this.add(removeButton);
-			posComponents();
 		}
 
 		void posComponents() {
-			textField.setBounds(0, 0, this.getWidth() - infoLabel.getWidth() - 5 - removeButton.getWidth() - 5, height);
-			infoLabel.setBounds(textField.getWidth() + 5, 0, infoLabel.getFontMetrics(infoLabel.getFont()).stringWidth(infoLabel.getText()), infoLabel.getFontMetrics(infoLabel.getFont()).getHeight());
-			removeButton.setLocation(infoLabel.getX() + infoLabel.getWidth() + 5, 0);
-			this.validate();
+			int infoLabelWidth = infoLabel.getFontMetrics(infoLabel.getFont()).stringWidth(infoLabel.getText());
+			int infoLabelHeight = infoLabel.getFontMetrics(infoLabel.getFont()).getHeight();
+			int removeButtonWidth = 30;
+			textField.setBounds(0, 0, this.getWidth() - infoLabelWidth - 5 - removeButtonWidth - 5, height);
+			infoLabel.setBounds(textField.getWidth() + 5, (height - infoLabelHeight) / 2, infoLabelWidth, infoLabelHeight);
+			removeButton.setBounds(infoLabel.getX() + infoLabel.getWidth() + 5, 0, removeButtonWidth, removeButtonWidth);
+			repaint();
 		}
 		
 		void setInputError(String s) {
@@ -102,14 +109,15 @@ public class VTEquationInput extends VisualThing {
 		public EquationsPanel(int startSize) {
 			super();
 			this.setLayout(null);
+			this.setBorder(new LineBorder(Color.black, 1));
 			addNewEquationButton.setText("+");
 			addNewEquationButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) { addEquation().requestFocus(); }
 			});
+			posComponents();
 			this.add(addNewEquationButton);
 			for(int i = 0; i < startSize; ++i)
 				addEquation();
-			if(startSize <= 0) posComponents();
 		}
 		
 		EquationSystem baseEqSysForNewEquation(EquationPanel eqp) { return eqSys; }
@@ -122,9 +130,9 @@ public class VTEquationInput extends VisualThing {
 				@Override EquationSystem getBaseEqSystem() { return baseEqSysForNewEquation(this); }
 			};
 			eqp.baseEqSystem = baseEqSysForNewEquation(eqp);
-			this.add(eqp, equations.size());
 			equations.add(eqp);
-			posComponents();
+			VTEquationInput.this.posComponents();
+			this.add(eqp, equations.size());
 			return eqp;
 		}
 		
@@ -133,7 +141,7 @@ public class VTEquationInput extends VisualThing {
 				if(i.next() == eqp) {
 					i.remove();
 					this.remove(eqp);
-					posComponents();
+					VTEquationInput.this.posComponents();
 					return;
 				}
 			}
@@ -162,15 +170,14 @@ public class VTEquationInput extends VisualThing {
 		int height = 0;
 		
 		void posComponents() {
-			int y = 0;
+			int y = 1;
 			for(EquationPanel eqp : equations) {
-				eqp.setBounds(0, y, this.getWidth(), EquationPanel.height);
+				eqp.setBounds(1, y, this.getWidth() - 2, EquationPanel.height);
+				eqp.posComponents();
 				y += eqp.getHeight() + 5;
 			}
-			addNewEquationButton.setLocation(0, y);
+			addNewEquationButton.setBounds(1, y, 30, 30);
 			height = y + addNewEquationButton.getHeight();
-			this.validate();
-			VTEquationInput.this.posComponents();
 		}
 		
 	}
@@ -232,20 +239,25 @@ public class VTEquationInput extends VisualThing {
 		FollowingEquationsPanel followingEquationsPanel = new FollowingEquationsPanel();
 		
 		void posComponents() {
+			basicEquationsPanel.posComponents();
+			followingEquationsPanel.posComponents();
 			basicEquationsPanel.setBounds(0, 0, width, basicEquationsPanel.height);
 			followingEquationsPanel.setBounds(0, basicEquationsPanel.height, width, height - basicEquationsPanel.height);
-			this.validate();
-			this.repaint();
+		}
+		
+		@Override public void setBounds(int x, int y, int width, int height) {
+			super.setBounds(x, y, width, height);
+			posComponents();
 		}
 		
 		MainPanel() {
 			super();
 			this.setLayout(null);
 			this.setName(name);
-			this.setAutoscrolls(true);
+			//this.setAutoscrolls(true);
+			posComponents();
 			this.add(basicEquationsPanel);
 			this.add(followingEquationsPanel);
-			posComponents();
 		}
 	}
 	
@@ -266,7 +278,12 @@ public class VTEquationInput extends VisualThing {
 		this.eqSys = eqSys;
 	}
 	
-	void posComponents() { if(mainPanel != null) mainPanel.posComponents(); }
+	void posComponents() {
+		if(mainPanel != null) {
+			mainPanel.posComponents();
+			mainPanel.repaint();
+		}
+	}
 	
 	@Override
 	public Component getComponent() {

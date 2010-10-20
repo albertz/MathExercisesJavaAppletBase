@@ -1,5 +1,8 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.awt.Component;
+import java.awt.Container;
+
 public class Content {
 
 	Applet applet;
@@ -13,7 +16,11 @@ public class Content {
 		applet.setSize(518, 440*2);
 	}
 
-	void postinit() {}
+	void postinit() {
+		VTEquationInput.MainPanel panel = (VTEquationInput.MainPanel) applet.getComponentByName("equ");
+		panel.list();
+		panel.repaint();
+	}
 	void next(int i) {}	
 	boolean isCorrect(int i, String sel) { return false; }
 	

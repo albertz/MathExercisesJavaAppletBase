@@ -64,6 +64,7 @@ public class Applet extends JApplet {
 		
 		content.init();
 		this.setContentPane(getJContentPane());
+		content.postinit();
 	}
 
 	public static void testLocalFonts() {
@@ -440,9 +441,7 @@ public class Applet extends JApplet {
 		resetResultLabels();
 		resetSelectorColors();
 		resetResultContainers();
-		
-		content.postinit();
-		
+				
 		jContentPane.repaint();
 	}
 
@@ -471,6 +470,8 @@ public class Applet extends JApplet {
 		if (jContentPane == null) {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(null);
+			jContentPane.setSize(getWidth(), getHeight());
+			jContentPane.setName("Applet.jContentPane");
 			updateDefaultVisualThings();
 		}
 		return jContentPane;
