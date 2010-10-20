@@ -14,8 +14,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Stack;
 
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation;
-
 public class Utils {
 
 	static abstract class LightCollection<E> implements Collection<E> {

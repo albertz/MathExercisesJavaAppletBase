@@ -4,9 +4,12 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JApplet;
 import javax.swing.JLabel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.Point;
@@ -24,14 +27,6 @@ import java.util.List;
 import javax.swing.JComboBox;
 
 
-
-
-
-
-
-
-
-
 public class Applet extends JApplet {
 
 	private JPanel jContentPane = null;
@@ -39,6 +34,8 @@ public class Applet extends JApplet {
 
 	public static Font monospaceFont; 
 	public static Font defaultFont;
+	
+	JScrollPane scrollPane = null;
 	
 	/**
 	 * This is the xxx default constructor
@@ -63,7 +60,12 @@ public class Applet extends JApplet {
 		//testLocalFonts();
 		
 		content.init();
-		this.setContentPane(getJContentPane());
+		Container pane = getJContentPane();
+		if(scrollPane != null) {
+			scrollPane.setViewportView(pane);
+			pane = scrollPane;
+		}
+		this.setContentPane(pane);
 		content.postinit();
 	}
 
@@ -169,9 +171,11 @@ public class Applet extends JApplet {
 			if(!onlyCalcSize) {
 				Component c = things[i].getComponent();
 				if(c != null) {
+					if(c instanceof JComponent) ((JComponent) c).revalidate();
 					c.setBounds(new Rectangle(curX, curY, things[i].getWidth(),
 							things[i].getHeight()));
-					panel.add(c);
+					if(c.getParent() != panel)
+						panel.add(c);
 				}
 			}
 			max.x = Math.max(max.x, curX + things[i].getWidth());
@@ -436,16 +440,26 @@ public class Applet extends JApplet {
 			e1.printStackTrace();
 		}
 
-		addVisualThings(jContentPane, vtmeta.getThingsByContentStr(contentStr));
-
+		visualThings = vtmeta.getThingsByContentStr(contentStr);
+		revalidateVisualThings();
+		
 		resetResultLabels();
 		resetSelectorColors();
-		resetResultContainers();
-				
-		jContentPane.repaint();
+		resetResultContainers();				
 	}
+	
+	VisualThing[] visualThings = null;
 
-
+	void revalidateVisualThings() {
+		if(visualThings != null) {
+			Point size = addVisualThings(jContentPane, visualThings);
+			jContentPane.setPreferredSize(new Dimension(size.x, size.y));
+			jContentPane.revalidate();
+			if(scrollPane != null)
+				scrollPane.revalidate();
+		}
+	}
+	
 	public void resetResultContainers() {
 		ForEachComponent(new ComponentWalker() {
 			public boolean meet(Component comp) {
@@ -460,7 +474,13 @@ public class Applet extends JApplet {
 		});
 	}
 
-
+	class ContentPane extends JPanel {
+		private static final long serialVersionUID = 1L;
+		public void revalidateVisualThings() {
+			Applet.this.revalidateVisualThings();
+		}
+	}
+	
 	/**
 	 * This method initializes jContentPane
 	 * 
@@ -468,10 +488,10 @@ public class Applet extends JApplet {
 	 */
 	private JPanel getJContentPane() {
 		if (jContentPane == null) {
-			jContentPane = new JPanel();
+			jContentPane = new ContentPane();
 			jContentPane.setLayout(null);
 			jContentPane.setSize(getWidth(), getHeight());
-			jContentPane.setName("Applet.jContentPane");
+			jContentPane.setName("Applet.jContentPane");			
 			updateDefaultVisualThings();
 		}
 		return jContentPane;

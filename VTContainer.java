@@ -6,6 +6,7 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 import java.awt.Component;
 import java.awt.Point;
 
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 
@@ -38,10 +39,16 @@ public class VTContainer extends VisualThing {
 
 	public Component getComponent() {
 		if (panel == null) {
-			panel = new JPanel();
+			panel = new JPanel() {
+				private static final long serialVersionUID = 1L;
+				@Override public void revalidate() {
+					VTContainer.this.size = Applet.addVisualThings(this, VTContainer.this.things);					
+					super.revalidate();
+				}				
+			};
 			panel.setLayout(null);
 			panel.setName(name);
-			size = Applet.addVisualThings(panel, things);
+			panel.revalidate();
 		}
 		return panel;
 	}

@@ -36,15 +36,21 @@ public class VTLineCombiner extends VTContainer {
 	
 	public Component getComponent() {
 		if (panel == null) {
-			panel = new JPanel();
+			panel = new JPanel() {
+				private static final long serialVersionUID = 1L;
+				@Override public void revalidate() {
+					revalidateThings();
+					super.revalidate();
+				}
+			};
 			panel.setName(name);
 			panel.setLayout(null);
-			addThings();
+			revalidateThings();
 		}
 		return panel;
 	}
 
-	private void addThings() {
+	public void revalidateThings() {
 		calcSize();
 		int curX = 0, curY = 0;
 
@@ -54,7 +60,8 @@ public class VTLineCombiner extends VTContainer {
 			curX += things[i].getStepX();
 			if(c != null) {
 				c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
-				panel.add(c);
+				if(c.getParent() != panel)
+					panel.add(c);
 			}
 			curX += things[i].getWidth();
 		}

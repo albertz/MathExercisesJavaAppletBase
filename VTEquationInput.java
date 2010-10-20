@@ -2,8 +2,11 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Iterator;
@@ -11,14 +14,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.Scrollable;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation;
 
 public class VTEquationInput extends VisualThing {
 	
@@ -131,8 +135,8 @@ public class VTEquationInput extends VisualThing {
 			};
 			eqp.baseEqSystem = baseEqSysForNewEquation(eqp);
 			equations.add(eqp);
-			VTEquationInput.this.posComponents();
 			this.add(eqp, equations.size());
+			VTEquationInput.this.posComponents();
 			return eqp;
 		}
 		
@@ -220,7 +224,7 @@ public class VTEquationInput extends VisualThing {
 									}
 								}),
 								new Utils.Function<EquationPanel,EquationSystem.Equation>() {
-									public Equation eval(EquationPanel obj) { return obj.eq; }
+									public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
 								}));
 			}
 			
@@ -239,12 +243,15 @@ public class VTEquationInput extends VisualThing {
 		FollowingEquationsPanel followingEquationsPanel = new FollowingEquationsPanel();
 		
 		void posComponents() {
+			basicEquationsPanel.setSize(getWidth(), 0);
 			basicEquationsPanel.posComponents();
+			followingEquationsPanel.setSize(getWidth(), 0);
 			followingEquationsPanel.posComponents();
-			basicEquationsPanel.setBounds(0, 0, width, basicEquationsPanel.height);
-			followingEquationsPanel.setBounds(0, basicEquationsPanel.height, width, height - basicEquationsPanel.height);
+			basicEquationsPanel.setBounds(0, 0, getWidth(), basicEquationsPanel.height);
+			followingEquationsPanel.setBounds(0, basicEquationsPanel.height, width, followingEquationsPanel.height);
+			setPreferredSize(new Dimension(getWidth(), basicEquationsPanel.height + followingEquationsPanel.height));
 		}
-		
+				
 		@Override public void setBounds(int x, int y, int width, int height) {
 			super.setBounds(x, y, width, height);
 			posComponents();
@@ -253,12 +260,11 @@ public class VTEquationInput extends VisualThing {
 		MainPanel() {
 			super();
 			this.setLayout(null);
-			this.setName(name);
-			//this.setAutoscrolls(true);
 			posComponents();
 			this.add(basicEquationsPanel);
 			this.add(followingEquationsPanel);
 		}
+
 	}
 	
 	MainPanel mainPanel = null;
@@ -281,15 +287,25 @@ public class VTEquationInput extends VisualThing {
 	void posComponents() {
 		if(mainPanel != null) {
 			mainPanel.posComponents();
-			mainPanel.repaint();
+			mainPanel.revalidate();
+			height = mainPanel.getPreferredSize().height;
+			mainPanel.setSize(width, height);
+			Container c = mainPanel.getParent();
+			while(c != null) {
+				if(c instanceof Applet.ContentPane) {
+					((Applet.ContentPane) c).revalidateVisualThings();
+					break;
+				}
+				c = c.getParent();
+			}
 		}
 	}
 	
 	@Override
 	public Component getComponent() {
-		if(mainPanel == null) {
-			mainPanel = new MainPanel();
-		}
+		if(mainPanel == null)
+			mainPanel = new MainPanel();		
+		mainPanel.setName(name);
 		return mainPanel;
 	}
 

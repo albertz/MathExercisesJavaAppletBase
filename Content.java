@@ -3,6 +3,8 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 import java.awt.Component;
 import java.awt.Container;
 
+import javax.swing.JScrollPane;
+
 public class Content {
 
 	Applet applet;
@@ -13,14 +15,11 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(518, 440*2);
+		applet.setSize(600, 440*2);
+		applet.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 	}
 
-	void postinit() {
-		VTEquationInput.MainPanel panel = (VTEquationInput.MainPanel) applet.getComponentByName("equ");
-		panel.list();
-		panel.repaint();
-	}
+	void postinit() {}
 	void next(int i) {}	
 	boolean isCorrect(int i, String sel) { return false; }
 	
@@ -40,18 +39,18 @@ public class Content {
 	public void run() {
 		//Utils.debugUtilsParsingOpTree();
 		
-		graph = new PGraph(applet, 480, 400);
+		graph = new PGraph(applet, 400, 400);
 		ElectronicCircuit e = new ElectronicCircuit();
 		e.registerOnPGraph(graph, e.randomSetup(4, 4));
 				
 		applet.vtmeta.setExtern(new VisualThing[] {
-				new VTImage("graph", 10, 20, 480, 400, graph),
+				new VTImage("graph", 10, 20, applet.getWidth() - 60, 400, graph),
 				new VTText("math", 10, 10, 400, new Utils.Callback<VTText>() {
 					public void run(VTText obj) {
 						doSomeDebugStuffWithOpTree(((MathTextField) obj.getComponent()).getOperatorTree());						
 					}
 				}, MathTextField.class),
-				new VTEquationInput("equ", 10, 10, 480, 400, e.getEquationSystem()),
+				new VTEquationInput("equ", 10, 10, applet.getWidth() - 60, 200, e.getEquationSystem()),
 		});
 	}
 	
