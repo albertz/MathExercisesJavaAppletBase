@@ -56,6 +56,14 @@ public class ElectronicCircuit {
 
 		EquationSystem.Equation.FracSum getFlowFromIn() { return end.getFlow(this); }
 		EquationSystem.Equation.FracSum getFlowFromOut() { return start.getFlow(this); }
+		EquationSystem.Equation.FracSum getVoltageFromOut() { return new EquationSystem.Equation.FracSum(); }
+		EquationSystem.Equation.FracSum getVoltageFrom(Node n) {
+			EquationSystem.Equation.FracSum voltageFromOut = getVoltageFromOut();
+			if(n == end) return voltageFromOut;
+			if(n == start) return voltageFromOut.minusOne();
+			throw new AssertionError("node must be either start or end");
+		}
+		
 		void initVarNames(int index) {}
 		String userString() { return ""; } // usually varname(s)
 		List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(); }		
@@ -66,6 +74,7 @@ public class ElectronicCircuit {
 		EquationSystem.VariableSymbol varFlow = null;		
 		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
 		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
+		EquationSystem.Equation.FracSum getVoltageFromOut() { return new EquationSystem.Equation.FracSum(new EquationSystem.Equation.FracSum.Frac.Sum.Prod(Utils.listFromArgs(varRes, varFlow))); }
 		@Override void initVarNames(int index) {
 			varRes.name = "R" + index;
 			varFlow.name = "I" + index;
@@ -584,7 +593,7 @@ public class ElectronicCircuit {
 		for(Node n : allNodesPartitionedByFlowInvariant()) {
 			//if(n != rootNode) // leave one out so they are all linearly independent
 			EquationSystem.Equation eq = n.getFlowEquation();
-			if(!eq.isTautology())
+			if(!eq.isTautology() && !eqSys.contains(eq))
 				eqSys.equations.add(eq);
 		}
 		eqSys.dump();

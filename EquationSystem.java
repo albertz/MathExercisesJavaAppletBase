@@ -13,6 +13,8 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
 
+import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.FracSum.Frac.Sum.Prod;
+
 public class EquationSystem {
 
 	Set<String> baseUnits = new HashSet<String>();
@@ -148,6 +150,10 @@ public class EquationSystem {
 						Prod() {}
 						Prod(VariableSymbol var) { facs.add(new Pot(var)); }
 						Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
+						Prod(Iterable<VariableSymbol> vars) {
+							for(VariableSymbol v : vars)
+								facs.add(new Pot(v));
+						}
 						Prod(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError { parse(ot, vars); }
 						void parse(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 							if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
@@ -216,6 +222,7 @@ public class EquationSystem {
 					}
 					Sum() {}
 					Sum(VariableSymbol var) { entries.add(new Prod(var)); }
+					Sum(Prod prod) { entries.add(prod); }
 					Sum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 						if(ot.op.equals("+") || ot.entities.size() <= 1) {
 							for(Utils.OperatorTree.Entity e : ot.entities)
@@ -250,6 +257,7 @@ public class EquationSystem {
 				Frac minusOne() { return new Frac(numerator.minusOne(), denominator); }
 				Frac() {}
 				Frac(VariableSymbol var) { this(new Sum(var), null); }
+				Frac(Prod prod) { this(new Sum(prod), null); }
 				Frac(Sum numerator, Sum denominator) { this.numerator = numerator; this.denominator = denominator; }
 				Frac(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 					if(!ot.op.equals("/"))
@@ -303,6 +311,7 @@ public class EquationSystem {
 			}
 			FracSum() {}
 			FracSum(VariableSymbol var) { entries.add(new Frac(var)); }
+			FracSum(Prod prod) { entries.add(new Frac(prod)); }
 			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 				if(ot.entities.size() == 1
 						&& ot.entities.get(0) instanceof Utils.OperatorTree.RawString
@@ -404,6 +413,7 @@ public class EquationSystem {
 		for(Equation e : normalized().equations) {
 			if(eq.equals(e)) return true;
 			if(minusEq.equals(e)) return true;
+			System.out.println("contains: " + eq + " unequal to " + e);
 		}
 		return false;
 	}

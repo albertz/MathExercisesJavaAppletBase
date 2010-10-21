@@ -9,6 +9,7 @@ public class Content {
 	PGraph graph;
 	ElectronicCircuit circuit;
 	VTEquationInput equationInput;
+	VTLabel questionLabel;
 	
 	public Content(Applet applet) {
 		this.applet = applet;		
@@ -52,6 +53,7 @@ public class Content {
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
 		equationInput = new VTEquationInput("equ", 10, 10, applet.getWidth() - 60, 200);
+		questionLabel = new VTLabel("question", "", 10, 10);
 		initNewCircuit();
 				
 		applet.vtmeta.setExtern(new VisualThing[] {
@@ -63,6 +65,7 @@ public class Content {
 					}
 				}),
 				new VTImage("graph", 10, 20, applet.getWidth() - 60, 400, graph),
+				questionLabel,
 				new VTText("math", 10, 10, 400, new Utils.Callback<VTText>() {
 					public void run(VTText obj) {
 						doSomeDebugStuffWithOpTree(((MathTextField) obj.getComponent()).getOperatorTree());						
