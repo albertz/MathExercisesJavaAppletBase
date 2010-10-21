@@ -319,6 +319,22 @@ public class ElectronicCircuit {
 		return eq;
 	}
 	
+	boolean isShortCircuit(List<MeshPart> mesh) {
+		boolean haveNegative = false;
+		boolean havePositive = false;
+		for(MeshPart part : mesh) {
+			int fac = part.conn.getVoltageFrom(part.nextNode).fac;
+			if(fac < 0) haveNegative = true;
+			if(fac > 0) havePositive = true;
+		}
+		return haveNegative ^ havePositive;
+	}
+	boolean haveShortCircuit() {
+		for(List<MeshPart> mesh : allMeshs())
+			if(isShortCircuit(mesh)) return true;
+		return false;
+	}
+	
 	private static void collectAllNodes(Node n, Set<Node> s) {
 		if(s.contains(n)) return;
 		s.add(n);
@@ -538,21 +554,47 @@ public class ElectronicCircuit {
 		for(T o : l) { a[i] = o; ++i; }
 	}
 	
-	private void randomLine(Node[] nodes, int minEffObjs) {
-		int numEffObjs = minEffObjs + r.nextInt(nodes.length - minEffObjs);
-		int numERes = (minEffObjs >= 2) ? (1 + r.nextInt(numEffObjs - 1)) : (r.nextInt(numEffObjs + 1));
-		int numVoltSrc = numEffObjs - numERes;
+	private void randomLine(Node[] nodes, int minEffObjs, int maxEffObjs) {
+		boolean mustAddResistance = false;
+		{
+			// first, connect all to test if we have a short circuit
+			Set<Conn> tempConns = new HashSet<Conn>();
+			for(int i = 0; i < nodes.length - 1; ++i) {
+				Conn c = new VoltageSource();
+				tempConns.add(c);
+				Node s = nodes[i], e = nodes[i + 1];
+				s.addOut(c);
+				e.addIn(c);
+			}
+			if(haveShortCircuit())
+				mustAddResistance = true;
+			// remove temp conns again
+			for(int i = 0; i < nodes.length; ++i) {
+				nodes[i].in.removeAll(tempConns);
+				nodes[i].out.removeAll(tempConns);
+			}
+		}
+		
+		maxEffObjs = Math.max(minEffObjs, maxEffObjs);
+		maxEffObjs = Math.min(nodes.length - 1, maxEffObjs);
+		int numEffObjs = minEffObjs + r.nextInt(maxEffObjs - minEffObjs + 1);
+		int numERes =
+			(minEffObjs >= 2)
+				? (1 + r.nextInt(numEffObjs - 1))
+				: (r.nextInt(numEffObjs + 1));
+		if(mustAddResistance) numERes = Math.max(numERes, 1);
+		int numVoltSrc = Math.max(numEffObjs - numERes, 0);	
 		
 		Integer[] nodeIndexes = new Integer[nodes.length - 1];
 		for(int i = 0; i < nodes.length - 1; ++i) nodeIndexes[i] = i;
 		shuffleArray(nodeIndexes);
-		
 		for(int i = 0; i < nodeIndexes.length; ++i) {
 			Conn c;
 			if(i < numERes) c = new EResistance();
 			else if(i < numERes + numVoltSrc) c = new VoltageSource();
 			else c = new Conn();
-
+			
+			// replace old simple connection
 			Node s = nodes[nodeIndexes[i]], e = nodes[nodeIndexes[i] + 1];
 			s.addOut(c);
 			e.addIn(c);
@@ -572,13 +614,13 @@ public class ElectronicCircuit {
 			line = getHorizLine(W, H, y, nodes);
 			hs[0] = y + 1; hs[1] = H - y;
 		}
-		else {			
+		else {
 			int x = r.nextInt(W - 2) + 1;
 			ns = splitVert(W, H, x, nodes);
 			line = getVertLine(W, H, x, nodes);
 			ws[0] = x + 1; ws[1] = W - x;
 		}
-		randomLine(line, 1);
+		randomLine(line, 1, 2);
 		randomSetup(ws[0], hs[0], ns[0]);
 		randomSetup(ws[1], hs[1], ns[1]);
 	}
@@ -633,18 +675,20 @@ public class ElectronicCircuit {
 	
 	// returns straightforward visual ordered points
 	Map<Point,Node> randomSetup(int W, int H) {		
+		clear();
 		Node[] nodes = new Node[W * H];
 		for(int i = 0; i < W*H; ++i) nodes[i] = new Node();
+		rootNode = nodes[0];
+
 		List<Node> border = new LinkedList<Node>();
 		for(int i = 0; i < W; ++i) border.add(nodes[i]);
 		for(int i = 1; i < H; ++i) border.add(nodes[i*W + W-1]);
 		for(int i = W - 2; i >= 0; --i) border.add(nodes[W*(H-1) + i]);
 		for(int i = H - 2; i >= 0; --i) border.add(nodes[i*W]);
-		randomLine(border.toArray(new Node[] {}), 2);
+		randomLine(border.toArray(new Node[] {}), 2, border.size() / 2);
+		
 		randomSetup(W, H, nodes);
 		
-		clear();
-		rootNode = nodes[0];
 		initVarNames();
 		
 		//dump(nodes);
