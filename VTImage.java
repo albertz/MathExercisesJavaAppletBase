@@ -39,6 +39,7 @@ public class VTImage extends VisualThing implements Applet.CorrectCheck {
 	public Component getComponent() {
 		if (panel == null) {
 			panel = new Component() {
+				private static final long serialVersionUID = 1L;
 				public void paint(Graphics g) {
 					painter.paint(g);
 				}
@@ -68,10 +69,12 @@ public class VTImage extends VisualThing implements Applet.CorrectCheck {
 	}
 
 	public int getWidth() {
+		if(painter instanceof Utils.Size) return ((Utils.Size) painter).getWidth();
 		return width;
 	}
 
 	public int getHeight() {
+		if(painter instanceof Utils.Size) return ((Utils.Size) painter).getHeight();
 		return height;
 	}
 

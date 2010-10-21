@@ -19,6 +19,11 @@ import javax.naming.OperationNotSupportedException;
 
 public class Utils {
 
+	static interface Size {
+	    int getWidth();
+	    int getHeight();
+	}
+	
 	static abstract class LightCollection<E> implements Collection<E> {
 		public boolean isEmpty() { return !iterator().hasNext(); }
 		public int size() {
@@ -129,9 +134,26 @@ public class Utils {
 			}
 		};
 	}
+
+	static <E> List<E> listFromArgs() {
+		return new LinkedList<E>();
+	}
+
+	static <E> List<E> listFromArgs(E arg1) {
+		List<E> list = new LinkedList<E>();
+		list.add(arg1);
+		return list;
+	}
+
+	static <E> List<E> listFromArgs(E arg1, E arg2) {
+		List<E> list = new LinkedList<E>();
+		list.add(arg1);
+		list.add(arg2);
+		return list;
+	}
 	
-	static <E> Collection<E> concatCollectionView(final Collection<E>... colls) {		
-		return concatCollectionView(iterableFromArray(colls));
+	static <E> Collection<E> concatCollectionView(Collection<E> c1, Collection<E> c2) {		
+		return concatCollectionView(listFromArgs(c1, c2));
 	}
 	
 	static <E> Set<E> mergedSetView(final Iterable<? extends Set<E>> sets) {

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
+class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.Size {
 	// Funktionsplotter / Graphzeichner
 	
 	private final Applet applet;
@@ -557,12 +557,14 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		//mouseMoved(e);
 	}
 
-	public int getH() {
+	public int getHeight() {
 		return H;
 	}
 
-	public int getW() {
+	public int getWidth() {
 		return W;
 	}
 
+	void setSize(int w, int h) { W = w; H = h; }
+	
 }

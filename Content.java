@@ -1,14 +1,14 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
-import java.awt.Component;
-import java.awt.Container;
-
+import java.util.Random;
 import javax.swing.JScrollPane;
 
 public class Content {
 
 	Applet applet;
 	PGraph graph;
+	ElectronicCircuit circuit;
+	VTEquationInput equationInput;
 	
 	public Content(Applet applet) {
 		this.applet = applet;		
@@ -36,21 +36,39 @@ public class Content {
 		s.debugEquation(ot);
 	}
 	
+	void initNewCircuit() {
+		int w = new Random().nextInt(3) + 2;
+		int h = new Random().nextInt(3) + 2;
+		graph.setSize(w * 100, h * 100);
+		graph.clear();
+		circuit.registerOnPGraph(graph, circuit.randomSetup(w, h));
+		equationInput.clear();
+		equationInput.eqSys = circuit.getEquationSystem();
+	}
+	
 	public void run() {
 		//Utils.debugUtilsParsingOpTree();
 		
 		graph = new PGraph(applet, 400, 400);
-		ElectronicCircuit e = new ElectronicCircuit();
-		e.registerOnPGraph(graph, e.randomSetup(4, 4));
+		circuit = new ElectronicCircuit();
+		equationInput = new VTEquationInput("equ", 10, 10, applet.getWidth() - 60, 200);
+		initNewCircuit();
 				
 		applet.vtmeta.setExtern(new VisualThing[] {
+				new VTButton("new", "neue Aufgabe", 10, 10, new Runnable() {
+					public void run() {
+						initNewCircuit();
+						applet.revalidateVisualThings();
+						applet.repaint();						
+					}
+				}),
 				new VTImage("graph", 10, 20, applet.getWidth() - 60, 400, graph),
 				new VTText("math", 10, 10, 400, new Utils.Callback<VTText>() {
 					public void run(VTText obj) {
 						doSomeDebugStuffWithOpTree(((MathTextField) obj.getComponent()).getOperatorTree());						
 					}
 				}, MathTextField.class),
-				new VTEquationInput("equ", 10, 10, applet.getWidth() - 60, 200, e.getEquationSystem()),
+				equationInput,
 		});
 	}
 	

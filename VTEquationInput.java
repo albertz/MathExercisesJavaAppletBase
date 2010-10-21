@@ -184,6 +184,14 @@ public class VTEquationInput extends VisualThing {
 			height = y + addNewEquationButton.getHeight();
 		}
 		
+		void clear() {
+			for(Iterator<EquationPanel> i = equations.iterator(); i.hasNext();) {
+				EquationPanel eqp = i.next();
+				i.remove();
+				this.remove(eqp);
+			}			
+			VTEquationInput.this.posComponents();
+		}
 	}
 	
 	class MainPanel extends JPanel {
@@ -206,7 +214,7 @@ public class VTEquationInput extends VisualThing {
 					eqp.setInputRight("ok");
 					return true;
 				} else {
-					eqp.setInputWrong("Das kann nicht direkt aus der Schaltung abgelesen werden.");
+					eqp.setInputWrong("kann nicht aus der Schaltung abgelesen werden");
 					return false;
 				}
 			}
@@ -233,7 +241,7 @@ public class VTEquationInput extends VisualThing {
 					eqp.setInputRight("ok");
 					return true;
 				} else {
-					eqp.setInputWrong("Das kann nicht direkt aus den bisherigen Gleichungen hergeleitet werden.");
+					eqp.setInputWrong("kann nicht hergeleitet werden");
 					return false;
 				}
 			}
@@ -265,6 +273,10 @@ public class VTEquationInput extends VisualThing {
 			this.add(followingEquationsPanel);
 		}
 
+		void clear() {
+			basicEquationsPanel.clear();
+			followingEquationsPanel.clear();
+		}
 	}
 	
 	MainPanel mainPanel = null;
@@ -273,15 +285,14 @@ public class VTEquationInput extends VisualThing {
 	int stepY;
 	int width;
 	int height;
-	EquationSystem eqSys;
+	EquationSystem eqSys = null;
 	
-	VTEquationInput(String name, int stepX, int stepY, int width, int height, EquationSystem eqSys) {
+	VTEquationInput(String name, int stepX, int stepY, int width, int height) {
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;
 		this.width = width;
 		this.height = height;
-		this.eqSys = eqSys;
 	}
 	
 	void posComponents() {
@@ -315,5 +326,10 @@ public class VTEquationInput extends VisualThing {
 	@Override public int getStepY() { return stepY; }
 	@Override public void setStepX(int v) { stepX = v; }
 	@Override public void setStepY(int v) { stepY = v; }
+
+	public void clear() {
+		if(mainPanel != null)
+			mainPanel.clear();
+	}
 
 }

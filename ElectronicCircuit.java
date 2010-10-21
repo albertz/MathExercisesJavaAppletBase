@@ -3,7 +3,6 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -13,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class ElectronicCircuit {
 		
@@ -22,7 +20,8 @@ public class ElectronicCircuit {
 		void clear() {
 			Node oldS = start, oldE = end;
 			start = null; end = null;
-			oldS.clear(); oldE.clear();
+			if(oldS != null) oldS.clear();
+			if(oldE != null) oldE.clear();
 		}
 		void remove() {
 			if(start != null) { start.out.remove(this); start = null; }
@@ -41,13 +40,25 @@ public class ElectronicCircuit {
 			newMiddleNode.addOut(c);
 		}
 		
+		void drawUserString(Graphics g, PGraph.Point start, PGraph.Point end) {
+			String s = userString();
+			if(s == null || s.isEmpty()) return;
+			PGraph.Point pos = start.sum(end).mult(0.5);
+			pos.x += 5;
+			pos.y -= 5;
+			g.drawString(s, (int) pos.x, (int) pos.y);
+		}
+
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			g.drawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y);
+			drawUserString(g, start, end);
 		}
 
 		EquationSystem.Equation.FracSum getFlowFromIn() { return end.getFlow(this); }
 		EquationSystem.Equation.FracSum getFlowFromOut() { return start.getFlow(this); }
 		void initVarNames(int index) {}
+		String userString() { return ""; } // usually varname(s)
+		List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(); }		
 	}
 			
 	static class EResistance extends Conn {
@@ -59,6 +70,8 @@ public class ElectronicCircuit {
 			varRes.name = "R" + index;
 			varFlow.name = "I" + index;
 		}
+		@Override String userString() { return varRes.name + ", " + varFlow.name; }
+		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varRes, varFlow); }
 		EResistance() {
 			 this.varRes = new EquationSystem.VariableSymbol("Ω");
 			 this.varFlow = new EquationSystem.VariableSymbol("A");
@@ -79,12 +92,16 @@ public class ElectronicCircuit {
 			g.drawLine((int)p4.x, (int)p4.y, (int)p5.x, (int)p5.y);
 			g.drawLine((int)p5.x, (int)p5.y, (int)p6.x, (int)p6.y);
 			g.drawLine((int)p6.x, (int)p6.y, (int)p3.x, (int)p3.y);
+
+			drawUserString(g, start, end);
 		}		
 	}
 	
 	static class VoltageSource extends Conn {
 		EquationSystem.VariableSymbol varVolt = null;
 		@Override void initVarNames(int index) { varVolt.name = "U" + index; }
+		@Override String userString() { return varVolt.name; }
+		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varVolt); }
 		VoltageSource() { this.varVolt = new EquationSystem.VariableSymbol("V"); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
@@ -101,6 +118,8 @@ public class ElectronicCircuit {
 			PGraph.Point p6 = p2.sum(diff3.mult(1.8));
 			g.drawLine((int)p3.x, (int)p3.y, (int)p4.x, (int)p4.y);
 			g.drawLine((int)p5.x, (int)p5.y, (int)p6.x, (int)p6.y);
+
+			drawUserString(g, start, end);
 		}
 	}
 	
@@ -134,16 +153,22 @@ public class ElectronicCircuit {
 			}
 			
 			void addFlowInvariants(Node n) {
+				if(nodes.contains(n)) return;
+				nodes.add(n);
 				for(Conn c : Utils.concatCollectionView(n.in, n.out)) {
-					
+					if(!(c instanceof EResistance)) { // all other connection types are invariant
+						conns.add(c);
+						addFlowInvariants(c.start);
+						addFlowInvariants(c.end);
+					}
 				}
 			}
 		}
 		
 		NodeCollection collectFlowInvariantGroup() {
 			NodeCollection coll = new NodeCollection();
-			//coll.nodes
-			return null;
+			coll.addFlowInvariants(this);
+			return coll;
 		}
 		
 		EquationSystem.Equation.FracSum getFlow() { return getFlow(null); }
@@ -174,6 +199,18 @@ public class ElectronicCircuit {
 		Set<Node> s = new HashSet<Node>();
 		collectAllNodes(rootNode, s);
 		return s;
+	}
+	
+	Set<Node.NodeCollection> allNodesPartitionedByFlowInvariant() {
+		Set<Node.NodeCollection> res = new HashSet<Node.NodeCollection>();
+		Set<Node> allNodes = allNodes();
+		while(!allNodes.isEmpty()) {
+			Node n = allNodes.iterator().next();
+			Node.NodeCollection nodeColl = n.collectFlowInvariantGroup();
+			res.add(nodeColl);
+			allNodes.removeAll(nodeColl.nodes);
+		}
+		return res;
 	}
 	
 	private static void collectAllNodes(Node n, Set<Node> s) {
@@ -481,8 +518,10 @@ public class ElectronicCircuit {
 	void initVarNames() {
 		int index = 1;
 		for(Conn c : allConns()) {
-			c.initVarNames(index);
-			index++;
+			if(!c.vars().isEmpty()) {
+				c.initVarNames(index);
+				index++;
+			}
 		}
 	}
 	
@@ -539,9 +578,14 @@ public class ElectronicCircuit {
 
 	public EquationSystem getEquationSystem() {
 		EquationSystem eqSys = new EquationSystem();
-		for(Node n : allNodes()) {
-			if(n != rootNode) // leave one out so they are all linearly independent
-				eqSys.equations.add(n.getFlowEquation());
+		for(Conn c : allConns())
+			for(EquationSystem.VariableSymbol var : c.vars())
+				eqSys.registerVariableSymbol(var);
+		for(Node n : allNodesPartitionedByFlowInvariant()) {
+			//if(n != rootNode) // leave one out so they are all linearly independent
+			EquationSystem.Equation eq = n.getFlowEquation();
+			if(!eq.isTautology())
+				eqSys.equations.add(eq);
 		}
 		eqSys.dump();
 		return eqSys;

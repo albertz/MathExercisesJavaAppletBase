@@ -317,6 +317,7 @@ public class EquationSystem {
 				else
 					entries.add( new Frac(ot, vars) );
 			}
+			boolean isZero() { return entries.isEmpty(); }
 		}
 		FracSum left = new FracSum(), right = new FracSum();		
 		@Override public String toString() { return left.toString() + " = " + right.toString(); }
@@ -336,6 +337,10 @@ public class EquationSystem {
 			return eq;
 		}
 		Equation minusOne() { return new Equation(left.minusOne(), right.minusOne()); }
+		boolean isTautology() {
+			Equation norm = normalize();
+			return norm.left.isZero() && norm.right.isZero();
+		}
 		Equation() {}
 		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
