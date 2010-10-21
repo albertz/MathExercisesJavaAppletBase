@@ -108,10 +108,20 @@ public class ElectronicCircuit {
 	
 	static class VoltageSource extends Conn {
 		EquationSystem.VariableSymbol varVolt = null;
-		@Override void initVarNames(int index) { varVolt.name = "U" + index; }
-		@Override String userString() { return varVolt.name; }
-		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varVolt); }
-		VoltageSource() { this.varVolt = new EquationSystem.VariableSymbol("V"); }
+		EquationSystem.VariableSymbol varFlow = null;
+		@Override void initVarNames(int index) {
+			varVolt.name = "U" + index;
+			varFlow.name = "I" + index;
+		}
+		@Override String userString() { return varVolt.name + ", " + varFlow.name; }
+		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varVolt, varFlow); }
+		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
+		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
+		EquationSystem.Equation.FracSum getVoltageFromOut() { return new EquationSystem.Equation.FracSum(varVolt); }
+		VoltageSource() {
+			this.varVolt = new EquationSystem.VariableSymbol("V");
+			this.varFlow = new EquationSystem.VariableSymbol("A");
+		}
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
 			PGraph.Point diff2 = diff.mult(1.0/24.0);
@@ -165,7 +175,7 @@ public class ElectronicCircuit {
 				if(nodes.contains(n)) return;
 				nodes.add(n);
 				for(Conn c : Utils.concatCollectionView(n.in, n.out)) {
-					if(!(c instanceof EResistance)) { // all other connection types are invariant
+					if(c.vars().isEmpty()) { // exactly those connection types are invariant
 						conns.add(c);
 						addFlowInvariants(c.start);
 						addFlowInvariants(c.end);
