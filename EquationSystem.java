@@ -419,8 +419,8 @@ public class EquationSystem {
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		// TODO Auto-generated method stub
-		return false;
+		// TODO ...
+		return contains(eq);
 	}
 	
 	void dump() {

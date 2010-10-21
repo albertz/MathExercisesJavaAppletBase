@@ -593,7 +593,7 @@ public class ElectronicCircuit {
 		for(Node n : allNodesPartitionedByFlowInvariant()) {
 			//if(n != rootNode) // leave one out so they are all linearly independent
 			EquationSystem.Equation eq = n.getFlowEquation();
-			if(!eq.isTautology() && !eqSys.contains(eq))
+			if(!eq.isTautology() && !eqSys.canConcludeTo(eq))
 				eqSys.equations.add(eq);
 		}
 		eqSys.dump();
