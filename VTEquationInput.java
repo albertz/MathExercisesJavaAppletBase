@@ -275,6 +275,7 @@ public class VTEquationInput extends VisualThing {
 
 		void clear() {
 			basicEquationsPanel.clear();
+			basicEquationsPanel.addEquation();
 			followingEquationsPanel.clear();
 		}
 	}
