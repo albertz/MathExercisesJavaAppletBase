@@ -40,12 +40,20 @@ public class ElectronicCircuit {
 			newMiddleNode.addOut(c);
 		}
 		
-		void drawUserString(Graphics g, PGraph.Point start, PGraph.Point end) {
-			String s = userString();
-			if(s == null || s.isEmpty()) return;
+		PGraph.Point getStringDrawPos(PGraph.Point start, PGraph.Point end) {
 			PGraph.Point pos = start.sum(end).mult(0.5);
 			pos.x += 5;
 			pos.y -= 5;
+			return pos;
+		}
+		
+		double getStringWidth(Graphics g) { return g.getFontMetrics().getStringBounds(userString(), g).getWidth(); }
+		double getStringHeight(Graphics g) { return g.getFontMetrics().getHeight(); }
+		
+		void drawUserString(Graphics g, PGraph.Point start, PGraph.Point end) {
+			String s = userString();
+			if(s.isEmpty()) return;
+			PGraph.Point pos = getStringDrawPos(start, end);
 			g.drawString(s, (int) pos.x, (int) pos.y);
 		}
 
@@ -86,12 +94,14 @@ public class ElectronicCircuit {
 			 this.varFlow = new EquationSystem.VariableSymbol("A");
 		}
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
+			// resistance in/out connection
 			PGraph.Point diff = end.diff(start).mult(1.0/3.0);			
 			PGraph.Point p1 = start.sum(diff);
 			PGraph.Point p2 = start.sum(diff.mult(2));
 			g.drawLine((int)start.x, (int)start.y, (int)p1.x, (int)p1.y);
 			g.drawLine((int)p2.x, (int)p2.y, (int)end.x, (int)end.y);
 
+			// resistance body
 			PGraph.Point diff2 = diff.rot90().mult(1.0/8.0);
 			PGraph.Point p3 = p1.sum(diff2);
 			PGraph.Point p4 = p1.diff(diff2);
@@ -102,6 +112,18 @@ public class ElectronicCircuit {
 			g.drawLine((int)p5.x, (int)p5.y, (int)p6.x, (int)p6.y);
 			g.drawLine((int)p6.x, (int)p6.y, (int)p3.x, (int)p3.y);
 
+			// arrow next to it to show direction
+			PGraph.Point arrowCenter = getStringDrawPos(start, end);
+			arrowCenter.x += getStringWidth(g) * 0.5;
+			arrowCenter.y += Math.abs(diff2.y) * 2.5 + Math.abs(diff.y) * 0.2 + 4;
+			PGraph.Point p7 = arrowCenter.sum(diff2);
+			PGraph.Point p8 = arrowCenter.diff(diff2);
+			PGraph.Point p9 = arrowCenter.sum(diff.mult(0.2));
+			PGraph.Point p10 = arrowCenter.diff(diff.mult(0.2));
+			g.drawLine((int)p7.x, (int)p7.y, (int)p9.x, (int)p9.y);
+			g.drawLine((int)p8.x, (int)p8.y, (int)p9.x, (int)p9.y);
+			g.drawLine((int)p10.x, (int)p10.y, (int)p9.x, (int)p9.y);
+			
 			drawUserString(g, start, end);
 		}		
 	}
@@ -125,10 +147,10 @@ public class ElectronicCircuit {
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
 			PGraph.Point diff2 = diff.mult(1.0/24.0);
-			PGraph.Point p1 = start.sum(diff).diff(diff2);
-			PGraph.Point p2 = start.sum(diff).sum(diff2);
-			g.drawLine((int)start.x, (int)start.y, (int)p1.x, (int)p1.y);
-			g.drawLine((int)p2.x, (int)p2.y, (int)end.x, (int)end.y);
+			PGraph.Point p1 = start.sum(diff).sum(diff2);
+			PGraph.Point p2 = start.sum(diff).diff(diff2);
+			g.drawLine((int)end.x, (int)end.y, (int)p1.x, (int)p1.y);
+			g.drawLine((int)p2.x, (int)p2.y, (int)start.x, (int)start.y);
 			
 			PGraph.Point diff3 = diff.mult(1.0/12.0).rot90();
 			PGraph.Point p3 = p1.diff(diff3.mult(3.0));
@@ -425,7 +447,7 @@ public class ElectronicCircuit {
 		})) - borderSize;
 		graph.x_r = Collections.max(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
 			public Double eval(NodePoint obj) { return obj.point.x; }
-		})) + borderSize;
+		})) + borderSize + 0.2;
 		graph.y_o = Collections.min(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
 			public Double eval(NodePoint obj) { return obj.point.y; }
 		})) - borderSize;

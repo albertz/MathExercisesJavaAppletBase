@@ -40,7 +40,7 @@ public class Content {
 	void initNewCircuit() {
 		int w = new Random().nextInt(3) + 2;
 		int h = new Random().nextInt(3) + 2;
-		graph.setSize(w * 100, h * 100);
+		graph.setSize(w * 100 + 20, h * 100);
 		graph.clear();
 		circuit.registerOnPGraph(graph, circuit.randomSetup(w, h));
 		equationInput.clear();
