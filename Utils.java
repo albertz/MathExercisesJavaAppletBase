@@ -81,12 +81,12 @@ public class Utils {
 		};
 	}
 	
-	static <E> Collection<E> concatCollectionView(final Iterable<? extends Collection<E>> colls) {
+	static <E> Collection<E> concatCollectionView(final Iterable<? extends Iterable<E>> colls) {
 		return new LightCollection<E>() {
 			public Iterator<E> iterator() {
 				return new Iterator<E>() {
-					Iterator<? extends Collection<E>> curSetsIter = colls.iterator();
-					Collection<E> curColl = null;
+					Iterator<? extends Iterable<E>> curSetsIter = colls.iterator();
+					Iterable<E> curColl = null;
 					Iterator<E> curIterator = null;
 					
 					{
@@ -152,7 +152,7 @@ public class Utils {
 		return list;
 	}
 	
-	static <E> Collection<E> concatCollectionView(Collection<E> c1, Collection<E> c2) {		
+	static <E> Collection<E> concatCollectionView(Iterable<E> c1, Iterable<E> c2) {		
 		return concatCollectionView(listFromArgs(c1, c2));
 	}
 	

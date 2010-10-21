@@ -64,9 +64,9 @@ public class ElectronicCircuit {
 
 		EquationSystem.Equation.FracSum getFlowFromIn() { return end.getFlow(this); }
 		EquationSystem.Equation.FracSum getFlowFromOut() { return start.getFlow(this); }
-		EquationSystem.Equation.FracSum getVoltageFromOut() { return new EquationSystem.Equation.FracSum(); }
-		EquationSystem.Equation.FracSum getVoltageFrom(Node n) {
-			EquationSystem.Equation.FracSum voltageFromOut = getVoltageFromOut();
+		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFromOut() { return new EquationSystem.Equation.FracSum.Frac.Sum.Prod(0); }
+		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFrom(Node n) {
+			EquationSystem.Equation.FracSum.Frac.Sum.Prod voltageFromOut = getVoltageFromOut();
 			if(n == end) return voltageFromOut;
 			if(n == start) return voltageFromOut.minusOne();
 			throw new AssertionError("node must be either start or end");
@@ -82,7 +82,7 @@ public class ElectronicCircuit {
 		EquationSystem.VariableSymbol varFlow = null;		
 		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
 		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
-		EquationSystem.Equation.FracSum getVoltageFromOut() { return new EquationSystem.Equation.FracSum(new EquationSystem.Equation.FracSum.Frac.Sum.Prod(Utils.listFromArgs(varRes, varFlow))); }
+		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFromOut() { return new EquationSystem.Equation.FracSum.Frac.Sum.Prod(Utils.listFromArgs(varRes, varFlow)); }
 		@Override void initVarNames(int index) {
 			varRes.name = "R" + index;
 			varFlow.name = "I" + index;
@@ -139,7 +139,7 @@ public class ElectronicCircuit {
 		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varVolt, varFlow); }
 		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
 		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
-		EquationSystem.Equation.FracSum getVoltageFromOut() { return new EquationSystem.Equation.FracSum(varVolt); }
+		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFromOut() { return new EquationSystem.Equation.FracSum.Frac.Sum.Prod(varVolt).minusOne(); }
 		VoltageSource() {
 			this.varVolt = new EquationSystem.VariableSymbol("V");
 			this.varFlow = new EquationSystem.VariableSymbol("A");
@@ -212,6 +212,37 @@ public class ElectronicCircuit {
 			return coll;
 		}
 		
+		Iterable<MeshPart> inNodes() {
+			return Utils.map(in, new Utils.Function<Conn,MeshPart>() {		
+				public MeshPart eval(Conn obj) { return new MeshPart(obj, obj.start); }
+			});
+		}
+		Iterable<MeshPart> outNodes() {
+			return Utils.map(out, new Utils.Function<Conn,MeshPart>() {
+				public MeshPart eval(Conn obj) { return new MeshPart(obj, obj.end); }
+			});
+		}
+		
+		Set<List<MeshPart>> allMeshsFromHere() {
+			Set<List<MeshPart>> meshs = new HashSet<List<MeshPart>>();
+			collectAllMeshsFromHere(this, new LinkedList<MeshPart>(), new HashSet<Node>(), meshs);
+			return meshs;
+		}
+		void collectAllMeshsFromHere(Node startNode, List<MeshPart> incompleteMesh, Set<Node> exceptNodes, Set<List<MeshPart>> meshs) {
+			if(exceptNodes.contains(this)) return;
+			exceptNodes.add(this);
+			for(MeshPart meshPart : Utils.concatCollectionView(inNodes(), outNodes())) {
+				List<MeshPart> newMesh = new LinkedList<MeshPart>(incompleteMesh);
+				newMesh.add(meshPart);
+				if(meshPart.nextNode == startNode)
+					// we have a new complete mesh
+					meshs.add(newMesh);
+				else
+					// go recursive
+					meshPart.nextNode.collectAllMeshsFromHere(startNode, newMesh, exceptNodes, meshs);
+			}
+		}
+		
 		EquationSystem.Equation.FracSum getFlow() { return getFlow(null); }
 		EquationSystem.Equation.FracSum getFlow(Conn conn) {
 			EquationSystem.Equation.FracSum sum = new EquationSystem.Equation.FracSum();
@@ -252,6 +283,40 @@ public class ElectronicCircuit {
 			allNodes.removeAll(nodeColl.nodes);
 		}
 		return res;
+	}
+	
+	static class MeshPart {
+		Conn conn;
+		Node nextNode;
+		MeshPart(Conn c, Node n) { conn = c; nextNode = n; }
+		// these are so that we have every mesh unique in allMeshs(),
+		// independent of the order (thus ignore nextNode)
+		@Override public int hashCode() {
+			return 31 + ((conn == null) ? 0 : conn.hashCode());
+		}
+		@Override public boolean equals(Object obj) {
+			if (!(obj instanceof MeshPart)) return false;
+			MeshPart other = (MeshPart) obj;
+			return conn == other.conn;
+		}
+	}
+	Set<List<MeshPart>> allMeshs() {
+		Set<List<MeshPart>> meshs = new HashSet<List<MeshPart>>();
+		for(Node n : allNodes())
+			meshs.addAll(n.allMeshsFromHere());
+		return meshs;
+	}
+	
+	EquationSystem.Equation equationFromMesh(List<MeshPart> mesh) {
+		EquationSystem.Equation eq = new EquationSystem.Equation();
+		for(MeshPart part : mesh) {
+			EquationSystem.Equation.FracSum.Frac.Sum.Prod prod = part.conn.getVoltageFrom(part.nextNode);
+			if(prod.fac < 0)
+				eq.left.entries.add(new EquationSystem.Equation.FracSum.Frac(prod.minusOne()));
+			else if(prod.fac > 0)
+				eq.right.entries.add(new EquationSystem.Equation.FracSum.Frac(prod));
+		}
+		return eq;
 	}
 	
 	private static void collectAllNodes(Node n, Set<Node> s) {
@@ -623,8 +688,12 @@ public class ElectronicCircuit {
 			for(EquationSystem.VariableSymbol var : c.vars())
 				eqSys.registerVariableSymbol(var);
 		for(Node n : allNodesPartitionedByFlowInvariant()) {
-			//if(n != rootNode) // leave one out so they are all linearly independent
 			EquationSystem.Equation eq = n.getFlowEquation();
+			if(!eq.isTautology() && !eqSys.canConcludeTo(eq))
+				eqSys.equations.add(eq);
+		}
+		for(List<MeshPart> mesh : allMeshs()) {
+			EquationSystem.Equation eq = equationFromMesh(mesh);
 			if(!eq.isTautology() && !eqSys.canConcludeTo(eq))
 				eqSys.equations.add(eq);
 		}

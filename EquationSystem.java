@@ -127,10 +127,11 @@ public class EquationSystem {
 							if(!(obj instanceof Prod)) return false;
 							return compareTo((Prod) obj) == 0;
 						}
+						boolean isZero() { return fac == 0; }
 						@Override public String toString() {
-							if(fac == 1) return Utils.concat(facs, " ");
-							if(fac == -1) return "-" + Utils.concat(facs, " ");
-							return fac + " " + Utils.concat(facs, " ");
+							if(fac == 1) return Utils.concat(facs, " ∙ ");
+							if(fac == -1) return "-" + Utils.concat(facs, " ∙ ");
+							return fac + " ∙ " + Utils.concat(facs, " ∙ ");
 						}
 						Prod normalize() {
 							Prod prod = new Prod();
@@ -148,6 +149,7 @@ public class EquationSystem {
 						}
 						Prod minusOne() { return new Prod(-fac, facs); }
 						Prod() {}
+						Prod(int num) { this.fac = num; }
 						Prod(VariableSymbol var) { facs.add(new Pot(var)); }
 						Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
 						Prod(Iterable<VariableSymbol> vars) {
@@ -240,6 +242,7 @@ public class EquationSystem {
 					if(denominator == null && f.denominator != null) return false;
 					return denominator.equals(f.denominator);
 				}
+				boolean isZero() { return numerator.isEmpty(); }
 				public int compareTo(Frac o) {
 					if(denominator != null && o.denominator == null) return 1;
 					if(denominator == null && o.denominator != null) return -1;
@@ -413,7 +416,7 @@ public class EquationSystem {
 		for(Equation e : normalized().equations) {
 			if(eq.equals(e)) return true;
 			if(minusEq.equals(e)) return true;
-			System.out.println("contains: " + eq + " unequal to " + e);
+			//System.out.println("contains: " + eq + " unequal to " + e);
 		}
 		return false;
 	}
