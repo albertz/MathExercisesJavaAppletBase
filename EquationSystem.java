@@ -1,5 +1,6 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -92,14 +93,34 @@ public class EquationSystem {
 	Map<String, VariableSymbol> variableSymbols = new HashMap<String, VariableSymbol>();	
 	void registerVariableSymbol(VariableSymbol var) { variableSymbols.put(var.name, var); }	
 	void registerVariableSymbol(String name, String unit) { registerVariableSymbol(new VariableSymbol(name, unit)); }
+		
+	static abstract class Expression {
+		<T> T castTo(Class<T> clazz) {
+			if(clazz.isAssignableFrom(getClass())) return clazz.cast(this);
+			if(clazz.isAssignableFrom(VariableSymbol.class)) return clazz.cast(asVariable());
+			if(clazz.isAssignableFrom(Integer.class)) return clazz.cast(asNumber());
+			try {
+				return clazz.getConstructor(getClass()).newInstance(this);
+			} catch (Exception e) {}
+			throw new AssertionError("unknown type: " + clazz);
+		}
+		VariableSymbol asVariable() { return castTo(Equation.FracSum.Frac.Sum.Prod.Pot.class).asVariable(); } 
+		Integer asNumber() { return castTo(Equation.FracSum.Frac.Sum.Prod.Pot.class).asNumber(); }
+
+		boolean equalsToNum(int num) {
+			Integer myNum = asNumber();
+			if(myNum != null) return myNum == num;
+			return false;
+		}
+	}
 	
 	static class Equation implements Comparable<Equation> {
-		static class FracSum implements Comparable<FracSum> {
-			static class Frac implements Comparable<Frac> {
-				static class Sum implements Comparable<Sum> {
-					static class Prod implements Comparable<Prod> {
-						int fac = 1;
-						static class Pot implements Comparable<Pot> {
+		static class FracSum extends Expression implements Comparable<FracSum> {
+			static class Frac extends Expression implements Comparable<Frac> {
+				static class Sum extends Expression implements Comparable<Sum> {
+					static class Prod extends Expression implements Comparable<Prod> {
+						int fac = 0;
+						static class Pot extends Expression implements Comparable<Pot> {
 							VariableSymbol sym;
 							int pot = 1;
 							@Override public String toString() { return sym.name + ((pot != 1) ? ("^" + pot) : ""); }		
@@ -116,6 +137,14 @@ public class EquationSystem {
 								if(!(obj instanceof Pot)) return false;
 								return compareTo((Pot) obj) == 0;
 							}
+							@Override Integer asNumber() {
+								if(pot == 0) return 1;
+								return null;
+							}
+							@Override VariableSymbol asVariable() {
+								if(pot == 1) return sym;
+								return null;
+							}
 						}						
 						List<Pot> facs = new LinkedList<Pot>();
 						public int compareTo(Prod o) {
@@ -127,7 +156,24 @@ public class EquationSystem {
 							if(!(obj instanceof Prod)) return false;
 							return compareTo((Prod) obj) == 0;
 						}
+						@Override Integer asNumber() {
+							if(fac == 0) return 0;
+							if(facs.isEmpty()) return fac;
+							return null;
+						}
+						@Override VariableSymbol asVariable() {
+							// TODO Auto-generated method stub
+							return null;
+						}
+						@Override <T> T castTo(Class<T> clazz) {
+							if(clazz.isAssignableFrom(Pot.class)) {
+								if(facs.size() == 1) return clazz.cast(facs.get(0));
+								return null;
+							}
+							return super.castTo(clazz);
+						}
 						boolean isZero() { return fac == 0; }
+						boolean isOne() { return fac == 1 && facs.isEmpty(); }
 						@Override public String toString() {
 							if(fac == 1) return Utils.concat(facs, " ∙ ");
 							if(fac == -1) return "-" + Utils.concat(facs, " ∙ ");
@@ -150,13 +196,14 @@ public class EquationSystem {
 						Prod minusOne() { return new Prod(-fac, facs); }
 						Prod() {}
 						Prod(int num) { this.fac = num; }
-						Prod(VariableSymbol var) { facs.add(new Pot(var)); }
+						Prod(VariableSymbol var) { fac = 1; facs.add(new Pot(var)); }
 						Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
 						Prod(Iterable<VariableSymbol> vars) {
+							fac = 1;
 							for(VariableSymbol v : vars)
 								facs.add(new Pot(v));
 						}
-						Prod(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError { parse(ot, vars); }
+						Prod(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError { fac = 1; parse(ot, vars); }
 						void parse(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 							if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
 								fac = -fac;
@@ -196,6 +243,7 @@ public class EquationSystem {
 						return compareTo((Sum) obj) == 0;
 					}
 					boolean isEmpty() { return entries.isEmpty(); }
+					boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
 					Sum normalize() {
 						Sum sum = new Sum();
 						List<Prod> newEntries = new LinkedList<Prod>();
@@ -243,6 +291,7 @@ public class EquationSystem {
 					return denominator.equals(f.denominator);
 				}
 				boolean isZero() { return numerator.isEmpty(); }
+				boolean isOne() { return numerator.isOne() && denominator == null; }
 				public int compareTo(Frac o) {
 					if(denominator != null && o.denominator == null) return 1;
 					if(denominator == null && o.denominator != null) return -1;
@@ -279,6 +328,8 @@ public class EquationSystem {
 				if(!(obj instanceof FracSum)) return false;
 				return compareTo((FracSum) obj) == 0;
 			}
+			boolean isZero() { return entries.isEmpty(); }
+			boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
 			FracSum normalize() {
 				List<Frac> newEntries = new LinkedList<Frac>();
 				for(Frac f : entries) newEntries.add(f.normalize());
@@ -312,9 +363,19 @@ public class EquationSystem {
 				for(Frac f : otherSum.entries) sum.entries.add(f);
 				return sum;
 			}
+			static class ExtractedVar {
+				VariableSymbol var;
+				FracSum varMult;
+				FracSum independentPart;
+			}
+			ExtractedVar extractVar(VariableSymbol var) {
+				// TODO ...
+				return null;
+			}
 			FracSum() {}
 			FracSum(VariableSymbol var) { entries.add(new Frac(var)); }
 			FracSum(Prod prod) { entries.add(new Frac(prod)); }
+			FracSum(int num) { entries.add(new Frac(new Prod(num))); }
 			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 				if(ot.entities.size() == 1
 						&& ot.entities.get(0) instanceof Utils.OperatorTree.RawString
@@ -329,7 +390,6 @@ public class EquationSystem {
 				else
 					entries.add( new Frac(ot, vars) );
 			}
-			boolean isZero() { return entries.isEmpty(); }
 		}
 		FracSum left = new FracSum(), right = new FracSum();		
 		@Override public String toString() { return left.toString() + " = " + right.toString(); }

@@ -741,7 +741,7 @@ public class ElectronicCircuit {
 			if(!eq.isTautology() && !eqSys.canConcludeTo(eq))
 				eqSys.equations.add(eq);
 		}
-		eqSys.dump();
+		eqSys.normalized().dump();
 		return eqSys;
 	}
 	
