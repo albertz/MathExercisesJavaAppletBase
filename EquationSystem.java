@@ -612,12 +612,83 @@ public class EquationSystem {
 		return false;
 	}
 	
+	private boolean _canConcludeTo(Equation eq, Set<Equation> usedEquationList) {
+		//System.out.println("to? " + eq);
+		//dump();
+		Set<Equation> equations = new TreeSet<Equation>(this.equations);
+		if(equations.contains(eq))
+			return true;
+		for(Equation myEq : this.equations) {
+			if(usedEquationList.contains(myEq)) continue;
+			Collection<Equation> allConclusions = calcAllConclusions(eq, myEq);
+			if(!allConclusions.isEmpty()) {
+				usedEquationList.add(myEq);
+				equations.remove(myEq);
+				Set<Equation> results = new TreeSet<Equation>();
+				for(Equation resultingEq : allConclusions) {
+					if(resultingEq.isTautology())
+						return true;
+					if(results.contains(resultingEq)) continue;
+					results.add(resultingEq);
+					if(new EquationSystem(equations, variableSymbols)._canConcludeTo(resultingEq, usedEquationList))
+						return true;
+				}
+				equations.add(myEq);
+			}
+		}
+		return false;		
+	}
+	
 	boolean canConcludeTo(Equation eq) {
-		return calcAllConclusions(eq) == null;
+		return normalized()._canConcludeTo(eq.normalize(), new TreeSet<Equation>());
 	}
 
 	EquationSystem allConclusions() {
 		return calcAllConclusions(null);
+	}
+	
+	private Set<VariableSymbol> commonVars(Equation eq1, Equation eq2) {
+		Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>(Utils.collFromIter(eq1.vars()));
+		commonVars.retainAll(new HashSet<VariableSymbol>(Utils.collFromIter(eq2.vars())));
+		return commonVars;
+	}
+
+	private List<Equation> calcAllConclusions(Equation eq1, Equation eq2) {
+		List<Equation> results = new LinkedList<Equation>();
+		
+		if(eq1.isTautology()) return results;
+		if(eq2.isTautology()) return results;
+		if(!(eq1.left.fracWithDenom1() != null)) throw new AssertionError("pair.first.left.fracWithDenom1() != null failed");
+		if(!(eq2.left.fracWithDenom1() != null)) throw new AssertionError("pair.second.left.fracWithDenom1() != null failed");
+
+		//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
+		//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
+		Set<VariableSymbol> commonVars = commonVars(eq1, eq2);
+		//System.out.println("common vars in " + pair.first + " and " + pair.second + ": " + commonVars);
+		
+		for(VariableSymbol var : commonVars) {					
+			Equation.FracSum.Frac.Sum.ExtractedVar extract1 = eq1.left.numeratorWithDenom1().extractVar(var);
+			Equation.FracSum.Frac.Sum.ExtractedVar extract2 = eq2.left.numeratorWithDenom1().extractVar(var);
+			if(extract1 == null) continue; // can happen if we have higher order polynoms
+			if(extract2 == null) continue; // can happen if we have higher order polynoms
+			if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
+			if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
+			Equation.FracSum.Frac.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
+			Equation.FracSum.Frac.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
+			Equation.FracSum.Frac.Sum.Prod commonBase = varMult1.commonBase(varMult2);
+			varMult1 = varMult1.divide(commonBase);
+			varMult2 = varMult2.divide(commonBase);
+			if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
+			if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
+			Equation.FracSum newSum1 = eq1.left.mult(varMult2);
+			Equation.FracSum newSum2 = eq2.left.mult(varMult1.minusOne());
+			Equation.FracSum bothSums = newSum1.sum(newSum2);
+			Equation resultingEquation = new Equation(bothSums, new Equation.FracSum(0));
+			resultingEquation = resultingEquation.normalize();
+			results.add(resultingEquation);			
+		}
+		
+		return results;
 	}
 	
 	private EquationSystem calcAllConclusions(Equation breakIfThisEquIsFound) {
@@ -636,39 +707,10 @@ public class EquationSystem {
 			iteration++;
 			List<Equation> newResults = new LinkedList<Equation>();
 			for(Utils.Pair<Equation,Equation> pair : Utils.allPairs(normalizedEquations, nextEquations) ) {
-				if(pair.first.isTautology()) continue;
-				if(pair.second.isTautology()) continue;
-				if(!(pair.first.left.fracWithDenom1() != null)) throw new AssertionError("pair.first.left.fracWithDenom1() != null failed");
-				if(!(pair.second.left.fracWithDenom1() != null)) throw new AssertionError("pair.second.left.fracWithDenom1() != null failed");
-
 				// if we have used the same base equation in this resulted equation already, skip this one
 				if(resultingEquations.containsKey(pair.second) && resultingEquations.get(pair.second).contains(pair.first)) continue;
-				
-				//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
-				//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
-				Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>(Utils.collFromIter(pair.first.vars()));
-				commonVars.retainAll(new HashSet<VariableSymbol>(Utils.collFromIter(pair.second.vars())));
-				//System.out.println("common vars in " + pair.first + " and " + pair.second + ": " + commonVars);
-				
-				for(VariableSymbol var : commonVars) {					
-					Equation.FracSum.Frac.Sum.ExtractedVar extract1 = pair.first.left.numeratorWithDenom1().extractVar(var);
-					Equation.FracSum.Frac.Sum.ExtractedVar extract2 = pair.second.left.numeratorWithDenom1().extractVar(var);
-					if(extract1 == null) continue; // can happen if we have higher order polynoms
-					if(extract2 == null) continue; // can happen if we have higher order polynoms
-					if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
-					if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
-					Equation.FracSum.Frac.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
-					Equation.FracSum.Frac.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
-					Equation.FracSum.Frac.Sum.Prod commonBase = varMult1.commonBase(varMult2);
-					varMult1 = varMult1.divide(commonBase);
-					varMult2 = varMult2.divide(commonBase);
-					if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
-					if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
-					Equation.FracSum newSum1 = pair.first.left.mult(varMult2);
-					Equation.FracSum newSum2 = pair.second.left.mult(varMult1.minusOne());
-					Equation.FracSum bothSums = newSum1.sum(newSum2);
-					Equation resultingEquation = new Equation(bothSums, new Equation.FracSum(0));
-					resultingEquation = resultingEquation.normalize();
+
+				for(Equation resultingEquation : calcAllConclusions(pair.first, pair.second)) {
 					if(!resultingEquation.isTautology() && !resultingEquations.containsKey(resultingEquation)) {
 						//System.out.println("in iteration " + iteration + ": " + pair.first + " and " + pair.second + " -> " + resultingEquation);
 						resultingEquations.put(resultingEquation, new TreeSet<Equation>(Utils.listFromArgs(pair.first)));
@@ -679,7 +721,7 @@ public class EquationSystem {
 							if(breakIfThisEquIsFound.equals(resultingEquation)) return null;
 							if(breakIfThisEquIsFound.equals(resultingEquation.minusOne())) return null;
 						}
-					}
+					}					
 				}
 			}
 			nextEquations = newResults;
