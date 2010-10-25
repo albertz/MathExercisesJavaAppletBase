@@ -1,10 +1,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.lang.reflect.Array;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -349,7 +346,7 @@ public class Utils {
 	}
 	
 	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll) { return allPairs(coll, coll, true, true); }
-	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll1, Iterable<T> coll2) { return allPairs(coll1, coll2, true, true); }
+	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll1, Iterable<T> coll2) { return allPairs(coll1, coll2, false, false); }
 	static <T> Iterable<Pair<T,T>> allPairs(final Iterable<T> coll1, final Iterable<T> coll2, final boolean removeIdentityAndSwappedPairs, final boolean useDeepEqualCheck) {
 		return new Iterable<Pair<T,T>>() {
 			public Iterator<Pair<T,T>> iterator() {

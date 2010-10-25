@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
+
+import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.ParseError;
 
 public class EquationSystem {
 
@@ -330,7 +333,7 @@ public class EquationSystem {
 							}
 						}
 						for(Iterator<Prod> pit = sum.entries.iterator(); pit.hasNext();) {
-							if(pit.next().fac == 0)
+							if(pit.next().isZero())
 								pit.remove();
 						}
 						return sum;
@@ -357,6 +360,7 @@ public class EquationSystem {
 						ExtractedVar extracted = new ExtractedVar();
 						extracted.var = var;
 						for(Prod p : entries) {
+							if(p.isZero()) continue;
 							Prod newP = p.divideAndRemove(var);
 							if(newP != null)
 								extracted.varMult.entries.add(newP);
@@ -545,6 +549,9 @@ public class EquationSystem {
 			left = new FracSum(ot.entities.get(0).asTree(), vars);
 			right = new FracSum(ot.entities.get(1).asTree(), vars);			
 		}
+		Equation(String str, Map<String,VariableSymbol> vars) throws ParseError {
+			this(Utils.OperatorTree.parse(str), vars);
+		}
 		void swap(Equation eq) {
 			Equation tmp = new Equation(left, right);
 			left = eq.left; right = eq.right;
@@ -606,33 +613,50 @@ public class EquationSystem {
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		eq = eq.normalize();
-		if(contains(eq)) return true;
+		return calcAllConclusions(eq) == null;
+	}
+
+	EquationSystem allConclusions() {
+		return calcAllConclusions(null);
+	}
+	
+	private EquationSystem calcAllConclusions(Equation breakIfThisEquIsFound) {
+		if(breakIfThisEquIsFound != null) {
+			breakIfThisEquIsFound = breakIfThisEquIsFound.normalize();
+			if(contains(breakIfThisEquIsFound)) return null;
+		}
 		
-		List<Equation> resultingEquations = new LinkedList<Equation>();
-		List<Equation> normalizedEquations = new ArrayList<Equation>(normalized().equations);
-		List<Equation> nextEquations = normalizedEquations;
+		// map values are the set of used based equations
+		Map<Equation, Set<Equation>> resultingEquations = new TreeMap<Equation, Set<Equation>>();
+		Set<Equation> normalizedEquations = new TreeSet<Equation>(normalized().equations);
+		Iterable<Equation> nextEquations = normalizedEquations;
 		
-		boolean haveNewResult = false;
-		do {
+		int iteration = 0;
+		while(true) {
+			iteration++;
+			List<Equation> newResults = new LinkedList<Equation>();
 			for(Utils.Pair<Equation,Equation> pair : Utils.allPairs(normalizedEquations, nextEquations) ) {
 				if(pair.first.isTautology()) continue;
 				if(pair.second.isTautology()) continue;
 				if(!(pair.first.left.fracWithDenom1() != null)) throw new AssertionError("pair.first.left.fracWithDenom1() != null failed");
 				if(!(pair.second.left.fracWithDenom1() != null)) throw new AssertionError("pair.second.left.fracWithDenom1() != null failed");
+
+				// if we have used the same base equation in this resulted equation already, skip this one
+				if(resultingEquations.containsKey(pair.second) && resultingEquations.get(pair.second).contains(pair.first)) continue;
 				
 				//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
 				//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
 				Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>(Utils.collFromIter(pair.first.vars()));
 				commonVars.retainAll(new HashSet<VariableSymbol>(Utils.collFromIter(pair.second.vars())));
-	
-				for(VariableSymbol var : commonVars) {
+				//System.out.println("common vars in " + pair.first + " and " + pair.second + ": " + commonVars);
+				
+				for(VariableSymbol var : commonVars) {					
 					Equation.FracSum.Frac.Sum.ExtractedVar extract1 = pair.first.left.numeratorWithDenom1().extractVar(var);
 					Equation.FracSum.Frac.Sum.ExtractedVar extract2 = pair.second.left.numeratorWithDenom1().extractVar(var);
-					if(extract1 == null) throw new AssertionError("extract1 = null, first eq: " + pair.first + ", second eq: " + pair.second + ", var: " + var);
-					if(extract2 == null) throw new AssertionError("extract1 = null, first eq: " + pair.first + ", second eq: " + pair.second + ", var: " + var);
-					if(!(extract1.varMult.entries.size() == 1)) throw new AssertionError("extract1.varMult.entries.size() == 1 failed: " + extract1.varMult.entries); // otherwise not supported yet
-					if(!(extract2.varMult.entries.size() == 1)) throw new AssertionError("extract2.varMult.entries.size() == 1 failed: " + extract2.varMult.entries); // otherwise not supported yet
+					if(extract1 == null) continue; // can happen if we have higher order polynoms
+					if(extract2 == null) continue; // can happen if we have higher order polynoms
+					if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
+					if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
 					Equation.FracSum.Frac.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
 					Equation.FracSum.Frac.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
 					Equation.FracSum.Frac.Sum.Prod commonBase = varMult1.commonBase(varMult2);
@@ -644,24 +668,37 @@ public class EquationSystem {
 					Equation.FracSum newSum2 = pair.second.left.mult(varMult1.minusOne());
 					Equation.FracSum bothSums = newSum1.sum(newSum2);
 					Equation resultingEquation = new Equation(bothSums, new Equation.FracSum(0));
-					//System.out.print("con: " + pair.first + " and " + pair.second + " -> " + resultingEquation);
 					resultingEquation = resultingEquation.normalize();
-					//System.out.println(", normalized: " + resultingEquation);
-					if(!resultingEquation.isTautology() && !resultingEquations.contains(resultingEquation)) {
-						resultingEquations.add(resultingEquation);
-						haveNewResult = true;
-						if(eq.equals(resultingEquation)) return true;
-						if(eq.equals(resultingEquation.minusOne())) return true;
+					if(!resultingEquation.isTautology() && !resultingEquations.containsKey(resultingEquation)) {
+						//System.out.println("in iteration " + iteration + ": " + pair.first + " and " + pair.second + " -> " + resultingEquation);
+						resultingEquations.put(resultingEquation, new TreeSet<Equation>(Utils.listFromArgs(pair.first)));
+						if(normalizedEquations.contains(pair.second)) resultingEquations.get(resultingEquation).add(pair.second);
+						else resultingEquations.get(resultingEquation).addAll(resultingEquations.get(pair.second));
+						newResults.add(resultingEquation);
+						if(breakIfThisEquIsFound != null) {
+							if(breakIfThisEquIsFound.equals(resultingEquation)) return null;
+							if(breakIfThisEquIsFound.equals(resultingEquation.minusOne())) return null;
+						}
 					}
 				}
 			}
-			nextEquations = new ArrayList<Equation>(resultingEquations);
+			nextEquations = newResults;
+			if(newResults.isEmpty()) break;
+			if(iteration >= normalizedEquations.size()) break;
 		}
-		while(haveNewResult);
 		
-		return false;
+		/*
+		System.out.println("{");
+		for(Equation e : normalizedEquations)
+			System.out.println("   " + e);
+		for(Equation e : resultingEquations)
+			System.out.println("-> " + e);
+		System.out.println("}");
+		*/
+		
+		return new EquationSystem(new LinkedList<Equation>(Utils.concatCollectionView(normalizedEquations, resultingEquations.keySet())), variableSymbols);
 	}
-	
+		
 	void dump() {
 		System.out.println("equations: [");
 		for(Equation e : equations)
@@ -669,5 +706,17 @@ public class EquationSystem {
 		System.out.println(" ]");
 	}
 
-	
+	static void debug() {
+		EquationSystem sys = new EquationSystem();
+		for(int i = 1; i <= 5; ++i) sys.registerVariableSymbol("I" + i, "");		
+		try {
+			sys.equations.add(new Equation("(I3 + -I4 + -I5) = 0", sys.variableSymbols));
+			sys.equations.add(new Equation("(-I2 + I5) = 0", sys.variableSymbols));
+			sys.equations.add(new Equation("(-I1 + I2) = 0", sys.variableSymbols));
+			Equation eq = new Equation("(I1 + -I3 + I4) = 0", sys.variableSymbols);
+			if(!sys.canConcludeTo(eq)) throw new AssertionError("must follow: " + eq);
+		} catch (Throwable e) {
+			e.printStackTrace(System.out);
+		}		
+	}
 }
