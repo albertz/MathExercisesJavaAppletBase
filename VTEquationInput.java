@@ -35,6 +35,7 @@ public class VTEquationInput extends VisualThing {
 		EquationSystem baseEqSystem = null;
 		static final int height = 30;
 		boolean correct = false;
+		boolean correctInput = false;
 		
 		abstract EquationSystem getBaseEqSystem();
 		
@@ -91,13 +92,20 @@ public class VTEquationInput extends VisualThing {
 		void resetInput() { setInputWrong(""); }
 		
 		void updateEq() {
+			correctInput = false;
 			try {
 				eq = new EquationSystem.Equation(textField.getOperatorTree(), baseEqSystem.variableSymbols);
+				correctInput = true;
 			} catch (EquationSystem.Equation.ParseError e) {
 				setInputError("Eingabe: " + e.german);
 				return;
 			}
-			onEquationUpdate();
+			try {
+				onEquationUpdate();
+			}
+			catch(Throwable e) {
+				e.printStackTrace();
+			}
 		}
 		
 		abstract void onRemoveClick();
@@ -168,7 +176,15 @@ public class VTEquationInput extends VisualThing {
 		boolean recheckAll() { return recheckAll(equations.iterator()); }
 		void resetRest(Iterator<EquationPanel> eqpIter) { while(eqpIter.hasNext()) eqpIter.next().resetInput(); }
 		void resetAll() { resetRest(equations.iterator()); }
-		
+
+		boolean haveEarlierSameEquation(EquationPanel eqp) {
+			for(EquationPanel p : equations) {
+				if(p == eqp) break;
+				if(p.eq.equalNorm(eqp.eq)) return true;
+			}
+			return false;
+		}
+
 		void onEquationUpdate(EquationPanel eqp) { recheckAllFrom(eqp); }
 		
 		int height = 0;
@@ -210,8 +226,12 @@ public class VTEquationInput extends VisualThing {
 			}
 			
 			@Override boolean recheck(EquationPanel eqp) {
+				if(!eqp.correctInput) return false;
 				if(eqp.baseEqSystem.contains(eqp.eq)) {
-					eqp.setInputRight("ok");
+					if(!haveEarlierSameEquation(eqp))
+						eqp.setInputRight("ok");
+					else
+						eqp.setInputWrong("doppelt");
 					return true;
 				} else {
 					eqp.setInputWrong("kann nicht aus der Schaltung abgelesen werden");
@@ -237,8 +257,17 @@ public class VTEquationInput extends VisualThing {
 			}
 			
 			@Override boolean recheck(EquationPanel eqp) {
+				if(!eqp.correctInput) return false;
+				//System.out.print("base eq ");
+				//eqp.baseEqSystem.dump();
 				if(eqp.baseEqSystem.canConcludeTo(eqp.eq)) {
-					eqp.setInputRight("ok");
+					if(!haveEarlierSameEquation(eqp)) {
+						if(!basicEquationsPanel.haveEarlierSameEquation(eqp))
+							eqp.setInputRight("ok");
+						else
+							eqp.setInputWrong("wie Basis-Gleichung");
+					} else
+						eqp.setInputWrong("doppelt");
 					return true;
 				} else {
 					eqp.setInputWrong("kann nicht hergeleitet werden");

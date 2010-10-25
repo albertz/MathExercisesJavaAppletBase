@@ -1,7 +1,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
-import java.lang.reflect.Constructor;
-import java.util.Arrays;
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,11 +10,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeMap;
-
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.FracSum.Frac.Sum.Prod;
 
 public class EquationSystem {
 
@@ -87,7 +84,8 @@ public class EquationSystem {
 		String name;
 		VariableSymbol(String unit) { this.unit = new Unit(unit); }
 		VariableSymbol(String name, String unit) { this.name = name; this.unit = new Unit(unit); }
-		public int compareTo(VariableSymbol o) { if(this == o) return 0; return name.compareTo(o.name); }		
+		public int compareTo(VariableSymbol o) { if(this == o) return 0; return name.compareTo(o.name); }
+		@Override public String toString() { return name; }
 	}
 	
 	Map<String, VariableSymbol> variableSymbols = new HashMap<String, VariableSymbol>();	
@@ -105,16 +103,26 @@ public class EquationSystem {
 			throw new AssertionError("unknown type: " + clazz);
 		}
 		VariableSymbol asVariable() { return castTo(Equation.FracSum.Frac.Sum.Prod.Pot.class).asVariable(); } 
-		Integer asNumber() { return castTo(Equation.FracSum.Frac.Sum.Prod.Pot.class).asNumber(); }
+		Integer asNumber() { return castTo(Equation.FracSum.Frac.Sum.Prod.class).asNumber(); }
 
 		boolean equalsToNum(int num) {
 			Integer myNum = asNumber();
 			if(myNum != null) return myNum == num;
 			return false;
 		}
+		
+		abstract Iterable<? extends Expression> childs();
+		Iterable<VariableSymbol> vars() {
+			Iterable<Iterable<VariableSymbol>> varIters = Utils.map(childs(), new Utils.Function<Expression, Iterable<VariableSymbol>>() {
+				public Iterable<VariableSymbol> eval(Expression obj) {
+					return obj.vars();
+				}
+			});
+			return Utils.concatCollectionView(varIters);
+		}
 	}
 	
-	static class Equation implements Comparable<Equation> {
+	static class Equation extends Expression implements Comparable<Equation> {
 		static class FracSum extends Expression implements Comparable<FracSum> {
 			static class Frac extends Expression implements Comparable<Frac> {
 				static class Sum extends Expression implements Comparable<Sum> {
@@ -126,7 +134,12 @@ public class EquationSystem {
 							@Override public String toString() { return sym.name + ((pot != 1) ? ("^" + pot) : ""); }		
 							Pot(VariableSymbol s) { sym = s; }
 							Pot(VariableSymbol s, int p) { sym = s; pot = p; }
-							public int compareTo(Pot o) { if(sym != o.sym) return sym.compareTo(o.sym); return pot - o.pot; }
+							public int compareTo(Pot o) {
+								if(sym != o.sym) return sym.compareTo(o.sym);
+								if(pot < o.pot) return -1;
+								if(pot > o.pot) return 1;
+								return 0;
+							}
 							@Override public int hashCode() {
 								int result = 1;
 								result = 31 * result + pot;
@@ -145,12 +158,16 @@ public class EquationSystem {
 								if(pot == 1) return sym;
 								return null;
 							}
+							@Override Iterable<VariableSymbol> vars() { return Utils.listFromArgs(sym); }
+							@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(); }
 						}						
 						List<Pot> facs = new LinkedList<Pot>();
 						public int compareTo(Prod o) {
 							int r = Utils.<Pot>orderOnCollection().compare(facs, o.facs);
 							if(r != 0) return r;
-							return fac - o.fac;
+							if(fac < o.fac) return -1;
+							if(fac > o.fac) return 1;
+							return 0;
 						}
 						@Override public boolean equals(Object obj) {
 							if(!(obj instanceof Prod)) return false;
@@ -159,10 +176,6 @@ public class EquationSystem {
 						@Override Integer asNumber() {
 							if(fac == 0) return 0;
 							if(facs.isEmpty()) return fac;
-							return null;
-						}
-						@Override VariableSymbol asVariable() {
-							// TODO Auto-generated method stub
 							return null;
 						}
 						@Override <T> T castTo(Class<T> clazz) {
@@ -175,18 +188,23 @@ public class EquationSystem {
 						boolean isZero() { return fac == 0; }
 						boolean isOne() { return fac == 1 && facs.isEmpty(); }
 						@Override public String toString() {
+							if(facs.isEmpty()) return "" + fac;
 							if(fac == 1) return Utils.concat(facs, " ∙ ");
 							if(fac == -1) return "-" + Utils.concat(facs, " ∙ ");
 							return fac + " ∙ " + Utils.concat(facs, " ∙ ");
 						}
-						Prod normalize() {
-							Prod prod = new Prod();
-							prod.fac = fac;
+						Map<VariableSymbol,Integer> varMap() {
 							Map<VariableSymbol,Integer> vars = new TreeMap<VariableSymbol,Integer>();
 							for(Pot p : facs) {
 								if(!vars.containsKey(p.sym)) vars.put(p.sym, 0);
 								vars.put(p.sym, vars.get(p.sym) + p.pot);
 							}
+							return vars;
+						}
+						Prod normalize() {
+							Prod prod = new Prod();
+							prod.fac = fac;
+							Map<VariableSymbol,Integer> vars = varMap();
 							for(VariableSymbol sym : vars.keySet()) {
 								if(vars.get(sym) != 0)
 									prod.facs.add(new Pot(sym, vars.get(sym)));
@@ -194,6 +212,54 @@ public class EquationSystem {
 							return prod;
 						}
 						Prod minusOne() { return new Prod(-fac, facs); }
+						Prod divideAndRemove(VariableSymbol var) {
+							Prod prod = normalize();
+							for(Iterator<Pot> pit = prod.facs.iterator(); pit.hasNext(); ) {
+								Pot p = pit.next();
+								if(p.sym == var) {
+									if(p.pot == 1) {
+										pit.remove();
+										return prod;
+									}
+									break;
+								}
+							}
+							return null; // var not included or not pot=1
+						}
+						Prod mult(Prod other) {
+							Prod res = new Prod();
+							res.fac = fac * other.fac;
+							res.facs.addAll(facs);
+							res.facs.addAll(other.facs);
+							return res.normalize();
+						}
+						Prod divide(Prod other) {
+							if(!(other.fac != 0)) throw new AssertionError("other.fac != 0 failed");
+							if(!(fac % other.fac == 0)) throw new AssertionError("fac % other.fac == 0 failed");
+							Prod res = new Prod();
+							res.fac = fac / other.fac;
+							res.facs.addAll(facs);
+							for(Pot p : other.facs)
+								res.facs.add(new Pot(p.sym, -p.pot));
+							return res.normalize();
+						}
+						Prod commonBase(Prod other) {
+							Prod base = new Prod();
+							base.fac = BigInteger.valueOf(fac).gcd(BigInteger.valueOf(other.fac)).intValue();
+							Map<VariableSymbol,Integer> varMap1 = varMap();
+							Map<VariableSymbol,Integer> varMap2 = other.varMap();							
+							Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>();
+							commonVars.addAll(varMap1.keySet());
+							commonVars.retainAll(varMap2.keySet());
+							for(VariableSymbol var : commonVars) {
+								Pot pot = new Pot(var);
+								pot.pot = Math.min(varMap1.get(var), varMap2.get(var));
+								if(pot.pot != 0)
+									base.facs.add(pot);
+							}
+							return base;
+						}
+						@Override Iterable<? extends Expression> childs() { return facs; }
 						Prod() {}
 						Prod(int num) { this.fac = num; }
 						Prod(VariableSymbol var) { fac = 1; facs.add(new Pot(var)); }
@@ -242,6 +308,10 @@ public class EquationSystem {
 						if(!(obj instanceof Sum)) return false;
 						return compareTo((Sum) obj) == 0;
 					}
+					@Override <T> T castTo(Class<T> clazz) {
+						// TODO...
+						return super.castTo(clazz);
+					}
 					boolean isEmpty() { return entries.isEmpty(); }
 					boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
 					Sum normalize() {
@@ -270,6 +340,33 @@ public class EquationSystem {
 						for(Prod prod : entries) sum.entries.add(prod.minusOne());
 						return sum;
 					}
+					Sum mult(Prod other) {
+						Sum sum = new Sum();
+						if(other.isZero()) return sum;
+						for(Prod p : entries)
+							sum.entries.add(p.mult(other));
+						return sum;
+					}
+					@Override Iterable<? extends Expression> childs() { return entries; }
+					static class ExtractedVar {
+						VariableSymbol var;
+						Sum varMult = new Sum();
+						Sum independentPart = new Sum();
+					}
+					ExtractedVar extractVar(VariableSymbol var) {
+						ExtractedVar extracted = new ExtractedVar();
+						extracted.var = var;
+						for(Prod p : entries) {
+							Prod newP = p.divideAndRemove(var);
+							if(newP != null)
+								extracted.varMult.entries.add(newP);
+							else
+								extracted.independentPart.entries.add(p);
+						}
+						if(!extracted.varMult.entries.isEmpty())
+							return extracted;
+						return null;
+					}
 					Sum() {}
 					Sum(VariableSymbol var) { entries.add(new Prod(var)); }
 					Sum(Prod prod) { entries.add(prod); }
@@ -284,12 +381,13 @@ public class EquationSystem {
 				}
 				Sum numerator = new Sum(), denominator = null;
 				@Override public String toString() { return numerator.toString() + ((denominator != null) ? " / " + denominator.toString() : ""); }
-				boolean hasEqualDenominatorAs(Frac f) {
-					if(denominator == null && f.denominator == null) return true;
-					if(denominator != null && f.denominator == null) return false;
-					if(denominator == null && f.denominator != null) return false;
-					return denominator.equals(f.denominator);
+				boolean denominatorEqualTo(Sum fdenominator) {
+					if(denominator == null && fdenominator == null) return true;
+					if(denominator != null && fdenominator == null) return false;
+					if(denominator == null && fdenominator != null) return false;
+					return denominator.equals(fdenominator);
 				}
+				boolean hasEqualDenominatorAs(Frac f) { return denominatorEqualTo(f.denominator); }
 				boolean isZero() { return numerator.isEmpty(); }
 				boolean isOne() { return numerator.isOne() && denominator == null; }
 				public int compareTo(Frac o) {
@@ -307,9 +405,16 @@ public class EquationSystem {
 				}
 				Frac normalize() { return new Frac(numerator.normalize(), (denominator != null) ? denominator.normalize() : null); }
 				Frac minusOne() { return new Frac(numerator.minusOne(), denominator); }
+				Frac mult(Sum.Prod prod) { return new Frac(numerator.mult(prod), denominator); }
+				@Override Iterable<? extends Expression> childs() {
+					if(denominator != null)
+						return Utils.listFromArgs(numerator, denominator);
+					else
+						return Utils.listFromArgs(numerator);
+				}
 				Frac() {}
 				Frac(VariableSymbol var) { this(new Sum(var), null); }
-				Frac(Prod prod) { this(new Sum(prod), null); }
+				Frac(Sum.Prod prod) { this(new Sum(prod), null); }
 				Frac(Sum numerator, Sum denominator) { this.numerator = numerator; this.denominator = denominator; }
 				Frac(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 					if(!ot.op.equals("/"))
@@ -363,19 +468,28 @@ public class EquationSystem {
 				for(Frac f : otherSum.entries) sum.entries.add(f);
 				return sum;
 			}
-			static class ExtractedVar {
-				VariableSymbol var;
-				FracSum varMult;
-				FracSum independentPart;
-			}
-			ExtractedVar extractVar(VariableSymbol var) {
-				// TODO ...
+			Frac fracWithDenom(Frac.Sum denominator) {
+				for(Frac f : entries)
+					if(f.denominatorEqualTo(denominator))
+						return f;
 				return null;
 			}
+			Frac fracWithDenom1() { return fracWithDenom(null); }
+			Frac.Sum numeratorWithDenom1() { return fracWithDenom1().numerator; }
+			FracSum mult(Frac.Sum.Prod prod) {
+				FracSum sum = new FracSum();
+				if(prod.isZero()) return sum;
+				for(Frac f : entries)
+					sum.entries.add(f.mult(prod));
+				return sum;
+			}
+			@Override Iterable<? extends Expression> childs() { return entries; }
 			FracSum() {}
 			FracSum(VariableSymbol var) { entries.add(new Frac(var)); }
-			FracSum(Prod prod) { entries.add(new Frac(prod)); }
-			FracSum(int num) { entries.add(new Frac(new Prod(num))); }
+			FracSum(Frac.Sum.Prod prod) { entries.add(new Frac(prod)); }
+			FracSum(Frac.Sum sum) { entries.add(new Frac(sum, null)); }
+			FracSum(Frac frac) { entries.add(frac); }
+			FracSum(int num) { entries.add(new Frac(new Frac.Sum.Prod(num))); }
 			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
 				if(ot.entities.size() == 1
 						&& ot.entities.get(0) instanceof Utils.OperatorTree.RawString
@@ -413,6 +527,14 @@ public class EquationSystem {
 			Equation norm = normalize();
 			return norm.left.isZero() && norm.right.isZero();
 		}
+		boolean equalNorm(Equation other) {
+			other = other.normalize();
+			Equation normed = normalize();
+			if(other.equals(normed)) return true;
+			if(other.equals(normed.minusOne())) return true;
+			return false;
+		}
+		@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(left, right); }
 		Equation() {}
 		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
@@ -474,16 +596,70 @@ public class EquationSystem {
 		eq = eq.normalize();
 		Equation minusEq = eq.minusOne();		
 		for(Equation e : normalized().equations) {
-			if(eq.equals(e)) return true;
-			if(minusEq.equals(e)) return true;
+			if(eq.equals(e) || minusEq.equals(e)) {
+				//System.out.println("contains match: " + eq + " equal to " + e);
+				return true;
+			}
 			//System.out.println("contains: " + eq + " unequal to " + e);
 		}
 		return false;
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		// TODO ...
-		return contains(eq);
+		eq = eq.normalize();
+		if(contains(eq)) return true;
+		
+		List<Equation> resultingEquations = new LinkedList<Equation>();
+		List<Equation> normalizedEquations = new ArrayList<Equation>(normalized().equations);
+		List<Equation> nextEquations = normalizedEquations;
+		
+		boolean haveNewResult = false;
+		do {
+			for(Utils.Pair<Equation,Equation> pair : Utils.allPairs(normalizedEquations, nextEquations) ) {
+				if(pair.first.isTautology()) continue;
+				if(pair.second.isTautology()) continue;
+				if(!(pair.first.left.fracWithDenom1() != null)) throw new AssertionError("pair.first.left.fracWithDenom1() != null failed");
+				if(!(pair.second.left.fracWithDenom1() != null)) throw new AssertionError("pair.second.left.fracWithDenom1() != null failed");
+				
+				//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
+				//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
+				Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>(Utils.collFromIter(pair.first.vars()));
+				commonVars.retainAll(new HashSet<VariableSymbol>(Utils.collFromIter(pair.second.vars())));
+	
+				for(VariableSymbol var : commonVars) {
+					Equation.FracSum.Frac.Sum.ExtractedVar extract1 = pair.first.left.numeratorWithDenom1().extractVar(var);
+					Equation.FracSum.Frac.Sum.ExtractedVar extract2 = pair.second.left.numeratorWithDenom1().extractVar(var);
+					if(extract1 == null) throw new AssertionError("extract1 = null, first eq: " + pair.first + ", second eq: " + pair.second + ", var: " + var);
+					if(extract2 == null) throw new AssertionError("extract1 = null, first eq: " + pair.first + ", second eq: " + pair.second + ", var: " + var);
+					if(!(extract1.varMult.entries.size() == 1)) throw new AssertionError("extract1.varMult.entries.size() == 1 failed: " + extract1.varMult.entries); // otherwise not supported yet
+					if(!(extract2.varMult.entries.size() == 1)) throw new AssertionError("extract2.varMult.entries.size() == 1 failed: " + extract2.varMult.entries); // otherwise not supported yet
+					Equation.FracSum.Frac.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
+					Equation.FracSum.Frac.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
+					Equation.FracSum.Frac.Sum.Prod commonBase = varMult1.commonBase(varMult2);
+					varMult1 = varMult1.divide(commonBase);
+					varMult2 = varMult2.divide(commonBase);
+					if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
+					if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
+					Equation.FracSum newSum1 = pair.first.left.mult(varMult2);
+					Equation.FracSum newSum2 = pair.second.left.mult(varMult1.minusOne());
+					Equation.FracSum bothSums = newSum1.sum(newSum2);
+					Equation resultingEquation = new Equation(bothSums, new Equation.FracSum(0));
+					//System.out.print("con: " + pair.first + " and " + pair.second + " -> " + resultingEquation);
+					resultingEquation = resultingEquation.normalize();
+					//System.out.println(", normalized: " + resultingEquation);
+					if(!resultingEquation.isTautology() && !resultingEquations.contains(resultingEquation)) {
+						resultingEquations.add(resultingEquation);
+						haveNewResult = true;
+						if(eq.equals(resultingEquation)) return true;
+						if(eq.equals(resultingEquation.minusOne())) return true;
+					}
+				}
+			}
+			nextEquations = new ArrayList<Equation>(resultingEquations);
+		}
+		while(haveNewResult);
+		
+		return false;
 	}
 	
 	void dump() {

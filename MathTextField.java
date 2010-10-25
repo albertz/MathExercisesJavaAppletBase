@@ -72,8 +72,14 @@ public class MathTextField extends JTextField {
 					}
 				}
 				else if(string.matches("\\(")) {
-					string = "(" + s.substring(offset, offset + length) + ")";
-					insertedBrackets = true;
+					/*if(length == 0) {
+						string = "(_)";
+						insertedDummyChar = true;
+					}
+					else*/ {
+						string = "(" + s.substring(offset, offset + length) + ")";
+						insertedBrackets = true;
+					}
 				}
 				else if(string.matches("\\)"))
 					return; // ignore that

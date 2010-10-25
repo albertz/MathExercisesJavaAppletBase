@@ -1,5 +1,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.lang.reflect.Array;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,8 +17,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.Stack;
 
-import javax.naming.OperationNotSupportedException;
-
 public class Utils {
 
 	static interface Size {
@@ -31,6 +31,22 @@ public class Utils {
 			for(Iterator<E> i = iterator(); i.hasNext(); ++c) i.next();
 			return c;
 		}
+		public Object[] toArray() { return toArray(new Object[] {}); }
+		public <T> T[] toArray(T[] array) { 
+		    int size = size();
+		    if (array.length < size) { 
+		        array = newArray(classOf(array), size);
+		    } else if (array.length > size) {
+		        array[size] = null;
+		    }
+
+		    int i = 0;
+		    for (E e : this) {
+		        array[i] = classOf(array).cast(e);
+		        i++;
+		    }
+		    return array;
+		} 
 		public boolean add(E e) { throw new UnsupportedOperationException(); }
 		public boolean addAll(Collection<? extends E> c) { throw new UnsupportedOperationException(); }
 		public void clear() { throw new UnsupportedOperationException(); }
@@ -39,8 +55,27 @@ public class Utils {
 		public boolean remove(Object o) { throw new UnsupportedOperationException(); }
 		public boolean removeAll(Collection<?> c) { throw new UnsupportedOperationException(); }
 		public boolean retainAll(Collection<?> c) { throw new UnsupportedOperationException(); }
-		public Object[] toArray() { throw new UnsupportedOperationException(); }
-		public <T> T[] toArray(T[] a) { throw new UnsupportedOperationException(); }
+		@Override public String toString() { return "[" + concat(this, ", ") + "]"; }
+	}
+	
+	@SuppressWarnings("unchecked") static <T> Class<? extends T> classOf(T obj) {
+		return (Class<? extends T>) obj.getClass();
+	}
+
+	@SuppressWarnings("unchecked") static <T> Class<? extends T> classOf(T[] array) {
+		return (Class<? extends T>) array.getClass().getComponentType();
+	}
+
+	@SuppressWarnings("unchecked") static <T> T[] newArray(Class<T> clazz, int size) {
+		return (T[]) Array.newInstance(clazz, size);
+	}	
+	
+	static <E> LightCollection<E> collFromIter(final Iterable<E> iter) {
+		return new LightCollection<E>() {
+			public Iterator<E> iterator() {
+				return iter.iterator();
+			}
+		};
 	}
 	
 	static abstract class LightSet<E> extends LightCollection<E> implements Set<E> {}
@@ -266,15 +301,13 @@ public class Utils {
 				return new Iterator<T>() {
 					Iterator<T> iter = coll.iterator();
 					Iterator<T> nextIter = coll.iterator();					
-					T nextObj = nextIter.hasNext() ? nextIter.next() : null;
-					boolean stop = false;
+					T nextObj = null;
+					boolean stop = false;					
+					{
+						advanceNextIter();
+					}
 					
-					public boolean hasNext() { return iter.hasNext() && !stop; }
-
-					public T next() {
-						if(!hasNext()) throw new NoSuchElementException();
-						T objToReturn = nextObj;
-						if(iter.next() != objToReturn) throw new AssertionError("something is wrong");
+					void advanceNextIter() {
 						if(nextIter.hasNext()) {
 							nextObj = nextIter.next();
 							if(stopCondition.apply(nextObj))
@@ -284,9 +317,16 @@ public class Utils {
 							if(iter.hasNext()) throw new AssertionError("something is wrong");
 							nextObj = null;
 						}
+					}
+					
+					public boolean hasNext() { return iter.hasNext() && !stop; }
+					public T next() {
+						if(!hasNext()) throw new NoSuchElementException();
+						T objToReturn = nextObj;
+						if(iter.next() != objToReturn) throw new AssertionError("something is wrong");
+						advanceNextIter();
 						return objToReturn;
 					}
-
 					public void remove() { iter.remove(); }
 				};
 			}			
@@ -308,6 +348,59 @@ public class Utils {
 		}
 	}
 	
+	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll) { return allPairs(coll, coll, true, true); }
+	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll1, Iterable<T> coll2) { return allPairs(coll1, coll2, true, true); }
+	static <T> Iterable<Pair<T,T>> allPairs(final Iterable<T> coll1, final Iterable<T> coll2, final boolean removeIdentityAndSwappedPairs, final boolean useDeepEqualCheck) {
+		return new Iterable<Pair<T,T>>() {
+			public Iterator<Pair<T,T>> iterator() {
+				return new Iterator<Pair<T,T>>() {
+					Iterator<T> i1 = coll1.iterator();
+					T obj1 = null;
+					Iterator<T> i2 = null;
+					T obj2 = null;
+					{
+						advance();
+					}
+					
+					void advance() {
+						if(obj1 != null && i2.hasNext()) {
+							obj2 = i2.next();
+							return;
+						}
+						
+						if(!i1.hasNext()) {
+							obj1 = null;
+							obj2 = null;
+							return;
+						}
+						
+						obj1 = i1.next();
+						i2 = coll2.iterator();
+						if(removeIdentityAndSwappedPairs) {
+							while(i2.hasNext()) {
+								if(useDeepEqualCheck && i2.next().equals(obj1)) break;
+								if(!useDeepEqualCheck && i2.next() == obj1) break;
+							}
+						}
+						if(i2.hasNext())
+							obj2 = i2.next();
+						else
+							obj2 = null;
+					}
+					
+					public boolean hasNext() { return obj1 != null && obj2 != null; }
+					public Pair<T,T> next() {
+						if(!hasNext()) throw new NoSuchElementException();
+						Pair<T,T> pair = new Pair<T,T>(obj1, obj2);
+						advance();
+						return pair;
+					}
+					public void remove() { throw new UnsupportedOperationException(); }
+				};
+			}
+		};
+	}	
+		
 	static <T1,T2> Iterable<Pair<T1,T2>> zip(final Iterable<T1> i1, final Iterable<T2> i2) {
 		return new Iterable<Pair<T1,T2>>() {
 			public Iterator<Pair<T1, T2>> iterator() {
