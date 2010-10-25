@@ -20,7 +20,7 @@ public class Utils {
 	    int getWidth();
 	    int getHeight();
 	}
-	
+		
 	static abstract class LightCollection<E> implements Collection<E> {
 		public boolean isEmpty() { return !iterator().hasNext(); }
 		public int size() {
