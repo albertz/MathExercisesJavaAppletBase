@@ -26,23 +26,19 @@ import javax.swing.event.DocumentListener;
 
 public class VTEquationInput extends VisualThing {
 	
-	abstract static class EquationPanel extends JPanel {
+	abstract class EquationPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
 		MathTextField textField = new MathTextField();
 		JLabel infoLabel = new JLabel();
 		JButton removeButton = new JButton();
 		EquationSystem.Equation eq = new EquationSystem.Equation();
-		EquationSystem baseEqSystem = null;
 		static final int height = 30;
 		boolean correct = false;
 		boolean correctInput = false;
-		
-		abstract EquationSystem getBaseEqSystem();
-		
+				
 		EquationPanel() {
 			super();
 			this.setLayout(null);
-			baseEqSystem = getBaseEqSystem();
 			textField.getDocument().addDocumentListener(new DocumentListener() {
 				public void removeUpdate(DocumentEvent e) { updateEq(); }
 				public void insertUpdate(DocumentEvent e) { updateEq(); }
@@ -69,6 +65,7 @@ public class VTEquationInput extends VisualThing {
 		}
 		
 		void setInputError(String s) {
+			//System.out.println(s + ", expression: " + textField.getOperatorTree());
 			correct = false;
 			infoLabel.setForeground(Color.red.brighter());
 			infoLabel.setText(s);
@@ -76,6 +73,7 @@ public class VTEquationInput extends VisualThing {
 		}
 		
 		void setInputWrong(String s) {
+			System.out.println(s + ", equation: " + eq);
 			correct = false;
 			infoLabel.setForeground(Color.red);
 			infoLabel.setText(s);
@@ -94,7 +92,7 @@ public class VTEquationInput extends VisualThing {
 		void updateEq() {
 			correctInput = false;
 			try {
-				eq = new EquationSystem.Equation(textField.getOperatorTree(), baseEqSystem.variableSymbols);
+				eq = new EquationSystem.Equation(textField.getOperatorTree().transformMinusToPlus(), eqSys.variableSymbols);
 				correctInput = true;
 			} catch (EquationSystem.Equation.ParseError e) {
 				setInputError("Eingabe: " + e.german);
@@ -131,17 +129,13 @@ public class VTEquationInput extends VisualThing {
 			for(int i = 0; i < startSize; ++i)
 				addEquation();
 		}
-		
-		EquationSystem baseEqSysForNewEquation(EquationPanel eqp) { return eqSys; }
-		
+				
 		EquationPanel addEquation() {
 			EquationPanel eqp = new EquationPanel() {
 				private static final long serialVersionUID = 1L;
 				@Override void onEquationUpdate() { EquationsPanel.this.onEquationUpdate(this); }
 				@Override void onRemoveClick() { removeEquation(this); }
-				@Override EquationSystem getBaseEqSystem() { return baseEqSysForNewEquation(this); }
 			};
-			eqp.baseEqSystem = baseEqSysForNewEquation(eqp);
 			equations.add(eqp);
 			this.add(eqp, equations.size());
 			VTEquationInput.this.posComponents();
@@ -227,7 +221,7 @@ public class VTEquationInput extends VisualThing {
 			
 			@Override boolean recheck(EquationPanel eqp) {
 				if(!eqp.correctInput) return false;
-				if(eqp.baseEqSystem.contains(eqp.eq)) {
+				if(eqSys.contains(eqp.eq)) {
 					if(!haveEarlierSameEquation(eqp))
 						eqp.setInputRight("ok");
 					else
@@ -243,36 +237,40 @@ public class VTEquationInput extends VisualThing {
 		class FollowingEquationsPanel extends EquationsPanel {
 			private static final long serialVersionUID = 1L;
 			
-			@Override EquationSystem baseEqSysForNewEquation(final EquationPanel eqp) {
-				return eqSys.extendedSystem(
-						Utils.map(
-								Utils.cuttedFromRight(equations, new Utils.Predicate<EquationPanel>() {
-									public boolean apply(EquationPanel obj) {
-										return eqp == obj;
-									}
-								}),
-								new Utils.Function<EquationPanel,EquationSystem.Equation>() {
-									public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
-								}));
+			EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
+				Iterable<EquationPanel> basicEquPanels = basicEquationsPanel.equations;
+				Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
+						new Utils.Predicate<EquationPanel>() {
+							public boolean apply(EquationPanel obj) {
+								return eqp == obj;
+							}
+						});
+				Iterable<EquationPanel> allEquPanels = Utils.concatCollectionView(basicEquPanels, restEquPanels);
+				Iterable<EquationSystem.Equation> allEquations = Utils.map(
+						allEquPanels,
+						new Utils.Function<EquationPanel,EquationSystem.Equation>() {
+							public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
+						});
+				return new EquationSystem(
+						Utils.collFromIter(allEquations),
+						eqSys.variableSymbols
+						);
 			}
 			
 			@Override boolean recheck(EquationPanel eqp) {
 				if(!eqp.correctInput) return false;
 				//System.out.print("base eq ");
 				//eqp.baseEqSystem.dump();
-				if(eqp.baseEqSystem.canConcludeTo(eqp.eq)) {
-					if(!haveEarlierSameEquation(eqp)) {
-						if(!basicEquationsPanel.haveEarlierSameEquation(eqp))
-							eqp.setInputRight("ok");
-						else
-							eqp.setInputWrong("wie Basis-Gleichung");
-					} else
-						eqp.setInputWrong("doppelt");
-					return true;
+				EquationSystem eqSys = eqSysForNewEquation(eqp);
+				if(eqSys.contains(eqp.eq))
+					eqp.setInputWrong("doppelt");
+				else if(eqSys.canConcludeTo(eqp.eq)) {
+					eqp.setInputRight("ok");
 				} else {
 					eqp.setInputWrong("kann nicht hergeleitet werden");
 					return false;
 				}
+				return true;
 			}
 		}
 
@@ -315,7 +313,15 @@ public class VTEquationInput extends VisualThing {
 	int stepY;
 	int width;
 	int height;
-	EquationSystem eqSys = null;
+	private EquationSystem eqSys = null;
+	private EquationSystem eqSys_linearIndependent = null;
+	
+	void setEquationSystem(EquationSystem eqSys) {
+		this.eqSys = eqSys;
+		this.eqSys_linearIndependent = eqSys.linearIndependent();
+		this.eqSys.dump();
+		//System.out.print("linear independent "); this.eqSys_linearIndependent.dump();
+	}
 	
 	VTEquationInput(String name, int stepX, int stepY, int width, int height) {
 		this.name = name;

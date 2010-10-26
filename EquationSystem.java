@@ -598,6 +598,13 @@ public class EquationSystem {
 				}),
 				variableSymbols);
 	}
+	EquationSystem linearIndependent() {
+		EquationSystem eqSys = new EquationSystem(variableSymbols);
+		for(Equation eq : equations)
+			if(!eqSys.canConcludeTo(eq))
+				eqSys.equations.add(eq);
+		return eqSys;
+	}
 	
 	boolean contains(Equation eq) {
 		eq = eq.normalize();
