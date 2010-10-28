@@ -53,4 +53,8 @@ public abstract class VisualThing {
 	public String getDebugStringExtra() {
 		return "";
 	}
+	
+	@Override public String toString() {
+		return getClass().getSimpleName() + "@" + Integer.toHexString(hashCode());
+	}
 }
