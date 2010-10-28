@@ -11,14 +11,11 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.FontFormatException;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,6 +25,7 @@ import javax.swing.JComboBox;
 
 
 public class Applet extends JApplet {
+	private static final long serialVersionUID = 1L;
 
 	private JPanel jContentPane = null;
 	public Content content = new Content(this);
@@ -149,6 +147,8 @@ public class Applet extends JApplet {
 	}
 
 	public static Point addVisualThings(JPanel panel, VisualThing[] things, boolean onlyCalcSize) {
+		final boolean debugPrint = false;
+		if(debugPrint) System.out.println("VTs {");
 		int curX = 0, curY = 0;
 		List<Integer> xs_old = null;
 		List<Integer> xs = new LinkedList<Integer>();
@@ -174,6 +174,7 @@ public class Applet extends JApplet {
 					if(c instanceof JComponent) ((JComponent) c).revalidate();
 					c.setBounds(new Rectangle(curX, curY, things[i].getWidth(),
 							things[i].getHeight()));
+					if(debugPrint) System.out.println(things[i] + " bounds: " + c.getBounds());
 					if(c.getParent() != panel)
 						panel.add(c);
 				}
@@ -184,6 +185,7 @@ public class Applet extends JApplet {
 			curX += things[i].getWidth();
 		}
 
+		if(debugPrint) System.out.println("}");
 		return max;
 	}
 
@@ -320,7 +322,7 @@ public class Applet extends JApplet {
 		};
 	}
 
-	private Runnable createVisibler(final String name) {
+	 Runnable createVisibler(final String name) {
 		return new Runnable() {
 			public void run() {
 				JComponent comp = (JComponent) getComponentByName(name);
@@ -347,7 +349,6 @@ public class Applet extends JApplet {
 		panel.removeAll();
 	}
 
-	private int aufgabeNr = 0;
 	VTMeta vtmeta = new VTMeta(this, 0, 0, "", null, new Runnable() {
 				public void run() {
 					resetSelectorColors();
