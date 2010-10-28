@@ -3,6 +3,7 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
+import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.VariableSymbol;
 
 public class ElectronicCircuit {
 		
@@ -742,6 +745,25 @@ public class ElectronicCircuit {
 				eqSys.equations.add(eq);
 		}
 		return eqSys;
+	}
+	
+	static class EquationQuestion {
+		String wantedExpr;
+		Set<String> allowedVars = new HashSet<String>();
+	};
+	
+	EquationQuestion randomEquationQuestion() {
+		EquationQuestion q = new EquationQuestion();
+		VoltageSource voltSrc = Utils.randomChoiceFrom(new ArrayList<VoltageSource>(Utils.collFromIter(Utils.filterType(allConns(), VoltageSource.class))), r);
+		q.wantedExpr = voltSrc.varVolt.name + "/" + voltSrc.varFlow.name;
+		for(Conn c : allConns()) {
+			if(c == voltSrc) continue;
+			q.allowedVars.addAll(Utils.map(c.vars(), new Utils.Function<EquationSystem.VariableSymbol,String>() {
+				public String eval(VariableSymbol obj) {
+					return obj.name;
+				}}));
+		}
+		return q;
 	}
 	
 }
