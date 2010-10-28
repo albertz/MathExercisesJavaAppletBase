@@ -305,7 +305,7 @@ public class EquationSystem {
 						}
 					}
 					List<Prod> entries = new LinkedList<Prod>();
-					@Override public String toString() { return ((entries.size() > 1) ? "(" : "") + Utils.concat(entries, " + ") + ((entries.size() > 1) ? ")" : ""); }
+					@Override public String toString() { return Utils.concat(entries, " + "); }
 					public int compareTo(Sum o) { return Utils.<Prod>orderOnCollection().compare(entries, o.entries); }
 					@Override public boolean equals(Object obj) {
 						if(!(obj instanceof Sum)) return false;
@@ -384,7 +384,7 @@ public class EquationSystem {
 					}
 				}
 				Sum numerator = new Sum(), denominator = null;
-				@Override public String toString() { return numerator.toString() + ((denominator != null) ? " / " + denominator.toString() : ""); }
+				@Override public String toString() { return "(" + numerator.toString() + ")" + ((denominator != null) ? " / (" + denominator.toString() + ")" : ""); }
 				boolean denominatorEqualTo(Sum fdenominator) {
 					if(denominator == null && fdenominator == null) return true;
 					if(denominator != null && fdenominator == null) return false;
