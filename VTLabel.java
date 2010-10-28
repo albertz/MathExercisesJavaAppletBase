@@ -134,4 +134,7 @@ public class VTLabel extends VisualThing {
 		return ",\"" + text + "\"";
 	}
 
+	@Override public String toString() {
+		return super.toString() + " \"" + text + "\"";
+	}
 }

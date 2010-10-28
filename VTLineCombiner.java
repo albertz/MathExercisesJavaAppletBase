@@ -77,4 +77,7 @@ public class VTLineCombiner extends VTContainer {
 		return size.x;
 	}
 
+	@Override public String toString() {
+		return super.toString() + " {" + Utils.concat(Utils.iterableFromArray(things), ", ") + "}";
+	}
 }
