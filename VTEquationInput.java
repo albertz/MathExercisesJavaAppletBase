@@ -73,7 +73,7 @@ public class VTEquationInput extends VisualThing {
 		}
 		
 		void setInputWrong(String s) {
-			System.out.println(s + ", equation: " + eq);
+			if(!s.isEmpty()) System.out.println(s + ", equation: " + eq.normalize());
 			correct = false;
 			infoLabel.setForeground(Color.red);
 			infoLabel.setText(s);
@@ -350,9 +350,11 @@ public class VTEquationInput extends VisualThing {
 	
 	@Override
 	public Component getComponent() {
-		if(mainPanel == null)
-			mainPanel = new MainPanel();		
-		mainPanel.setName(name);
+		if(mainPanel == null) {
+			mainPanel = new MainPanel();
+			height = mainPanel.getPreferredSize().height;
+			mainPanel.setName(name);
+		}
 		return mainPanel;
 	}
 
