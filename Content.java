@@ -43,8 +43,10 @@ public class Content {
 		graph.setSize(w * 100 + 20, h * 100);
 		graph.clear();
 		circuit.registerOnPGraph(graph, circuit.randomSetup(w, h));
-		equationInput.setEquationSystem(circuit.getEquationSystem());
+		ElectronicCircuit.EquationQuestion question = circuit.randomEquationQuestion();
+		equationInput.setEquationSystem(circuit.getEquationSystem(), question.wantedExpr, question.allowedVars);
 		equationInput.clear();
+		questionLabel.setText(equationInput.wantedResult.toString());
 	}
 	
 	public void run() {

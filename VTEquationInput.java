@@ -9,9 +9,12 @@ import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -262,11 +265,15 @@ public class VTEquationInput extends VisualThing {
 				//System.out.print("base eq ");
 				//eqp.baseEqSystem.dump();
 				EquationSystem eqSys = eqSysForNewEquation(eqp);
-				if(eqSys.contains(eqp.eq))
-					eqp.setInputWrong("doppelt");
-				else if(eqSys.canConcludeTo(eqp.eq)) {
-					eqp.setInputRight("ok");
-				} else {
+				if(eqSys.canConcludeTo(eqp.eq)) {
+					if(wantedResult.isWanted(eqp.eq))
+						eqp.setInputRight("fertig :)");
+					else if(eqSys.contains(eqp.eq))
+						eqp.setInputWrong("doppelt");
+					else
+						eqp.setInputRight("ok");
+				}
+				else {
 					eqp.setInputWrong("kann nicht hergeleitet werden");
 					return false;
 				}
@@ -314,12 +321,60 @@ public class VTEquationInput extends VisualThing {
 	int width;
 	int height;
 	private EquationSystem eqSys = null;
-	private EquationSystem eqSys_linearIndependent = null;
 	
-	void setEquationSystem(EquationSystem eqSys) {
+	class WantedResult {
+		String wantedExprStr = "";
+		EquationSystem.Equation.FracSum wantedExpr = new EquationSystem.Equation.FracSum();
+		Set<EquationSystem.VariableSymbol> allowedVars = new TreeSet<EquationSystem.VariableSymbol>();
+		
+		WantedResult() {}
+		WantedResult(String wantedExprStr, Iterable<String> allowedVars) {
+			try {
+				this.wantedExprStr = wantedExprStr;
+				this.wantedExpr = new EquationSystem.Equation.FracSum(Utils.OperatorTree.parse(wantedExprStr), eqSys.variableSymbols);
+				this.wantedExpr = this.wantedExpr.normalize();
+				for(String var : allowedVars)
+					this.allowedVars.add( eqSys.variableSymbols.get(var) );
+			}
+			catch(Throwable e) {
+				e.printStackTrace();
+			}
+		}
+		
+		boolean isWantedExpr(EquationSystem.Equation.FracSum expr) {
+			expr = expr.normalize();
+			if(wantedExpr.equals(expr)) return true;
+			if(wantedExpr.equals(expr.minusOne())) return true;
+			System.out.println("not wanted. " + expr + " != " + wantedExpr);
+			return false;
+		}
+		
+		boolean hasOnlyAllowedVars(EquationSystem.Equation.FracSum expr) {
+			for(EquationSystem.VariableSymbol var : expr.vars()) {
+				if(!allowedVars.contains(var)) {
+					System.out.println("not allowed var: " + var + " in " + expr);
+					return false;					
+				}
+			}
+			return true;
+		}
+		
+		boolean isWanted(EquationSystem.Equation eq) {
+			if(isWantedExpr(eq.left) && hasOnlyAllowedVars(eq.right)) return true;
+			if(isWantedExpr(eq.right) && hasOnlyAllowedVars(eq.left)) return true;
+			return false;
+		}
+		
+		@Override public String toString() {
+			return "Geben Sie " + wantedExprStr + " in Abhängigkeit von " + Utils.concat(allowedVars, ", ") + " an.";
+		}
+	}
+	WantedResult wantedResult = new WantedResult();
+	
+	void setEquationSystem(EquationSystem eqSys, String wantedExpr, Iterable<String> allowedVars) {
 		this.eqSys = eqSys;
-		this.eqSys_linearIndependent = eqSys.linearIndependent();
 		this.eqSys.dump();
+		this.wantedResult = new WantedResult(wantedExpr, allowedVars);
 		//System.out.print("linear independent "); this.eqSys_linearIndependent.dump();
 	}
 	
