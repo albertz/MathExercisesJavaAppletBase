@@ -11,11 +11,17 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 
 public class Utils {
 
+	static <T> T randomChoiceFrom(List<T> list, Random r) {
+		int i = r.nextInt(list.size());
+		return list.get(i);
+	}
+	
 	static interface Size {
 	    int getWidth();
 	    int getHeight();
@@ -248,6 +254,19 @@ public class Utils {
 				};
 			}
 		};
+	}
+	
+	static <X, Y extends X> Iterable<Y> filterType(final Iterable<X> i, final Class<Y> clazz) {
+		Iterable<X> iter = filter(i, new Predicate<X>() {
+			public boolean apply(X obj) {
+				return clazz.isInstance(obj);
+			}
+		});
+		return map(iter, new Function<X,Y>() {
+			public Y eval(X obj) {
+				return clazz.cast(obj);
+			}
+		});
 	}
 	
 	static <T> Set<T> filter(final Set<T> i, final Predicate<? super T> pred) {
