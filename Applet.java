@@ -150,15 +150,15 @@ public class Applet extends JApplet {
 
 	public static Point addVisualThings(JPanel panel, VisualThing[] things, boolean onlyCalcSize) {
 		int curX = 0, curY = 0;
-		List xs_old = null;
-		List xs = new LinkedList();
+		List<Integer> xs_old = null;
+		List<Integer> xs = new LinkedList<Integer>();
 		Point max = new Point(0, 0);
 
 		for (int i = 0; i < things.length; i++) {
 			if (things[i].getStepY() != 0) {
 				curY = max.y + things[i].getStepY();
 				xs_old = xs;
-				xs = new LinkedList();
+				xs = new LinkedList<Integer>();
 				curX = 0;
 			}
 			if (things[i].getStepX() < 0) {
