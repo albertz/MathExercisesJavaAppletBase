@@ -56,7 +56,7 @@ public class Content {
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
 		equationInput = new VTEquationInput("equ", 10, 10, applet.getWidth() - 60, 200);
-		questionLabel = new VTLabel("question", "", 10, 10);
+		questionLabel = new VTLabel("question", "", 10, 10, applet.getWidth() - 60);
 		initNewCircuit();
 				
 		applet.vtmeta.setExtern(new VisualThing[] {
