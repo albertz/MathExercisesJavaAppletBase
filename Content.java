@@ -16,7 +16,7 @@ public class Content {
 	}
 	
 	public void init() {
-		applet.setSize(600, 800);
+		applet.setSize(600, 500);
 		applet.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 	}
 
