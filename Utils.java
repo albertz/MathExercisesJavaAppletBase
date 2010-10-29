@@ -14,9 +14,42 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
+import java.util.StringTokenizer;
 
 public class Utils {
 
+	static Iterable<String> tokenizeString(final String str, String delim) {
+		final Set<Character> delimChars = new HashSet<Character>(collFromIter(iterableString(delim)));
+		return new Iterable<String>() {
+			public Iterator<String> iterator() {
+				return new Iterator<String>() {
+					int pos = 0;
+					public boolean hasNext() { return pos < str.length(); }
+					public String next() {
+						String ret = "";
+						for(; pos < str.length(); ++pos) {
+							char c = str.charAt(pos);
+							if(delimChars.contains(c)) {
+								if(ret.isEmpty()) {
+									ret += c;
+									pos++;
+								}
+								return ret;
+							}
+							ret += c;
+						}
+						return ret;
+					}
+					public void remove() { throw new UnsupportedOperationException(); }
+				};
+			}
+		};
+	}
+	
+	static Iterable<String> tokenizeString(String str) {
+		return tokenizeString(str, " \t\n\r\f");
+	}
+	
 	static <T> T randomChoiceFrom(List<T> list, Random r) {
 		int i = r.nextInt(list.size());
 		return list.get(i);
