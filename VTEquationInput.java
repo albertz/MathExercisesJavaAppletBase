@@ -4,12 +4,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -17,12 +13,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.Scrollable;
-import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -115,6 +107,7 @@ public class VTEquationInput extends VisualThing {
 	
 	abstract class EquationsPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
+		SimpleLabel descriptionLabel = new SimpleLabel();
 		List<EquationPanel> equations = new LinkedList<EquationPanel>();
 		JButton addNewEquationButton = new JButton();
 		
@@ -127,7 +120,7 @@ public class VTEquationInput extends VisualThing {
 			addNewEquationButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) { addEquation().requestFocus(); }
 			});
-			posComponents();
+			this.add(descriptionLabel);
 			this.add(addNewEquationButton);
 			for(int i = 0; i < startSize; ++i)
 				addEquation();
@@ -187,7 +180,9 @@ public class VTEquationInput extends VisualThing {
 		int height = 0;
 		
 		void posComponents() {
-			int y = 1;
+			descriptionLabel.fixedWidth = this.getWidth() - 2 - 10;
+			int y = descriptionLabel.getPreferredSize().height + 5;
+			descriptionLabel.setBounds(1 + 5, 2, descriptionLabel.fixedWidth, y);
 			for(EquationPanel eqp : equations) {
 				eqp.setBounds(1, y, this.getWidth() - 2, EquationPanel.height);
 				eqp.posComponents();
@@ -212,7 +207,13 @@ public class VTEquationInput extends VisualThing {
 
 		class BasicEquationsPanel extends EquationsPanel {
 			private static final long serialVersionUID = 1L;
-
+			{
+				super.descriptionLabel.text =
+					"Geben Sie Gleichungen, die Sie benötigen " +
+					"und aus der Schaltung ablesen können, " +
+					"hier ein.";
+			}
+			
 			public BasicEquationsPanel(int i) { super(i); }
 
 			@Override void onEquationUpdate(EquationPanel eqp) {
@@ -239,6 +240,12 @@ public class VTEquationInput extends VisualThing {
 		
 		class FollowingEquationsPanel extends EquationsPanel {
 			private static final long serialVersionUID = 1L;
+			{
+				super.descriptionLabel.text =
+					"Leiten Sie Schritt für Schritt eine neue Gleichung her, die " +
+					"sich logisch aus den bisherigen Gleichungen folgern lässt.\n" +
+					"Am Ende soll der gefragte Ausdruck hergeleitet sein.";
+			}
 			
 			EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
 				Iterable<EquationPanel> basicEquPanels = basicEquationsPanel.equations;
