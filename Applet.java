@@ -26,7 +26,8 @@ import javax.swing.JComboBox;
 
 public class Applet extends JApplet {
 	private static final long serialVersionUID = 1L;
-
+	static Applet instance;
+	
 	private JPanel jContentPane = null;
 	public Content content = new Content(this);
 
@@ -40,6 +41,7 @@ public class Applet extends JApplet {
 	 */
 	public Applet() {
 		super();
+		instance = this;
 	}
 	
 	/**
