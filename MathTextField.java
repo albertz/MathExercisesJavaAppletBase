@@ -3,6 +3,9 @@
  */
 package applets.Termumformungen$in$der$Technik_01_URI;
 
+import java.util.Enumeration;
+
+import javax.smartcardio.ATR;
 import javax.swing.JTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
@@ -52,7 +55,7 @@ public class MathTextField extends JTextField {
 			public void remove(FilterBypass fb, int offset, int length)
 					throws BadLocationException {
 				String s = MathTextField.this.getText();
-				setNewString(fb, s.substring(0, offset) + s.substring(offset + length));
+				replace(fb, offset, length, "", null);
 			}
 			@Override
 			public void replace(FilterBypass fb, int offset, int length,
@@ -61,23 +64,38 @@ public class MathTextField extends JTextField {
 				String s = MathTextField.this.getText();
 				boolean insertedDummyChar = false;
 				boolean insertedBrackets = false;
-				if(string.equals(" ")) string = "*";
+				string = string.replace(" ", "");
+				String marked = s.substring(offset, offset + length);
+
+				if(string.isEmpty() && marked.equals("(")) return; // ignore
+				if(string.isEmpty() && marked.equals(")")) {
+					int count = -1;
+					while(offset > 0) {
+						offset--;
+						length++;
+						marked = s.substring(offset, offset + length);
+						if(marked.charAt(0) == '(') count++;
+						else if(marked.charAt(0) == ')') count--;
+						if(count == 0) break;
+					}
+				}
+				
 				if(length == 0 && string.matches("\\+|-|\\*|/|=")) {
 					if(s.substring(offset).matches(" *(((\\+|-|∙|/|=|\\)).*)|)")) {
 						string = string + "_";
 						insertedDummyChar = true;
 					} else if(s.substring(offset).matches(" .*")) {
 						string = "_" + string;
-						insertedDummyChar = true;						
+						insertedDummyChar = true;
 					}
 				}
 				else if(string.matches("\\(")) {
-					/*if(length == 0) {
+					if(length == 0 || marked.equals("_")) {
 						string = "(_)";
 						insertedDummyChar = true;
 					}
-					else*/ {
-						string = "(" + s.substring(offset, offset + length) + ")";
+					else {
+						string = "(" + marked + ")";
 						insertedBrackets = true;
 					}
 				}
@@ -100,7 +118,7 @@ public class MathTextField extends JTextField {
 			}
 
 			synchronized void setNewString(FilterBypass fb, String tempStr) throws BadLocationException {
-				operatorTree = Utils.OperatorTree.parse(tempStr).simplify();
+				operatorTree = Utils.OperatorTree.parse(tempStr, "");
 				MathTextField.this.updateByOpTree(fb);
 			}
 		});

@@ -748,6 +748,7 @@ public class Utils {
     			ot.entities.add(this);
     			return ot;
     		}
+    		boolean isEnclosedImplicitely() { return true; }
     	}
     	static class RawString extends Entity {
     		String content = "";
@@ -757,8 +758,19 @@ public class Utils {
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
+    		boolean implicitEnclosing = true;
     		Subtree(OperatorTree t) { content = t; }
-    		@Override public String toString() { return (content.canBeInterpretedAsUnaryPrefixed() && !debugOperatorTreeDump) ? content.toString() : ("(" + content.toString() + ")"); }
+    		Subtree(OperatorTree t, boolean implicitEnclosing) { content = t; this.implicitEnclosing = implicitEnclosing; }
+			@Override boolean isEnclosedImplicitely() { return implicitEnclosing; }
+    		@Override public String toString() {
+    			if(debugOperatorTreeDump)
+    				return "(" + content.toString() + ")";
+    			if(content.canBeInterpretedAsUnaryPrefixed())
+    				return content.toString();
+    			if(implicitEnclosing)
+    				return content.toString(); 
+				return "(" + content.toString() + ")";
+    		}
     		@Override OperatorTree asTree() { return content; }
     	}
     	List<Entity> entities = new LinkedList<Entity>();
@@ -909,7 +921,7 @@ public class Utils {
         		return new Subtree(ot);        		
     		}
     		else
-    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList));
+    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList), ((Subtree) source).implicitEnclosing);
     	}
 
     	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<Entity> rest) {
@@ -1044,7 +1056,7 @@ public class Utils {
     				if(e instanceof RawString)
     					ot.entities.add(e); // we already parsed that in splitByOps
     				else
-    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList )));
+    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList ), ((Subtree) e).implicitEnclosing));
     			}
     			return ot;
     		}
@@ -1066,7 +1078,7 @@ public class Utils {
     			if(e instanceof RawString)
     				ot.entities.add(e);
     			else
-    				ot.entities.add( new Subtree( parseDefaultAnonBinOpInTree( ((Subtree) e).content, defaultOp ) ) );
+    				ot.entities.add( new Subtree( parseDefaultAnonBinOpInTree( ((Subtree) e).content, defaultOp ), ((Subtree) e).implicitEnclosing ) );
     		}
     		return ot;
     	}
@@ -1078,7 +1090,7 @@ public class Utils {
     			
     		t = parseOpsInTree(t, binOps, binOpList);
     		//System.out.println("before defaultop: " + t);
-    		t = parseDefaultAnonBinOpInTree(t, defaultAnonBinOp);
+    		if(!defaultAnonBinOp.isEmpty()) t = parseDefaultAnonBinOpInTree(t, defaultAnonBinOp);
     		return t;
     	}
     	
@@ -1088,7 +1100,7 @@ public class Utils {
     			if(e instanceof ParseTree.RawString)
     				ot.entities.add( new RawString(((ParseTree.RawString)e).content) );
     			else
-    				ot.entities.add( new Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content) ) );
+    				ot.entities.add( new Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content), false ) );
     		}
     		return ot;
     	}
@@ -1126,7 +1138,8 @@ public class Utils {
     	static OperatorTree parse(String str, String binOps, String defaultAnonBinOp) {
     		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), defaultAnonBinOp );
     	}
-    	static OperatorTree parse(String str) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", "∙"); }
+    	static OperatorTree parse(String str, String defaultAnonBinOp) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", defaultAnonBinOp); }
+    	static OperatorTree parse(String str) { return parse(str, "∙"); }
     	
     	boolean canBeInterpretedAsUnaryPrefixed() {
     		return entities.size() == 2 && entities.get(0) instanceof Subtree && ((Subtree)entities.get(0)).content.entities.isEmpty();	
@@ -1199,7 +1212,7 @@ public class Utils {
         		ot.op = op;
             	for(Entity e : entities) {
             		if(e instanceof Subtree)
-            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform) ) );
+            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).implicitEnclosing ) );
             		else // e instanceof RawString
             			ot.entities.add(e);
             	}
@@ -1210,7 +1223,7 @@ public class Utils {
         	boolean first = true;
         	for(Entity e : entities) {
         		if(e instanceof Subtree)
-        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform) );
+        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).implicitEnclosing );
         		if(first) {
         			if(leftTransform != null) e = leftTransform.eval(e);
         		} else {
