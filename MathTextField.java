@@ -54,7 +54,6 @@ public class MathTextField extends JTextField {
 			@Override
 			public void remove(FilterBypass fb, int offset, int length)
 					throws BadLocationException {
-				String s = MathTextField.this.getText();
 				replace(fb, offset, length, "", null);
 			}
 			@Override
@@ -64,11 +63,25 @@ public class MathTextField extends JTextField {
 				String s = MathTextField.this.getText();
 				boolean insertedDummyChar = false;
 				boolean insertedBrackets = false;
-				string = string.replace(" ", "");
 				String marked = s.substring(offset, offset + length);
 
-				if(string.isEmpty() && marked.equals("(")) return; // ignore
-				if(string.isEmpty() && marked.equals(")")) {
+				if(string.matches(" |\\)") && s.substring(offset, offset + 1).equals(string)) {
+					MathTextField.this.setCaretPosition(offset + 1);
+					return;
+				}
+				
+				string = string.replace(" ", "");
+				if(string.isEmpty() && marked.equals("(")) {
+					int count = 1;
+					while(offset + length < s.length()) {
+						length++;
+						marked = s.substring(offset, offset + length);
+						if(marked.charAt(0) == '(') count++;
+						else if(marked.charAt(0) == ')') count--;
+						if(count == 0) break;
+					}
+				}
+				else if(string.isEmpty() && marked.equals(")")) {
 					int count = -1;
 					while(offset > 0) {
 						offset--;
@@ -101,6 +114,13 @@ public class MathTextField extends JTextField {
 				}
 				else if(string.matches("\\)"))
 					return; // ignore that
+				
+				// situation: A = B, press DEL -> make it A = _
+				if(string.isEmpty() && offset > 0 && s.substring(offset - 1, offset).equals(" ") && !marked.equals("_")) {
+					string = "_";
+					insertedDummyChar = true;
+				}
+				
 				setNewString(fb, s.substring(0, offset) + string + s.substring(offset + length));
 				
 				if(insertedDummyChar) {
