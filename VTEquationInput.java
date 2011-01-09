@@ -27,7 +27,6 @@ public class VTEquationInput extends VisualThing {
 		JLabel infoLabel = new JLabel();
 		JButton removeButton = new JButton();
 		EquationSystem.Equation eq = new EquationSystem.Equation();
-		static final int height = 30;
 		boolean correct = false;
 		boolean correctInput = false;
 				
@@ -49,13 +48,27 @@ public class VTEquationInput extends VisualThing {
 			this.add(removeButton);
 		}
 
+		@Override public void doLayout() {
+			posComponents();
+		}
+		
 		void posComponents() {
-			int infoLabelWidth = infoLabel.getFontMetrics(infoLabel.getFont()).stringWidth(infoLabel.getText());
-			int infoLabelHeight = infoLabel.getFontMetrics(infoLabel.getFont()).getHeight();
+			int height = 30;
 			int removeButtonWidth = 30;
-			textField.setBounds(0, 0, this.getWidth() - infoLabelWidth - 5 - removeButtonWidth - 5, height);
-			infoLabel.setBounds(textField.getWidth() + 5, (height - infoLabelHeight) / 2, infoLabelWidth, infoLabelHeight);
-			removeButton.setBounds(infoLabel.getX() + infoLabel.getWidth() + 5, 0, removeButtonWidth, removeButtonWidth);
+			textField.setBounds(0, 0, this.getWidth() - removeButtonWidth - 5, height);
+			removeButton.setBounds(this.getWidth() - removeButtonWidth, 0, removeButtonWidth, removeButtonWidth);
+			if(correct || infoLabel.getText().isEmpty()) {
+				infoLabel.setVisible(false);
+			}
+			else {
+				infoLabel.setVisible(true);
+				//int infoLabelWidth = infoLabel.getFontMetrics(infoLabel.getFont()).stringWidth(infoLabel.getText());
+				int infoLabelHeight = infoLabel.getFontMetrics(infoLabel.getFont()).getHeight();
+				infoLabel.setBounds(0, textField.getHeight() + 1, this.getWidth(), infoLabelHeight);
+				height = infoLabel.getY() + infoLabelHeight;
+			}
+			this.setPreferredSize(new Dimension(this.getWidth(), height));
+			this.setSize(this.getPreferredSize());
 			repaint();
 		}
 		
@@ -64,7 +77,8 @@ public class VTEquationInput extends VisualThing {
 			correct = false;
 			infoLabel.setForeground(Color.red.brighter());
 			infoLabel.setText(s);
-			posComponents();
+			textField.setBackground(Color.white);
+			invalidate();
 		}
 		
 		void setInputWrong(String s) {
@@ -72,14 +86,16 @@ public class VTEquationInput extends VisualThing {
 			correct = false;
 			infoLabel.setForeground(Color.red);
 			infoLabel.setText(s);
-			posComponents();			
+			textField.setBackground(Color.red.brighter());
+			invalidate();			
 		}
 
 		void setInputRight(String s) {
 			correct = true;
 			infoLabel.setForeground(Color.blue);
 			infoLabel.setText(s);
-			posComponents();			
+			textField.setBackground(Color.green.brighter());
+			invalidate();			
 		}
 
 		void resetInput() { setInputWrong(""); }
@@ -177,6 +193,10 @@ public class VTEquationInput extends VisualThing {
 
 		void onEquationUpdate(EquationPanel eqp) { recheckAllFrom(eqp); }
 		
+		@Override public void doLayout() {
+			posComponents();
+		}
+		
 		int height = 0;
 		
 		void posComponents() {
@@ -184,7 +204,7 @@ public class VTEquationInput extends VisualThing {
 			int y = descriptionLabel.getPreferredSize().height + 5;
 			descriptionLabel.setBounds(1 + 5, 2, descriptionLabel.fixedWidth, y);
 			for(EquationPanel eqp : equations) {
-				eqp.setBounds(1, y, this.getWidth() - 2, EquationPanel.height);
+				eqp.setBounds(1, y, this.getWidth() - 2, eqp.getPreferredSize().height);
 				eqp.posComponents();
 				y += eqp.getHeight() + 5;
 			}
@@ -290,6 +310,10 @@ public class VTEquationInput extends VisualThing {
 
 		BasicEquationsPanel basicEquationsPanel = new BasicEquationsPanel(1);
 		FollowingEquationsPanel followingEquationsPanel = new FollowingEquationsPanel();
+		
+		@Override public void doLayout() {
+			posComponents();
+		}
 		
 		void posComponents() {
 			basicEquationsPanel.setSize(getWidth(), 0);
