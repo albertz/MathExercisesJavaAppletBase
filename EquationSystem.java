@@ -627,7 +627,6 @@ public class EquationSystem {
 	}
 	
 	boolean contains(Equation eq) {
-		eq = eq.normalize();
 		Equation minusEq = eq.minusOne();		
 		for(Equation e : normalized().equations) {
 			if(eq.equals(e) || minusEq.equals(e)) {

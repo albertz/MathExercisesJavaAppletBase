@@ -57,7 +57,7 @@ public class VTEquationInput extends VisualThing {
 			int removeButtonWidth = 30;
 			textField.setBounds(0, 0, this.getWidth() - removeButtonWidth - 5, height);
 			removeButton.setBounds(this.getWidth() - removeButtonWidth, 0, removeButtonWidth, removeButtonWidth);
-			if(correct || infoLabel.getText().isEmpty()) {
+			if(infoLabel.getText().isEmpty()) {
 				infoLabel.setVisible(false);
 			}
 			else {
@@ -98,7 +98,7 @@ public class VTEquationInput extends VisualThing {
 			invalidate();			
 		}
 
-		void resetInput() { setInputWrong(""); }
+		void resetInput() { updateEq(); }
 		
 		void updateEq() {
 			correctInput = false;
@@ -186,7 +186,7 @@ public class VTEquationInput extends VisualThing {
 		boolean haveEarlierSameEquation(EquationPanel eqp) {
 			for(EquationPanel p : equations) {
 				if(p == eqp) break;
-				if(p.eq.equalNorm(eqp.eq)) return true;
+				if(p.eq.equals(eqp.eq)) return true;
 			}
 			return false;
 		}
@@ -245,9 +245,9 @@ public class VTEquationInput extends VisualThing {
 			
 			@Override boolean recheck(EquationPanel eqp) {
 				if(!eqp.correctInput) return false;
-				if(eqSys.contains(eqp.eq)) {
+				if(eqSys.contains(eqp.eq.normalize())) {
 					if(!haveEarlierSameEquation(eqp))
-						eqp.setInputRight("ok");
+						eqp.setInputRight("");
 					else
 						eqp.setInputWrong("doppelt");
 					return true;
@@ -298,7 +298,7 @@ public class VTEquationInput extends VisualThing {
 					else if(eqSys.contains(eqp.eq))
 						eqp.setInputWrong("doppelt");
 					else
-						eqp.setInputRight("ok");
+						eqp.setInputRight("");
 				}
 				else {
 					eqp.setInputWrong("kann nicht hergeleitet werden");
@@ -313,6 +313,7 @@ public class VTEquationInput extends VisualThing {
 		
 		@Override public void doLayout() {
 			posComponents();
+			super.setBounds(getX(), getY(), getWidth(), (int)getPreferredSize().getHeight());
 		}
 		
 		void posComponents() {

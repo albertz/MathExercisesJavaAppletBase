@@ -3,9 +3,6 @@
  */
 package applets.Termumformungen$in$der$Technik_01_URI;
 
-import java.util.Enumeration;
-
-import javax.smartcardio.ATR;
 import javax.swing.JTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
