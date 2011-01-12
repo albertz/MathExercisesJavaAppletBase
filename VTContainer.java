@@ -4,6 +4,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Point;
 
 import javax.swing.JComponent;
@@ -41,9 +42,9 @@ public class VTContainer extends VisualThing {
 		if (panel == null) {
 			panel = new JPanel() {
 				private static final long serialVersionUID = 1L;
-				@Override public void revalidate() {
-					VTContainer.this.size = Applet.addVisualThings(this, VTContainer.this.things);					
-					super.revalidate();
+				@Override public void doLayout() {
+					VTContainer.this.size = Applet.addVisualThings(this, VTContainer.this.things);
+					setPreferredSize(new Dimension(VTContainer.this.size.x, VTContainer.this.size.y));					
 				}				
 			};
 			panel.setLayout(null);

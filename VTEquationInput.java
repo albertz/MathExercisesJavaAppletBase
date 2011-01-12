@@ -19,6 +19,8 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+import sun.tools.tree.ThisExpression;
+
 public class VTEquationInput extends VisualThing {
 	
 	abstract class EquationPanel extends JPanel {
@@ -42,17 +44,13 @@ public class VTEquationInput extends VisualThing {
 			removeButton.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) { onRemoveClick(); }
 			});
-			posComponents();
 			this.add(textField);
 			this.add(infoLabel);
 			this.add(removeButton);
+			doLayout();
 		}
 
 		@Override public void doLayout() {
-			posComponents();
-		}
-		
-		void posComponents() {
 			int height = 30;
 			int removeButtonWidth = 30;
 			textField.setBounds(0, 0, this.getWidth() - removeButtonWidth - 5, height);
@@ -68,8 +66,6 @@ public class VTEquationInput extends VisualThing {
 				height = infoLabel.getY() + infoLabelHeight;
 			}
 			this.setPreferredSize(new Dimension(this.getWidth(), height));
-			this.setSize(this.getPreferredSize());
-			repaint();
 		}
 		
 		void setInputError(String s) {
@@ -78,7 +74,7 @@ public class VTEquationInput extends VisualThing {
 			infoLabel.setForeground(Color.red.brighter());
 			infoLabel.setText(s);
 			textField.setBackground(Color.white);
-			invalidate();
+			revalidate();
 		}
 		
 		void setInputWrong(String s) {
@@ -87,7 +83,7 @@ public class VTEquationInput extends VisualThing {
 			infoLabel.setForeground(Color.red);
 			infoLabel.setText(s);
 			textField.setBackground(Color.red.brighter());
-			invalidate();			
+			revalidate();			
 		}
 
 		void setInputRight(String s) {
@@ -95,7 +91,7 @@ public class VTEquationInput extends VisualThing {
 			infoLabel.setForeground(Color.blue);
 			infoLabel.setText(s);
 			textField.setBackground(Color.green.brighter());
-			invalidate();			
+			revalidate();			
 		}
 
 		void resetInput() { updateEq(); }
@@ -150,7 +146,7 @@ public class VTEquationInput extends VisualThing {
 			};
 			equations.add(eqp);
 			this.add(eqp, equations.size());
-			VTEquationInput.this.posComponents();
+			revalidate();
 			return eqp;
 		}
 		
@@ -159,7 +155,7 @@ public class VTEquationInput extends VisualThing {
 				if(i.next() == eqp) {
 					i.remove();
 					this.remove(eqp);
-					VTEquationInput.this.posComponents();
+					revalidate();
 					return;
 				}
 			}
@@ -194,31 +190,27 @@ public class VTEquationInput extends VisualThing {
 		void onEquationUpdate(EquationPanel eqp) { recheckAllFrom(eqp); }
 		
 		@Override public void doLayout() {
-			posComponents();
-		}
-		
-		int height = 0;
-		
-		void posComponents() {
+			int height = 0;
 			descriptionLabel.fixedWidth = this.getWidth() - 2 - 10;
 			int y = descriptionLabel.getPreferredSize().height + 5;
 			descriptionLabel.setBounds(1 + 5, 2, descriptionLabel.fixedWidth, y);
 			for(EquationPanel eqp : equations) {
+				eqp.doLayout();
 				eqp.setBounds(1, y, this.getWidth() - 2, eqp.getPreferredSize().height);
-				eqp.posComponents();
 				y += eqp.getHeight() + 5;
 			}
 			addNewEquationButton.setBounds(1, y, 30, 30);
 			height = y + addNewEquationButton.getHeight();
+			this.setPreferredSize(new Dimension(this.getWidth(), height));
 		}
-		
+				
 		void clear() {
 			for(Iterator<EquationPanel> i = equations.iterator(); i.hasNext();) {
 				EquationPanel eqp = i.next();
 				i.remove();
 				this.remove(eqp);
 			}			
-			VTEquationInput.this.posComponents();
+			revalidate();
 		}
 	}
 	
@@ -312,31 +304,21 @@ public class VTEquationInput extends VisualThing {
 		FollowingEquationsPanel followingEquationsPanel = new FollowingEquationsPanel();
 		
 		@Override public void doLayout() {
-			posComponents();
-			super.setBounds(getX(), getY(), getWidth(), (int)getPreferredSize().getHeight());
-		}
-		
-		void posComponents() {
 			basicEquationsPanel.setSize(getWidth(), 0);
-			basicEquationsPanel.posComponents();
+			basicEquationsPanel.doLayout();
 			followingEquationsPanel.setSize(getWidth(), 0);
-			followingEquationsPanel.posComponents();
-			basicEquationsPanel.setBounds(0, 0, getWidth(), basicEquationsPanel.height);
-			followingEquationsPanel.setBounds(0, basicEquationsPanel.height, width, followingEquationsPanel.height);
-			setPreferredSize(new Dimension(getWidth(), basicEquationsPanel.height + followingEquationsPanel.height));
-		}
-				
-		@Override public void setBounds(int x, int y, int width, int height) {
-			super.setBounds(x, y, width, height);
-			posComponents();
+			followingEquationsPanel.doLayout();
+			basicEquationsPanel.setBounds(0, 0, getWidth(), basicEquationsPanel.getPreferredSize().height);
+			followingEquationsPanel.setBounds(0, basicEquationsPanel.getHeight(), width, followingEquationsPanel.getPreferredSize().height);
+			setPreferredSize(new Dimension(getWidth(), followingEquationsPanel.getY() + followingEquationsPanel.getHeight()));			
 		}
 		
 		MainPanel() {
 			super();
 			this.setLayout(null);
-			posComponents();
 			this.add(basicEquationsPanel);
 			this.add(followingEquationsPanel);
+			doLayout();
 		}
 
 		void clear() {
@@ -351,7 +333,6 @@ public class VTEquationInput extends VisualThing {
 	int stepX;
 	int stepY;
 	int width;
-	int height;
 	private EquationSystem eqSys = null;
 	
 	class WantedResult {
@@ -410,43 +391,24 @@ public class VTEquationInput extends VisualThing {
 		//System.out.print("linear independent "); this.eqSys_linearIndependent.dump();
 	}
 	
-	VTEquationInput(String name, int stepX, int stepY, int width, int height) {
+	VTEquationInput(String name, int stepX, int stepY, int width) {
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;
 		this.width = width;
-		this.height = height;
-	}
-	
-	void posComponents() {
-		if(mainPanel != null) {
-			mainPanel.posComponents();
-			mainPanel.revalidate();
-			height = mainPanel.getPreferredSize().height;
-			mainPanel.setSize(width, height);
-			Container c = mainPanel.getParent();
-			while(c != null) {
-				if(c instanceof Applet.ContentPane) {
-					((Applet.ContentPane) c).revalidateVisualThings();
-					break;
-				}
-				c = c.getParent();
-			}
-		}
 	}
 	
 	@Override
 	public Component getComponent() {
 		if(mainPanel == null) {
 			mainPanel = new MainPanel();
-			height = mainPanel.getPreferredSize().height;
 			mainPanel.setName(name);
 		}
 		return mainPanel;
 	}
 
 	@Override public int getWidth() { return width; }
-	@Override public int getHeight() { return height; }
+	@Override public int getHeight() { getComponent(); return mainPanel.getPreferredSize().height; }
 	@Override public int getStepX() { return stepX; }
 	@Override public int getStepY() { return stepY; }
 	@Override public void setStepX(int v) { stepX = v; }

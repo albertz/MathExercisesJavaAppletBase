@@ -4,6 +4,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
 
@@ -38,14 +39,13 @@ public class VTLineCombiner extends VTContainer {
 		if (panel == null) {
 			panel = new JPanel() {
 				private static final long serialVersionUID = 1L;
-				@Override public void revalidate() {
+				@Override public void doLayout() {
 					revalidateThings();
-					super.revalidate();
+					setPreferredSize(new Dimension(VTLineCombiner.this.size.x, VTLineCombiner.this.size.y));					
 				}
 			};
 			panel.setName(name);
 			panel.setLayout(null);
-			revalidateThings();
 		}
 		return panel;
 	}
@@ -59,21 +59,22 @@ public class VTLineCombiner extends VTContainer {
 			curY = (size.y - things[i].getHeight()) / 2;
 			curX += things[i].getStepX();
 			if(c != null) {
-				c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
 				if(c.getParent() != panel)
 					panel.add(c);
+				c.doLayout();
+				c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
 			}
 			curX += things[i].getWidth();
 		}
 	}
 	
 	public int getHeight() {
-		if(panel == null) calcSize();
+		if(panel == null || size == null) calcSize();
 		return size.y;
 	}
 
 	public int getWidth() {
-		if(panel == null) calcSize();
+		if(panel == null || size == null) calcSize();
 		return size.x;
 	}
 

@@ -18,6 +18,7 @@ public class Content {
 	public void init() {
 		applet.setSize(600, 500);
 		applet.scrollPane = new JScrollPane(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		applet.scrollPane.layout();
 	}
 
 	void postinit() {}
@@ -55,7 +56,7 @@ public class Content {
 		
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
-		equationInput = new VTEquationInput("equ", 10, 10, applet.getWidth() - 60, 200);
+		equationInput = new VTEquationInput("equ", 10, 10, applet.getWidth() - 60);
 		questionLabel = new VTLabel("question", "", 10, 10, applet.getWidth() - 60);
 		initNewCircuit();
 				

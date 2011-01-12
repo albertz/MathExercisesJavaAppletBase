@@ -23,6 +23,8 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComboBox;
 
+import com.sun.org.apache.xerces.internal.impl.RevalidationHandler;
+
 
 public class Applet extends JApplet {
 	private static final long serialVersionUID = 1L;
@@ -163,24 +165,23 @@ public class Applet extends JApplet {
 				xs = new LinkedList<Integer>();
 				curX = 0;
 			}
-			if (things[i].getStepX() < 0) {
-				curX = ((Integer) (xs_old.get(-things[i].getStepX() - 1)))
-						.intValue();
-			} else
+			if (things[i].getStepX() < 0)
+				curX = (xs_old.get(-things[i].getStepX() - 1)).intValue();
+			else
 				curX += things[i].getStepX();
 			xs.add(new Integer(curX));
 
 			if(!onlyCalcSize) {
 				Component c = things[i].getComponent();
 				if(c != null) {
-					if(c instanceof JComponent) ((JComponent) c).revalidate();
-					c.setBounds(new Rectangle(curX, curY, things[i].getWidth(),
-							things[i].getHeight()));
-					if(debugPrint) System.out.println(things[i] + " bounds: " + c.getBounds());
 					if(c.getParent() != panel)
 						panel.add(c);
+					c.doLayout();
+					c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
+					if(debugPrint) System.out.println(things[i] + " bounds: " + c.getBounds());
 				}
 			}
+			System.out.println("" + things[i] + ".height = " + things[i].getHeight());
 			max.x = Math.max(max.x, curX + things[i].getWidth());
 			max.y = Math.max(max.y, curY + things[i].getHeight());
 
@@ -454,12 +455,8 @@ public class Applet extends JApplet {
 	VisualThing[] visualThings = null;
 
 	void revalidateVisualThings() {
-		if(visualThings != null) {
-			Point size = addVisualThings(jContentPane, visualThings);
-			jContentPane.setPreferredSize(new Dimension(size.x, size.y));
+		if(jContentPane != null) {
 			jContentPane.revalidate();
-			if(scrollPane != null)
-				scrollPane.revalidate();
 		}
 	}
 	
@@ -476,13 +473,6 @@ public class Applet extends JApplet {
 			}
 		});
 	}
-
-	class ContentPane extends JPanel {
-		private static final long serialVersionUID = 1L;
-		public void revalidateVisualThings() {
-			Applet.this.revalidateVisualThings();
-		}
-	}
 	
 	/**
 	 * This method initializes jContentPane
@@ -491,10 +481,16 @@ public class Applet extends JApplet {
 	 */
 	private JPanel getJContentPane() {
 		if (jContentPane == null) {
-			jContentPane = new ContentPane();
+			jContentPane = new JPanel() {
+				private static final long serialVersionUID = 1L;
+				@Override public void doLayout() {
+					Point size = addVisualThings(jContentPane, visualThings);
+					setPreferredSize(new Dimension(size.x, size.y));
+				}
+			};
 			jContentPane.setLayout(null);
 			jContentPane.setSize(getWidth(), getHeight());
-			jContentPane.setName("Applet.jContentPane");			
+			jContentPane.setName("Applet.jContentPane");
 			updateDefaultVisualThings();
 		}
 		return jContentPane;
