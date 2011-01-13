@@ -2,7 +2,6 @@ package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -18,8 +17,6 @@ import javax.swing.JPanel;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-
-import sun.tools.tree.ThisExpression;
 
 public class VTEquationInput extends VisualThing {
 	
@@ -195,6 +192,7 @@ public class VTEquationInput extends VisualThing {
 			int y = descriptionLabel.getPreferredSize().height + 5;
 			descriptionLabel.setBounds(1 + 5, 2, descriptionLabel.fixedWidth, y);
 			for(EquationPanel eqp : equations) {
+				eqp.setBounds(1, y, this.getWidth() - 2, eqp.getPreferredSize().height);
 				eqp.doLayout();
 				eqp.setBounds(1, y, this.getWidth() - 2, eqp.getPreferredSize().height);
 				y += eqp.getHeight() + 5;
