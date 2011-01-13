@@ -479,7 +479,11 @@ public class Applet extends JApplet {
 				private static final long serialVersionUID = 1L;
 				@Override public void doLayout() {
 					Point size = addVisualThings(this, visualThings);
-					setPreferredSize(new Dimension(size.x, size.y));
+					
+					if(size.x != getPreferredSize().width || size.y != getPreferredSize().height) {
+						setPreferredSize(new Dimension(size.x, size.y));
+						if(getParent() != null) getParent().validate();
+					}
 				}
 			};
 			jContentPane.setLayout(null);
