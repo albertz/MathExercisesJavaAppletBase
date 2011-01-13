@@ -46,33 +46,25 @@ public class VTLineCombiner extends VTContainer {
 			};
 			panel.setName(name);
 			panel.setLayout(null);
-			panel.doLayout();
 		}
 		return panel;
 	}
 
 	public void revalidateThings() {
-		for (int i = 0; i < things.length; i++) {
-			Component c = things[i].getComponent();
-			if(c == null) continue;
-			
-			if(c.getParent() != panel)
-				panel.add(c);
-			c.setBounds(0, 0, things[i].getWidth(), things[i].getHeight());
-			c.doLayout();
-		}
-		
 		calcSize();
-		
 		int curX = 0, curY = 0;
+
 		for (int i = 0; i < things.length; i++) {
 			Component c = things[i].getComponent();
-			if(c == null) continue;
-
 			curY = (size.y - things[i].getHeight()) / 2;
-			curX += things[i].getStepX() + things[i].getWidth();
-			c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
-			System.out.println("  " + things[i] + ".bounds = " + c.getBounds());
+			curX += things[i].getStepX();
+			if(c != null) {
+				if(c.getParent() != panel)
+					panel.add(c);
+				c.doLayout();
+				c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
+			}
+			curX += things[i].getWidth();
 		}
 	}
 	
