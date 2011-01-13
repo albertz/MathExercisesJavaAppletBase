@@ -113,7 +113,7 @@ public class MathTextField extends JTextField {
 					return; // ignore that
 				
 				// situation: A = B, press DEL -> make it A = _
-				if(string.isEmpty() && offset > 0 && s.substring(offset - 1, offset).equals(" ") && !marked.equals("_")) {
+				if(string.isEmpty() && offset > 0 && length == 1 && s.substring(offset - 1, offset).equals(" ") && !marked.equals("_")) {
 					string = "_";
 					insertedDummyChar = true;
 				}
