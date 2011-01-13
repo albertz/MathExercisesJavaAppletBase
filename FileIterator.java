@@ -7,11 +7,8 @@ import java.util.Iterator;
 
 
 
-
-
-
-public class FileIterator implements Iterator, Iterable {
-	private final Iterator files;
+public class FileIterator implements Iterator<File>, Iterable<File> {
+	private final Iterator<File> files;
 	private final FileFilter filter;
 	private FileIterator child = null;
 	private FileIterator parent = null;
@@ -24,13 +21,6 @@ public class FileIterator implements Iterator, Iterable {
 	private FileIterator getLastChild() {
 		if(child != null)
 			return child.getLastChild();
-		else
-			return this;
-	}
-	
-	private FileIterator getRoot() {
-		if(parent != null)
-			return parent.getRoot();
 		else
 			return this;
 	}
@@ -60,10 +50,9 @@ public class FileIterator implements Iterator, Iterable {
 		return gotoParentIfEmpty();
 	}
 	
-	public void remove() {
-	}
+	public void remove() { throw new UnsupportedOperationException(); }
 
-	public Object next() {
+	public File next() {
 		if(!getLastChild().gotoParentIfEmpty()) return null;
 		return getLastChild().next_lastChild();
 	}
@@ -72,7 +61,7 @@ public class FileIterator implements Iterator, Iterable {
 		return getLastChild().hasNext_lastChild();
 	}
 
-	public Iterator iterator() {
+	public Iterator<File> iterator() {
 		return this;
 	}
 
