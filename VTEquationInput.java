@@ -96,7 +96,7 @@ public class VTEquationInput extends VisualThing {
 		void updateEq() {
 			correctInput = false;
 			try {
-				eq = new EquationSystem.Equation(textField.getOperatorTree().transformMinusToPlus(), eqSys.variableSymbols);
+				eq = new EquationSystem.Equation(textField.getOperatorTree(), eqSys.variableSymbols);
 				correctInput = true;
 			} catch (EquationSystem.Equation.ParseError e) {
 				setInputError("Eingabe: " + e.german);

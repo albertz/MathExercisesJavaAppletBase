@@ -562,6 +562,7 @@ public class EquationSystem {
 		Equation() {}
 		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
+			ot = ot.transformMinusToPlus().simplify();
 			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
 			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
 			if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.", "'=' muss genau 2 Seiten haben.");
@@ -624,6 +625,12 @@ public class EquationSystem {
 			if(!eqSys.canConcludeTo(eq))
 				eqSys.equations.add(eq);
 		return eqSys;
+	}
+	
+	Equation add(String equStr) throws ParseError {
+		Equation eq = new Equation(equStr, variableSymbols);
+		equations.add(eq);
+		return eq;
 	}
 	
 	boolean contains(Equation eq) {
@@ -774,15 +781,34 @@ public class EquationSystem {
 		System.out.println(" ]");
 	}
 
+	void assertCanConcludeTo(String eqStr) throws ParseError {
+		Equation eq = new Equation(eqStr, variableSymbols);
+		if(!canConcludeTo(eq)) throw new AssertionError("must follow: " + eq);
+	}
+	
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
-		for(int i = 1; i <= 5; ++i) sys.registerVariableSymbol("I" + i, "");		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i, "");		
 		try {
-			sys.equations.add(new Equation("(I3 + -I4 + -I5) = 0", sys.variableSymbols));
-			sys.equations.add(new Equation("(-I2 + I5) = 0", sys.variableSymbols));
-			sys.equations.add(new Equation("(-I1 + I2) = 0", sys.variableSymbols));
-			Equation eq = new Equation("(I1 + -I3 + I4) = 0", sys.variableSymbols);
-			if(!sys.canConcludeTo(eq)) throw new AssertionError("must follow: " + eq);
+			sys.add("x3 - x4 - x5 = 0");
+			sys.add("-x2 + x5 = 0");
+			sys.add("-x1 + x2 = 0");
+			sys.assertCanConcludeTo("x1 - x3 + x4 = 0");			
+			sys.equations.clear();
+			
+			sys.add("x1 * x2 = 0");
+			sys.add("x1 = x3");
+			sys.assertCanConcludeTo("x2 * x3 = 0");			
+			sys.equations.clear();
+
+			sys.add("x1 = x2 + x3");
+			sys.assertCanConcludeTo("x1 / x5 = (x2 + x3) / x5");			
+			sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");			
+			sys.equations.clear();
+
+			sys.add("x1 + x2 * x3 + x4 + x5 * x6 = 0");
+			sys.equations.clear();
+			
 		} catch (Throwable e) {
 			e.printStackTrace(System.out);
 		}		
