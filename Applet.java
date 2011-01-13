@@ -6,6 +6,8 @@ import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -22,8 +24,6 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComboBox;
-
-import com.sun.org.apache.xerces.internal.impl.RevalidationHandler;
 
 
 public class Applet extends JApplet {
@@ -63,30 +63,26 @@ public class Applet extends JApplet {
 		
 		content.init();
 		Container pane = getJContentPane();
-		if(scrollPane != null) {
+		/*if(scrollPane != null) {
 			scrollPane.setViewportView(pane);
 			pane = scrollPane;
-		}
+		}*/
 		this.setContentPane(pane);
 		content.postinit();
 	}
 
 	public static void testLocalFonts() {
 		for(FileIterator i = new FileIterator(
-				
 				new File("/usr/share/"),
-				
 				new FileFilter() {
-
 					public boolean accept(File pathname) {
 						if(pathname.isDirectory()) return true;
 						return 
 							pathname.getName().toLowerCase().endsWith(".pfb")
 							|| pathname.getName().toLowerCase().endsWith(".ttf");
 					}
-			
 		}); i.hasNext(); ) {
-			File f = (File) i.next();
+			File f = i.next();
 			if(f.isFile()) {
 				int type = Font.TRUETYPE_FONT;
 				if(f.getName().toLowerCase().endsWith(".pfb")) type = Font.TYPE1_FONT;
@@ -176,12 +172,14 @@ public class Applet extends JApplet {
 				if(c != null) {
 					if(c.getParent() != panel)
 						panel.add(c);
+					c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
 					c.doLayout();
-					c.setBounds(new Rectangle(curX, curY, things[i].getWidth(), things[i].getHeight()));
+					c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
 					if(debugPrint) System.out.println(things[i] + " bounds: " + c.getBounds());
+					System.out.println("" + things[i] + ".bounds = " + c.getBounds());
+					System.out.println("" + things[i] + ".parent = " + c.getParent());
 				}
 			}
-			System.out.println("" + things[i] + ".height = " + things[i].getHeight());
 			max.x = Math.max(max.x, curX + things[i].getWidth());
 			max.y = Math.max(max.y, curY + things[i].getHeight());
 
@@ -445,7 +443,7 @@ public class Applet extends JApplet {
 		}
 
 		visualThings = vtmeta.getThingsByContentStr(contentStr);
-		revalidateVisualThings();
+		jContentPane.doLayout();
 		
 		resetResultLabels();
 		resetSelectorColors();
@@ -484,7 +482,7 @@ public class Applet extends JApplet {
 			jContentPane = new JPanel() {
 				private static final long serialVersionUID = 1L;
 				@Override public void doLayout() {
-					Point size = addVisualThings(jContentPane, visualThings);
+					Point size = addVisualThings(this, visualThings);
 					setPreferredSize(new Dimension(size.x, size.y));
 				}
 			};
@@ -492,6 +490,13 @@ public class Applet extends JApplet {
 			jContentPane.setSize(getWidth(), getHeight());
 			jContentPane.setName("Applet.jContentPane");
 			updateDefaultVisualThings();
+			
+			JLabel l = new JLabel("hello world");
+			jContentPane.add(l);
+			l.setBounds(0,0,100,100);
+			System.out.println("l: " + l);
+			
+			System.out.println("0st: " + jContentPane.getComponent(0));
 		}
 		return jContentPane;
 	}
