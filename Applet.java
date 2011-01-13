@@ -6,7 +6,6 @@ import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -14,7 +13,6 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -63,10 +61,10 @@ public class Applet extends JApplet {
 		
 		content.init();
 		Container pane = getJContentPane();
-		/*if(scrollPane != null) {
+		if(scrollPane != null) {
 			scrollPane.setViewportView(pane);
 			pane = scrollPane;
-		}*/
+		}
 		this.setContentPane(pane);
 		content.postinit();
 	}
@@ -176,8 +174,6 @@ public class Applet extends JApplet {
 					c.doLayout();
 					c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
 					if(debugPrint) System.out.println(things[i] + " bounds: " + c.getBounds());
-					System.out.println("" + things[i] + ".bounds = " + c.getBounds());
-					System.out.println("" + things[i] + ".parent = " + c.getParent());
 				}
 			}
 			max.x = Math.max(max.x, curX + things[i].getWidth());
@@ -490,13 +486,6 @@ public class Applet extends JApplet {
 			jContentPane.setSize(getWidth(), getHeight());
 			jContentPane.setName("Applet.jContentPane");
 			updateDefaultVisualThings();
-			
-			JLabel l = new JLabel("hello world");
-			jContentPane.add(l);
-			l.setBounds(0,0,100,100);
-			System.out.println("l: " + l);
-			
-			System.out.println("0st: " + jContentPane.getComponent(0));
 		}
 		return jContentPane;
 	}
