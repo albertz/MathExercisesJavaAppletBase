@@ -15,6 +15,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.ParseError;
+import applets.Termumformungen$in$der$Technik_01_URI.Utils.OperatorTree;
 
 public class EquationSystem {
 
@@ -561,14 +562,20 @@ public class EquationSystem {
 		@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(left, right); }
 		Equation() {}
 		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
-		Equation(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
-			ot = ot.transformMinusToPlus().simplify();
-			if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
-			if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
-			if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.", "'=' muss genau 2 Seiten haben.");
-			if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.", "'=' darf nicht mehr als 2 Seiten haben.");
-			left = new FracSum(ot.entities.get(0).asTree(), vars);
-			right = new FracSum(ot.entities.get(1).asTree(), vars);			
+		Equation(Utils.OperatorTree origOt, Map<String,VariableSymbol> vars) throws ParseError {
+			Utils.OperatorTree ot = origOt.transformMinusToPlus().simplify();
+			try {
+				if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
+				if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
+				if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.", "'=' muss genau 2 Seiten haben.");
+				if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.", "'=' darf nicht mehr als 2 Seiten haben.");
+				left = new FracSum(ot.entities.get(0).asTree(), vars);
+				right = new FracSum(ot.entities.get(1).asTree(), vars);			
+			}
+			catch(ParseError e) {
+				e.ot = ot;
+				throw e;
+			}
 		}
 		Equation(String str, Map<String,VariableSymbol> vars) throws ParseError {
 			this(Utils.OperatorTree.parse(str), vars);
@@ -582,7 +589,9 @@ public class EquationSystem {
 		static class ParseError extends Exception {
 			private static final long serialVersionUID = 1L;
 			String english, german;
-			public ParseError(String english, String german) { super(english); this.english = english; this.german = german; }			
+			Utils.OperatorTree ot;
+			public ParseError(String english, String german) { super(english); this.english = english; this.german = german; }
+			public ParseError(ParseError e) { super(e.english); this.english = e.english; this.german = e.german; }
 		}
 		
 	}
@@ -808,6 +817,22 @@ public class EquationSystem {
 
 			sys.add("x1 + x2 * x3 + x4 + x5 * x6 = 0");
 			sys.equations.clear();
+			
+			sys.add("x1 = x2 ∙ x3 - x4 - x5");
+			sys.assertCanConcludeTo("x1 / x2 = x3 - x4 / x2 - x5 / x2");
+			sys.equations.clear();
+
+			sys.add("x1 = x2 ∙ x3 - x4 - x5");
+			sys.add("x6 = x2");
+			sys.assertCanConcludeTo("x1 / x6 = x3 - x4 / x6 - x5 / x6");
+			sys.equations.clear();
+
+		} catch (ParseError e) {
+			System.out.println("Error: " + e.english);
+			OperatorTree.debugOperatorTreeDump = true;
+			System.out.println(" in " + e.ot);
+			OperatorTree.debugOperatorTreeDump = false;
+			e.printStackTrace(System.out);
 			
 		} catch (Throwable e) {
 			e.printStackTrace(System.out);
