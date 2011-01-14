@@ -1245,6 +1245,42 @@ public class Utils {
 			return transformOp("-", "+", null, prefixByOp("-"));
         }
         
+        OperatorTree transformMinusPushedDown() {
+        	Entity e = transformMinusPushedDown(false);
+        	if(e instanceof Subtree)
+        		return ((Subtree) e).content;
+        	return new OperatorTree("", e);
+        }
+        Entity transformMinusPushedDown(boolean negate) {
+        	if(canBeInterpretedAsUnaryPrefixed() && op.equals("-")) {        		
+        		Entity e = unaryPrefixedContent();
+        		negate = !negate;
+        		if(e instanceof Subtree)
+        			return ((Subtree) e).content.transformMinusPushedDown(negate);
+        		if(negate)
+        			return new Subtree(e.prefixed("-"));
+        		return e;
+        	}
+        	else {
+        		OperatorTree ot = new OperatorTree();
+        		ot.op = op;
+        		for(Entity e : entities) {
+        			if(e instanceof Subtree) {
+        				Subtree origSubtree = (Subtree) e;
+        				e = origSubtree.content.transformMinusPushedDown(negate);
+        				if(e instanceof Subtree)
+        					((Subtree) e).implicitEnclosing = origSubtree.implicitEnclosing;
+        			}
+        			else {
+        				if(negate)
+        					e = new Subtree(e.prefixed("-"));
+        			}
+        			ot.entities.add(e);
+        		}
+        		return new Subtree(ot);
+        	}
+        }
+        
         static abstract class PositionInfo {
         	int absolutePos = 0;
         	BetweenEntities parent = null;
