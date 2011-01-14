@@ -563,7 +563,7 @@ public class EquationSystem {
 		Equation() {}
 		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree origOt, Map<String,VariableSymbol> vars) throws ParseError {
-			Utils.OperatorTree ot = origOt.transformMinusToPlus().simplify();
+			Utils.OperatorTree ot = origOt.transformMinusToPlus().simplify().transformMinusPushedDown();
 			try {
 				if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
 				if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
