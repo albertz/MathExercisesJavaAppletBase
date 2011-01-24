@@ -795,8 +795,13 @@ public class Utils {
     	List<Entity> entities = new LinkedList<Entity>();
     	
     	OperatorTree() {}
+    	OperatorTree(String op) { this.op = op; } 
     	OperatorTree(String op, Entity e) { this.op = op; entities.add(e); } 
-    	OperatorTree(String op, List<Entity> entities) { this.op = op; this.entities = entities; }    	
+    	OperatorTree(String op, List<Entity> entities) { this.op = op; this.entities = entities; }
+    	static OperatorTree mergedEquation(OperatorTree left, OperatorTree right) {
+			return new OperatorTree("+", listFromArgs(left.asEntity(), right.minusOne().asEntity()));
+    	}
+    	
     	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
     	
     	static class RawStringIterator implements Iterator<RawString> {
@@ -1345,9 +1350,139 @@ public class Utils {
         					e = new Subtree(e.prefixed("-"));
         			}
         			ot.entities.add(e);
+        			// don't negate further entries if this is a multiplication/division
+        			if(op.equals("∙") || op.equals("/")) negate = false;
         		}
         		return new Subtree(ot);
         	}
+        }
+                
+        OperatorTree minusOne() {
+        	Entity e = transformMinusPushedDown(true);
+        	if(e instanceof Subtree)
+        		return ((Subtree) e).content;
+        	return new OperatorTree("", e);
+		}
+
+		Entity asEntity() {
+			if(op.isEmpty() && entities.size() == 1)
+				return entities.get(0);
+			return new Subtree(this);
+		}
+        
+		OperatorTree nextDivision() {
+			if(entities.isEmpty()) return null;
+			if(op.equals("/")) return entities.get(entities.size()-1).asTree();
+			for(Entity e : entities) {
+				if(e instanceof Subtree) {
+					OperatorTree next = ((Subtree) e).content.nextDivision();
+					if(next != null) return next;
+				}
+			}
+			return null;
+		}
+		
+        OperatorTree multiplyAllDivisions() {
+        	OperatorTree ot = this;
+        	OperatorTree nextDiv = null;
+        	while((nextDiv = nextDivision()) != null)
+        		ot = ot.multiply(nextDiv);
+        	return ot;
+        }
+        
+        OperatorTree multiply(OperatorTree other) {
+        	OperatorTree ot = new OperatorTree();
+        	ot.op = op;
+        	if(op.equals("∙")) {
+        		ot.entities.addAll(entities);
+        		if(other.op.equals(op))
+        			ot.entities.addAll(other.entities);
+        		else
+        			ot.entities.add(other.asEntity());
+        	}
+        	else if(op.equals("/")) {
+        		if(entities.isEmpty())
+        			ot.entities.add(other.asEntity());
+        		else if(entities.get(entities.size()-1).asTree().equals(other)) {
+        			ot.entities.addAll(entities);
+        			ot.entities.remove(entities.size()-1);
+        			if(ot.entities.size() == 1)
+        				ot = ot.entities.get(0).asTree();
+        		}
+        		else {
+        			ot.op = "∙";
+        			ot.entities.add(this.asEntity());
+        			ot = ot.multiply(other);
+        		}
+        	}
+        	else { // +, - or whatever else -> mult each entry
+        		for(Entity e : entities)
+        			ot.entities.add(e.asTree().multiply(other).asEntity());
+        	}
+        	return ot;
+        }
+        
+        OperatorTree pushdownMultiplication(OperatorTree other) {
+        	if(this.isOne()) return other;
+			if(op.equals("+") || op.equals("-")) {
+				OperatorTree newOt = new OperatorTree(op);
+				for(Entity e : entities) {
+					OperatorTree ot = e.asTree().pushdownMultiplication(other);
+					if(ot.op.equals("+"))
+						newOt.entities.addAll(ot.entities);
+					else
+						newOt.entities.add(ot.asEntity());
+				}
+				return newOt;
+			}
+			if(other.op.equals("+") || other.op.equals("-")) {
+				return other.pushdownMultiplication(this);
+			}
+			if(op.equals("∙")) {
+				OperatorTree newOt = new OperatorTree(op);
+				newOt.entities.addAll(entities);
+				if(other.op.equals("∙"))
+					newOt.entities.addAll(other.entities);
+				else
+					newOt.entities.add(other.asEntity());
+				return newOt;
+			}
+        	return multiply(other);
+        }
+        
+        OperatorTree pushdownAllMultiplications() {
+        	if(op.equals("∙")) {
+        		OperatorTree ot = one();
+        		for(Entity e : entities)
+        			ot = ot.pushdownMultiplication(e.asTree());
+        		return ot;
+        	}
+        	else {
+	        	OperatorTree ot = new OperatorTree(op);
+	        	for(Entity e : entities) {
+	        		if(e instanceof Subtree) {
+	        			OperatorTree subtree = ((Subtree) e).content.pushdownAllMultiplications();
+	        			if(op.equals("+") && subtree.op.equals("+"))
+	        				ot.entities.addAll(subtree.entities);
+	        			else
+	        				ot.entities.add(subtree.asEntity());
+	        		}
+	        		else
+	        			ot.entities.add(e);
+	        	}
+	        	return ot;
+        	}
+        }
+
+        static OperatorTree one() { return new OperatorTree("∙"); }        
+        boolean isOne() {
+        	if(op.equals("∙") && entities.isEmpty()) return true;
+        	if(entities.isEmpty()) return false;
+        	if(entities.size() > 1) return false;
+        	Entity e = entities.get(0);
+        	if(e instanceof RawString)
+        		return ((RawString) e).content.equals("1");
+        	return ((Subtree) e).content.isOne();
         }
         
         static abstract class PositionInfo {
@@ -1459,7 +1594,6 @@ public class Utils {
         		public Iterator<PositionInfo> iterator() { return positionIterator(); }
 			};
         }
-        
     }
 
 	static void debugUtilsParsingOpTree(String s) {
