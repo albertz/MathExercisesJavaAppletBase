@@ -1,6 +1,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.lang.reflect.Array;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,6 +16,8 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.StringTokenizer;
+import java.util.Vector;
+
 
 public class Utils {
 
@@ -818,7 +821,14 @@ public class Utils {
     			lastState = i.lastState; // this is safe because we never manipulate lastState
     		}
     		RawStringIterator copy() { return new RawStringIterator(this); }
-    		
+    		static Iterable<RawString> iterable(final OperatorTree t) {
+    			return new Iterable<RawString>() {
+					public Iterator<RawString> iterator() {
+						return new RawStringIterator(t);
+					}
+    			};
+    		}
+
     		public boolean hasNext() { return !stateStack.empty() && stateStack.peek().hasNext(); }
 
     		void walkdown() {
@@ -1193,6 +1203,32 @@ public class Utils {
 			return compareTo((OperatorTree) obj) == 0;
 		}
 
+		Iterable<RawString> leafs() { return RawStringIterator.iterable(this); }
+		Iterable<String> ops() {
+			return new Iterable<String>() {
+				public Iterator<String> iterator() {
+					return new Iterator<String>() {
+						Iterator<String> childs = null;
+						public boolean hasNext() { return childs == null || childs.hasNext(); }
+						public String next() {
+							if(childs == null) {
+								Iterable<Subtree> subtrees = filterType(OperatorTree.this.entities, Subtree.class);
+								Iterable<Iterable<String>> iterables = map(subtrees, new Function<Subtree,Iterable<String>>() {
+									public Iterable<String> eval(Subtree obj) {
+										return obj.content.ops();
+									}
+								});
+								childs = concatCollectionView(iterables).iterator();
+								return OperatorTree.this.op;
+							}
+							return childs.next();
+						}
+						public void remove() { throw new UnsupportedOperationException(); }
+					};
+				}
+			};
+		}
+		
         OperatorTree mergeOps(Set<String> ops) {
         	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
         		return ((Subtree) entities.get(0)).content.mergeOps(ops);
