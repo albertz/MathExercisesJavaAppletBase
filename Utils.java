@@ -738,9 +738,9 @@ public class Utils {
     	}
     }
     
-    static class OperatorTree {
+    static class OperatorTree implements Comparable<OperatorTree> {
     	String op = "";
-    	abstract static class Entity {
+    	abstract static class Entity implements Comparable<Entity> {
     		OperatorTree asTree() { return new OperatorTree("", this); }
     		OperatorTree prefixed(final String op) {
 				// empty subtree at the beginning is the mark for a prefix op
@@ -749,12 +749,23 @@ public class Utils {
     			return ot;
     		}
     		boolean isEnclosedImplicitely() { return true; }
+    		abstract Object getContent();
+			@Override public int hashCode() { return 31 + getContent().hashCode(); }
+			@Override public boolean equals(Object obj) {
+				if(!(obj instanceof Entity)) return false;
+				return compareTo((Entity) obj) == 0;
+			}
     	}
     	static class RawString extends Entity {
     		String content = "";
     		RawString() {}
     		RawString(String s) { content = s; }
     		@Override public String toString() { return debugOperatorTreeDump ? ("{" + content + "}") : content; }
+			public int compareTo(Entity o) {
+				if(o instanceof RawString) return content.compareTo(((RawString) o).content);
+				return -1;
+			}
+			Object getContent() { return content; }
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
@@ -772,6 +783,11 @@ public class Utils {
 				return "(" + content.toString() + ")";
     		}
     		@Override OperatorTree asTree() { return content; }
+			Object getContent() { return content; }
+			public int compareTo(Entity o) {
+				if(o instanceof Subtree) return content.compareTo(((Subtree) o).content);
+				return 1;
+			}
     	}
     	List<Entity> entities = new LinkedList<Entity>();
     	
@@ -1159,7 +1175,24 @@ public class Utils {
     		return concat(entities, " " + op + " ");
     	}
         static boolean debugOperatorTreeDump = false;
-        
+
+		public int compareTo(OperatorTree o) {
+			int c = op.compareTo(o.op);
+			if(c != 0) return c;
+			Comparator<Collection<Entity>> comp = orderOnCollection();
+			return comp.compare(entities, o.entities);
+		}
+		@Override public int hashCode() {
+			int result = 1;
+			result = 31 * result + op.hashCode();
+			result = 31 * result + entities.hashCode();
+			return result;
+		}
+		@Override public boolean equals(Object obj) {
+			if(!(obj instanceof OperatorTree)) return false;
+			return compareTo((OperatorTree) obj) == 0;
+		}
+
         OperatorTree mergeOps(Set<String> ops) {
         	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
         		return ((Subtree) entities.get(0)).content.mergeOps(ops);
