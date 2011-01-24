@@ -769,6 +769,13 @@ public class Utils {
 				return -1;
 			}
 			Object getContent() { return content; }
+			static Function<RawString,String> toStringConverter() {
+				return new Function<RawString,String>() {
+					public String eval(RawString obj) {
+						return obj.content;
+					}
+				};
+			}
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
@@ -1209,6 +1216,7 @@ public class Utils {
 		}
 
 		Iterable<RawString> leafs() { return RawStringIterator.iterable(this); }
+		Iterable<String> leafsAsString() { return map(leafs(), RawString.toStringConverter()); }
 		Iterable<String> ops() {
 			return new Iterable<String>() {
 				public Iterator<String> iterator() {
