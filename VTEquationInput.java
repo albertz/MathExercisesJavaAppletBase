@@ -335,35 +335,32 @@ public class VTEquationInput extends VisualThing {
 	
 	class WantedResult {
 		String wantedExprStr = "";
-		EquationSystem.Equation.FracSum wantedExpr = new EquationSystem.Equation.FracSum();
-		Set<EquationSystem.VariableSymbol> allowedVars = new TreeSet<EquationSystem.VariableSymbol>();
+		Utils.OperatorTree wantedExpr = null;
+		Set<String> allowedVars = null;
 		
 		WantedResult() {}
 		WantedResult(String wantedExprStr, Iterable<String> allowedVars) {
 			try {
 				this.wantedExprStr = wantedExprStr;
-				this.wantedExpr = new EquationSystem.Equation.FracSum(Utils.OperatorTree.parse(wantedExprStr), eqSys.variableSymbols);
-				this.wantedExpr = this.wantedExpr.normalize();
-				for(String var : allowedVars)
-					this.allowedVars.add( eqSys.variableSymbols.get(var) );
+				this.wantedExpr = Utils.OperatorTree.parse(wantedExprStr).simplify();
+				this.allowedVars = new TreeSet<String>(Utils.collFromIter(allowedVars));
 			}
 			catch(Throwable e) {
 				e.printStackTrace();
 			}
 		}
 		
-		boolean isWantedExpr(EquationSystem.Equation.FracSum expr) {
-			expr = expr.normalize();
+		boolean isWantedExpr(Utils.OperatorTree expr) {
+			expr = expr.simplify();
 			if(wantedExpr.equals(expr)) return true;
-			if(wantedExpr.equals(expr.minusOne())) return true;
-			System.out.println("not wanted. " + expr + " != " + wantedExpr);
+			//System.out.println("not wanted. " + expr + " != " + wantedExpr);
 			return false;
 		}
 		
-		boolean hasOnlyAllowedVars(EquationSystem.Equation.FracSum expr) {
-			for(EquationSystem.VariableSymbol var : expr.vars()) {
-				if(!allowedVars.contains(var)) {
-					System.out.println("not allowed var: " + var + " in " + expr);
+		boolean hasOnlyAllowedVars(Utils.OperatorTree expr) {
+			for(String varName : expr.leafsAsString()) {
+				if(!allowedVars.contains(varName)) {
+					//System.out.println("not allowed var: " + varName + " in " + expr);
 					return false;					
 				}
 			}
