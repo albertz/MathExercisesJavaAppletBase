@@ -1217,6 +1217,22 @@ public class Utils {
 
 		Iterable<RawString> leafs() { return RawStringIterator.iterable(this); }
 		Iterable<String> leafsAsString() { return map(leafs(), RawString.toStringConverter()); }
+
+        Iterable<String> vars() {
+        	Iterable<String> leafs = leafsAsString();
+        	return filter(leafs, new Predicate<String>() {
+				public boolean apply(String s) {
+					try {
+						Integer.parseInt(s);
+						return false; // it's an integer -> it's not a var
+					}
+					catch(NumberFormatException ex) {
+						return true; // it's not an integer -> it's a var
+					}
+				}
+        	});
+		}
+		
 		Iterable<String> ops() {
 			return new Iterable<String>() {
 				public Iterator<String> iterator() {
@@ -1602,6 +1618,7 @@ public class Utils {
         		public Iterator<PositionInfo> iterator() { return positionIterator(); }
 			};
         }
+
     }
 
 	static void debugUtilsParsingOpTree(String s) {
