@@ -795,9 +795,17 @@ public class EquationSystem {
 		if(!canConcludeTo(eq)) throw new AssertionError("must follow: " + eq);
 	}
 	
+	void assertAndAdd(String eqStr) throws ParseError {
+		assertCanConcludeTo(eqStr);
+		add(eqStr);
+	}
+	
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i, "");		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("U" + i, "");		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i, "");		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i, "");		
 		try {
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
@@ -827,6 +835,13 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("x1 / x6 = x3 - x4 / x6 - x5 / x6");
 			sys.equations.clear();
 
+			sys.add("U3 = R2 ∙ I2");
+			sys.add("I3 = I4 + I2");
+			sys.add("U3 / I3 = R2 ∙ I2 / I3");
+			sys.assertCanConcludeTo("I2 = U3 / R2");
+			sys.assertCanConcludeTo("U3 / I3 = R2 ∙ I2 / (I4 + I2)");
+			sys.equations.clear();
+			
 		} catch (ParseError e) {
 			System.out.println("Error: " + e.english);
 			OperatorTree.debugOperatorTreeDump = true;
