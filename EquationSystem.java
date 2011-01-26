@@ -1,7 +1,6 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -14,8 +13,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.ParseError;
-import applets.Termumformungen$in$der$Technik_01_URI.Utils.OperatorTree;
+
 
 public class EquationSystem {
 
@@ -82,32 +80,22 @@ public class EquationSystem {
 		}
 		@Override public String toString() { return Utils.concat(facs, " "); }
 	}
-	
-	static class VariableSymbol implements Comparable<VariableSymbol> {
-		Unit unit;
-		String name;
-		VariableSymbol(String unit) { this.unit = new Unit(unit); }
-		VariableSymbol(String name, String unit) { this.name = name; this.unit = new Unit(unit); }
-		public int compareTo(VariableSymbol o) { if(this == o) return 0; return name.compareTo(o.name); }
-		@Override public String toString() { return name; }
-	}
-	
-	Map<String, VariableSymbol> variableSymbols = new HashMap<String, VariableSymbol>();	
-	void registerVariableSymbol(VariableSymbol var) { variableSymbols.put(var.name, var); }	
-	void registerVariableSymbol(String name, String unit) { registerVariableSymbol(new VariableSymbol(name, unit)); }
+		
+	Set<String> variableSymbols = new HashSet<String>();	
+	void registerVariableSymbol(String var) { variableSymbols.add(var); }	
 		
 	static abstract class Expression {
 		<T> T castTo(Class<T> clazz) {
 			if(clazz.isAssignableFrom(getClass())) return clazz.cast(this);
-			if(clazz.isAssignableFrom(VariableSymbol.class)) return clazz.cast(asVariable());
+			if(clazz.isAssignableFrom(String.class)) return clazz.cast(asVariable());
 			if(clazz.isAssignableFrom(Integer.class)) return clazz.cast(asNumber());
 			try {
 				return clazz.getConstructor(getClass()).newInstance(this);
 			} catch (Exception e) {}
 			throw new AssertionError("unknown type: " + clazz);
 		}
-		VariableSymbol asVariable() { return castTo(Equation.FracSum.Frac.Sum.Prod.Pot.class).asVariable(); } 
-		Integer asNumber() { return castTo(Equation.FracSum.Frac.Sum.Prod.class).asNumber(); }
+		String asVariable() { return castTo(Equation.Sum.Prod.Pot.class).asVariable(); } 
+		Integer asNumber() { return castTo(Equation.Sum.Prod.class).asNumber(); }
 
 		boolean equalsToNum(int num) {
 			Integer myNum = asNumber();
@@ -116,421 +104,341 @@ public class EquationSystem {
 		}
 		
 		abstract Iterable<? extends Expression> childs();
-		Iterable<VariableSymbol> vars() {
-			Iterable<Iterable<VariableSymbol>> varIters = Utils.map(childs(), new Utils.Function<Expression, Iterable<VariableSymbol>>() {
-				public Iterable<VariableSymbol> eval(Expression obj) {
+		Iterable<String> vars() {
+			Iterable<Iterable<String>> varIters = Utils.map(childs(), new Utils.Function<Expression, Iterable<String>>() {
+				public Iterable<String> eval(Expression obj) {
 					return obj.vars();
 				}
 			});
 			return Utils.concatCollectionView(varIters);
 		}
+		
+		abstract String baseOp();
+		Utils.OperatorTree asOperatorTree() {
+			Utils.OperatorTree ot = new Utils.OperatorTree();
+			ot.op = baseOp();
+			for(Expression child : childs())
+				ot.entities.add(new Utils.OperatorTree.Subtree(child.asOperatorTree()));
+			return ot;
+		}
+
 	}
 	
-	static class Equation extends Expression implements Comparable<Equation> {
-		static class FracSum extends Expression implements Comparable<FracSum> {
-			static class Frac extends Expression implements Comparable<Frac> {
-				static class Sum extends Expression implements Comparable<Sum> {
-					static class Prod extends Expression implements Comparable<Prod> {
-						int fac = 0;
-						static class Pot extends Expression implements Comparable<Pot> {
-							VariableSymbol sym;
-							int pot = 1;
-							@Override public String toString() { return sym.name + ((pot != 1) ? ("^" + pot) : ""); }		
-							Pot(VariableSymbol s) { sym = s; }
-							Pot(VariableSymbol s, int p) { sym = s; pot = p; }
-							public int compareTo(Pot o) {
-								if(sym != o.sym) return sym.compareTo(o.sym);
-								if(pot < o.pot) return -1;
-								if(pot > o.pot) return 1;
-								return 0;
-							}
-							@Override public int hashCode() {
-								int result = 1;
-								result = 31 * result + pot;
-								result = 31 * result + ((sym == null) ? 0 : sym.hashCode());
-								return result;
-							}
-							@Override public boolean equals(Object obj) {
-								if(!(obj instanceof Pot)) return false;
-								return compareTo((Pot) obj) == 0;
-							}
-							@Override Integer asNumber() {
-								if(pot == 0) return 1;
-								return null;
-							}
-							@Override VariableSymbol asVariable() {
-								if(pot == 1) return sym;
-								return null;
-							}
-							@Override Iterable<VariableSymbol> vars() { return Utils.listFromArgs(sym); }
-							@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(); }
-						}						
-						List<Pot> facs = new LinkedList<Pot>();
-						public int compareTo(Prod o) {
-							int r = Utils.<Pot>orderOnCollection().compare(facs, o.facs);
-							if(r != 0) return r;
-							if(fac < o.fac) return -1;
-							if(fac > o.fac) return 1;
-							return 0;
-						}
-						@Override public boolean equals(Object obj) {
-							if(!(obj instanceof Prod)) return false;
-							return compareTo((Prod) obj) == 0;
-						}
-						@Override Integer asNumber() {
-							if(fac == 0) return 0;
-							if(facs.isEmpty()) return fac;
-							return null;
-						}
-						@Override <T> T castTo(Class<T> clazz) {
-							if(clazz.isAssignableFrom(Pot.class)) {
-								if(facs.size() == 1) return clazz.cast(facs.get(0));
-								return null;
-							}
-							return super.castTo(clazz);
-						}
-						boolean isZero() { return fac == 0; }
-						boolean isOne() { return fac == 1 && facs.isEmpty(); }
-						@Override public String toString() {
-							if(facs.isEmpty()) return "" + fac;
-							if(fac == 1) return Utils.concat(facs, " ∙ ");
-							if(fac == -1) return "-" + Utils.concat(facs, " ∙ ");
-							return fac + " ∙ " + Utils.concat(facs, " ∙ ");
-						}
-						Map<VariableSymbol,Integer> varMap() {
-							Map<VariableSymbol,Integer> vars = new TreeMap<VariableSymbol,Integer>();
-							for(Pot p : facs) {
-								if(!vars.containsKey(p.sym)) vars.put(p.sym, 0);
-								vars.put(p.sym, vars.get(p.sym) + p.pot);
-							}
-							return vars;
-						}
-						Prod normalize() {
-							Prod prod = new Prod();
-							prod.fac = fac;
-							Map<VariableSymbol,Integer> vars = varMap();
-							for(VariableSymbol sym : vars.keySet()) {
-								if(vars.get(sym) != 0)
-									prod.facs.add(new Pot(sym, vars.get(sym)));
-							}
-							return prod;
-						}
-						Prod minusOne() { return new Prod(-fac, facs); }
-						Prod divideAndRemove(VariableSymbol var) {
-							Prod prod = normalize();
-							for(Iterator<Pot> pit = prod.facs.iterator(); pit.hasNext(); ) {
-								Pot p = pit.next();
-								if(p.sym == var) {
-									if(p.pot == 1) {
-										pit.remove();
-										return prod;
-									}
-									break;
-								}
-							}
-							return null; // var not included or not pot=1
-						}
-						Prod mult(Prod other) {
-							Prod res = new Prod();
-							res.fac = fac * other.fac;
-							res.facs.addAll(facs);
-							res.facs.addAll(other.facs);
-							return res.normalize();
-						}
-						Prod divide(Prod other) {
-							if(!(other.fac != 0)) throw new AssertionError("other.fac != 0 failed");
-							if(!(fac % other.fac == 0)) throw new AssertionError("fac % other.fac == 0 failed");
-							Prod res = new Prod();
-							res.fac = fac / other.fac;
-							res.facs.addAll(facs);
-							for(Pot p : other.facs)
-								res.facs.add(new Pot(p.sym, -p.pot));
-							return res.normalize();
-						}
-						Prod commonBase(Prod other) {
-							Prod base = new Prod();
-							base.fac = BigInteger.valueOf(fac).gcd(BigInteger.valueOf(other.fac)).intValue();
-							Map<VariableSymbol,Integer> varMap1 = varMap();
-							Map<VariableSymbol,Integer> varMap2 = other.varMap();							
-							Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>();
-							commonVars.addAll(varMap1.keySet());
-							commonVars.retainAll(varMap2.keySet());
-							for(VariableSymbol var : commonVars) {
-								Pot pot = new Pot(var);
-								pot.pot = Math.min(varMap1.get(var), varMap2.get(var));
-								if(pot.pot != 0)
-									base.facs.add(pot);
-							}
-							return base;
-						}
-						@Override Iterable<? extends Expression> childs() { return facs; }
-						Prod() {}
-						Prod(int num) { this.fac = num; }
-						Prod(VariableSymbol var) { fac = 1; facs.add(new Pot(var)); }
-						Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
-						Prod(Iterable<VariableSymbol> vars) {
-							fac = 1;
-							for(VariableSymbol v : vars)
-								facs.add(new Pot(v));
-						}
-						Prod(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError { fac = 1; parse(ot, vars); }
-						void parse(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
-							if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
-								fac = -fac;
-								parse(ot.unaryPrefixedContent().asTree(), vars);
-							}
-							else if(ot.op.equals("∙") || ot.entities.size() <= 1) {
-								for(Utils.OperatorTree.Entity e : ot.entities) {
-									if(e instanceof Utils.OperatorTree.RawString) {
-										String s = ((Utils.OperatorTree.RawString) e).content;
-										try {
-											fac *= Integer.parseInt(s);
-										}
-										catch(NumberFormatException ex) {
-											VariableSymbol var = vars.get(s);
-											if(var != null)
-												facs.add(new Pot(var));
-											else
-												throw new ParseError("Variable '" + s + "' is unknown.", "Die Variable '" + s + "' ist unbekannt.");
-										}
-									}
-									else
-										parse( ((Utils.OperatorTree.Subtree) e).content, vars );
-								}
-							}
-							else
-								throw new ParseError("'" + ot + "' must be a product.", "'" + ot + "' muss ein Produkt sein.");
-							
-							if(facs.isEmpty())
-								throw new ParseError("'" + ot + "' must contain at least one variable.", "'" + ot + "' muss mindestens eine Variable enthalten.");
-						}
+	static class Equation /*extends Expression*/ implements Comparable<Equation> {
+		static class Sum extends Expression implements Comparable<Sum> {
+			static class Prod extends Expression implements Comparable<Prod> {
+				int fac = 0;
+				static class Pot extends Expression implements Comparable<Pot> {
+					String sym;
+					int pot = 1;
+					@Override public String toString() { return sym + ((pot != 1) ? ("^" + pot) : ""); }		
+					Pot(String s) { sym = s; }
+					Pot(String s, int p) { sym = s; pot = p; }
+					public int compareTo(Pot o) {
+						int c = sym.compareTo(o.sym);
+						if(c != 0) return c;
+						if(pot < o.pot) return -1;
+						if(pot > o.pot) return 1;
+						return 0;
 					}
-					List<Prod> entries = new LinkedList<Prod>();
-					@Override public String toString() { return Utils.concat(entries, " + "); }
-					public int compareTo(Sum o) { return Utils.<Prod>orderOnCollection().compare(entries, o.entries); }
+					@Override public int hashCode() {
+						int result = 1;
+						result = 31 * result + pot;
+						result = 31 * result + ((sym == null) ? 0 : sym.hashCode());
+						return result;
+					}
 					@Override public boolean equals(Object obj) {
-						if(!(obj instanceof Sum)) return false;
-						return compareTo((Sum) obj) == 0;
+						if(!(obj instanceof Pot)) return false;
+						return compareTo((Pot) obj) == 0;
 					}
-					boolean isZero() { return entries.isEmpty(); }
-					boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
-					Sum normalize() {
-						Sum sum = new Sum();
-						List<Prod> newEntries = new LinkedList<Prod>();
-						for(Prod prod : entries)
-							newEntries.add(prod.normalize());
-						Collections.sort(newEntries);
-						Prod lastProd = null;
-						for(Prod prod : newEntries) {
-							if(lastProd != null && lastProd.facs.equals(prod.facs))
-								lastProd.fac += prod.fac;
-							else {
-								lastProd = prod;
-								sum.entries.add(lastProd);
-							}
-						}
-						for(Iterator<Prod> pit = sum.entries.iterator(); pit.hasNext();) {
-							if(pit.next().isZero())
-								pit.remove();
-						}
-						return sum;
-					}
-					Sum minusOne() {
-						Sum sum = new Sum();
-						for(Prod prod : entries) sum.entries.add(prod.minusOne());
-						return sum;
-					}
-					Sum mult(Prod other) {
-						Sum sum = new Sum();
-						if(other.isZero()) return sum;
-						for(Prod p : entries)
-							sum.entries.add(p.mult(other));
-						return sum;
-					}
-					Sum mult(Sum other) {
-						Sum sum = new Sum();
-						for(Prod p : other.entries)
-							sum.entries.addAll( mult(p).entries );
-						return sum;
-					}
-					Sum divide(Sum other) {
-						if(other.isZero()) throw new AssertionError("division by 0");
-						if(other.entries.size() > 1) throw new AssertionError("not supported right now");
-						Sum sum = new Sum();
-						for(Prod p : entries)
-							sum.entries.add(p.divide(other.entries.get(0)));
-						return sum;
-					}
-					Sum commomBase(Sum other) {
-						if(isZero() || other.isZero()) return new Sum();
-						if(entries.size() > 1 || other.entries.size() > 1) return new Sum(1); // we should optimize this maybe later...
-						return new Sum(entries.get(0).commonBase(other.entries.get(0)));
-					}
-					@Override Iterable<? extends Expression> childs() { return entries; }
-					static class ExtractedVar {
-						VariableSymbol var;
-						Sum varMult = new Sum();
-						Sum independentPart = new Sum();
-					}
-					ExtractedVar extractVar(VariableSymbol var) {
-						ExtractedVar extracted = new ExtractedVar();
-						extracted.var = var;
-						for(Prod p : entries) {
-							if(p.isZero()) continue;
-							Prod newP = p.divideAndRemove(var);
-							if(newP != null)
-								extracted.varMult.entries.add(newP);
-							else
-								extracted.independentPart.entries.add(p);
-						}
-						if(!extracted.varMult.entries.isEmpty())
-							return extracted;
+					@Override Integer asNumber() {
+						if(pot == 0) return 1;
 						return null;
 					}
-					Sum() {}
-					Sum(VariableSymbol var) { entries.add(new Prod(var)); }
-					Sum(Prod prod) { entries.add(prod); }
-					Sum(int num) { entries.add(new Prod(num)); }
-					Sum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
-						if(ot.op.equals("+") || ot.entities.size() <= 1) {
-							for(Utils.OperatorTree.Entity e : ot.entities)
-								entries.add( new Prod(e.asTree(), vars) );
-						}
-						else
-							entries.add( new Prod(ot, vars) );
+					@Override String asVariable() {
+						if(pot == 1) return sym;
+						return null;
 					}
-				}
-				Sum numerator = new Sum(), denominator = new Sum(1);
-				@Override public String toString() { return "(" + numerator.toString() + ")" + (denominator.isOne() ? "" : (" / (" + denominator.toString() + ")")); }
-				boolean hasEqualDenominatorAs(Frac f) { return denominator.equals(f.denominator); }
-				boolean isZero() { return numerator.isZero(); }
-				boolean isOne() { return numerator.isOne() && denominator.isOne(); }
-				public int compareTo(Frac o) {
-					int r = denominator.compareTo(o.denominator);
+					@Override Iterable<String> vars() { return Utils.listFromArgs(sym); }
+					@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(); }
+					@Override String baseOp() { return "∙"; }
+					@Override Utils.OperatorTree asOperatorTree() {
+						if(pot == 0) return new Utils.OperatorTree("", new Utils.OperatorTree.RawString("1"));
+						Utils.OperatorTree ot = new Utils.OperatorTree();
+						if(pot > 0) {
+							ot.op = (pot > 1) ? baseOp() : "";
+							for(int i = 0; i < pot; ++i)
+								ot.entities.add(new Utils.OperatorTree.RawString(sym));
+							return ot;
+						}
+						else {
+							ot.op = "/";
+							ot.entities.add(new Utils.OperatorTree.RawString("1"));
+							ot.entities.add(new Utils.OperatorTree.Subtree(new Pot(sym, -pot).asOperatorTree()));
+						}
+						return ot;
+					}
+				}						
+				List<Pot> facs = new LinkedList<Pot>();
+				public int compareTo(Prod o) {
+					int r = Utils.<Pot>orderOnCollection().compare(facs, o.facs);
 					if(r != 0) return r;
-					return numerator.compareTo(o.numerator);					
+					if(fac < o.fac) return -1;
+					if(fac > o.fac) return 1;
+					return 0;
 				}
 				@Override public boolean equals(Object obj) {
-					if(!(obj instanceof Frac)) return false;
-					return compareTo((Frac) obj) == 0;
+					if(!(obj instanceof Prod)) return false;
+					return compareTo((Prod) obj) == 0;
 				}
-				Frac normalize() { return new Frac(numerator.normalize(), denominator.normalize()); }
-				Frac minusOne() { return new Frac(numerator.minusOne(), denominator); }
-				Frac mult(Sum.Prod prod) { return new Frac(numerator.mult(prod), denominator); }
-				@Override Iterable<? extends Expression> childs() {
-					if(denominator != null)
-						return Utils.listFromArgs(numerator, denominator);
-					else
-						return Utils.listFromArgs(numerator);
+				@Override Integer asNumber() {
+					if(fac == 0) return 0;
+					if(facs.isEmpty()) return fac;
+					return null;
 				}
-				Frac() {}
-				Frac(VariableSymbol var) { this(new Sum(var)); }
-				Frac(Sum.Prod prod) { this(new Sum(prod)); }
-				Frac(Sum sum) { numerator = sum; }
-				Frac(Sum numerator, Sum denominator) { this.numerator = numerator; this.denominator = denominator; }
-				Frac(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
-					if(!ot.op.equals("/"))
-						numerator = new Sum(ot, vars);
-					else {
-						if(ot.entities.size() != 2) throw new ParseError("The fraction '" + ot + "' must be of the form 'a / b'.", "Der Bruch '" + ot + "' muss in der Form 'a / b' sein.");
-						numerator = new Sum(ot.entities.get(0).asTree(), vars);
-						denominator = new Sum(ot.entities.get(1).asTree(), vars);
+				@Override <T> T castTo(Class<T> clazz) {
+					if(clazz.isAssignableFrom(Pot.class)) {
+						if(facs.size() == 1) return clazz.cast(facs.get(0));
+						return null;
 					}
+					return super.castTo(clazz);
 				}
+				boolean isZero() { return fac == 0; }
+				boolean isOne() { return fac == 1 && facs.isEmpty(); }
+				@Override public String toString() {
+					if(facs.isEmpty()) return "" + fac;
+					if(fac == 1) return Utils.concat(facs, " ∙ ");
+					if(fac == -1) return "-" + Utils.concat(facs, " ∙ ");
+					return fac + " ∙ " + Utils.concat(facs, " ∙ ");
+				}
+				Map<String,Integer> varMap() {
+					Map<String,Integer> vars = new TreeMap<String,Integer>();
+					for(Pot p : facs) {
+						if(!vars.containsKey(p.sym)) vars.put(p.sym, 0);
+						vars.put(p.sym, vars.get(p.sym) + p.pot);
+					}
+					return vars;
+				}
+				Prod normalize() {
+					Prod prod = new Prod();
+					prod.fac = fac;
+					Map<String,Integer> vars = varMap();
+					for(String sym : vars.keySet()) {
+						if(vars.get(sym) != 0)
+							prod.facs.add(new Pot(sym, vars.get(sym)));
+					}
+					return prod;
+				}
+				Prod minusOne() { return new Prod(-fac, facs); }
+				Prod divideAndRemove(String var) {
+					Prod prod = normalize();
+					for(Iterator<Pot> pit = prod.facs.iterator(); pit.hasNext(); ) {
+						Pot p = pit.next();
+						if(p.sym.equals(var)) {
+							if(p.pot == 1) {
+								pit.remove();
+								return prod;
+							}
+							break;
+						}
+					}
+					return null; // var not included or not pot=1
+				}
+				Prod mult(Prod other) {
+					Prod res = new Prod();
+					res.fac = fac * other.fac;
+					res.facs.addAll(facs);
+					res.facs.addAll(other.facs);
+					return res.normalize();
+				}
+				Prod divide(Prod other) {
+					if(!(other.fac != 0)) throw new AssertionError("other.fac != 0 failed");
+					if(!(fac % other.fac == 0)) throw new AssertionError("fac % other.fac == 0 failed");
+					Prod res = new Prod();
+					res.fac = fac / other.fac;
+					res.facs.addAll(facs);
+					for(Pot p : other.facs)
+						res.facs.add(new Pot(p.sym, -p.pot));
+					return res.normalize();
+				}
+				Prod commonBase(Prod other) {
+					Prod base = new Prod();
+					base.fac = BigInteger.valueOf(fac).gcd(BigInteger.valueOf(other.fac)).intValue();
+					Map<String,Integer> varMap1 = varMap();
+					Map<String,Integer> varMap2 = other.varMap();							
+					Set<String> commonVars = new HashSet<String>();
+					commonVars.addAll(varMap1.keySet());
+					commonVars.retainAll(varMap2.keySet());
+					for(String var : commonVars) {
+						Pot pot = new Pot(var);
+						pot.pot = Math.min(varMap1.get(var), varMap2.get(var));
+						if(pot.pot != 0)
+							base.facs.add(pot);
+					}
+					return base;
+				}
+				@Override Iterable<? extends Expression> childs() { return facs; }
+				Prod() {}
+				Prod(int num) { this.fac = num; }
+				Prod(String var) { fac = 1; facs.add(new Pot(var)); }
+				Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
+				Prod(Iterable<String> vars) {
+					fac = 1;
+					for(String v : vars)
+						facs.add(new Pot(v));
+				}
+				Prod(Utils.OperatorTree ot) throws ParseError { fac = 1; parse(ot); }
+				void parse(Utils.OperatorTree ot) throws ParseError {
+					if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
+						fac = -fac;
+						parse(ot.unaryPrefixedContent().asTree());
+					}
+					else if(ot.op.equals("∙") || ot.entities.size() <= 1) {
+						for(Utils.OperatorTree.Entity e : ot.entities) {
+							if(e instanceof Utils.OperatorTree.RawString) {
+								String s = ((Utils.OperatorTree.RawString) e).content;
+								try {
+									fac *= Integer.parseInt(s);
+								}
+								catch(NumberFormatException ex) {
+									String var = s;
+									facs.add(new Pot(var));
+								}
+							}
+							else
+								parse( ((Utils.OperatorTree.Subtree) e).content );
+						}
+					}
+					else
+						throw new ParseError("'" + ot + "' must be a product.", "'" + ot + "' muss ein Produkt sein.");
+					
+					if(facs.isEmpty())
+						throw new ParseError("'" + ot + "' must contain at least one variable.", "'" + ot + "' muss mindestens eine Variable enthalten.");
+				}
+				@Override String baseOp() { return "∙"; }
 			}
-			List<Frac> entries = new LinkedList<Frac>();
-			@Override public String toString() { return entries.isEmpty() ? "0" : Utils.concat(entries, " + "); }
-			public int compareTo(FracSum o) { return Utils.<Frac>orderOnCollection().compare(entries, o.entries); }
+			List<Prod> entries = new LinkedList<Prod>();
+			@Override public String toString() { return Utils.concat(entries, " + "); }
+			public int compareTo(Sum o) { return Utils.<Prod>orderOnCollection().compare(entries, o.entries); }
 			@Override public boolean equals(Object obj) {
-				if(!(obj instanceof FracSum)) return false;
-				return compareTo((FracSum) obj) == 0;
+				if(!(obj instanceof Sum)) return false;
+				return compareTo((Sum) obj) == 0;
 			}
 			boolean isZero() { return entries.isEmpty(); }
 			boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
-			FracSum normalize() {
-				List<Frac> newEntries = new LinkedList<Frac>();
-				for(Frac f : entries) newEntries.add(f.normalize());
+			Sum normalize() {
+				Sum sum = new Sum();
+				List<Prod> newEntries = new LinkedList<Prod>();
+				for(Prod prod : entries)
+					newEntries.add(prod.normalize());
 				Collections.sort(newEntries);
-				FracSum sum = new FracSum();
-				Frac lastFrac = null;
-				for(Frac f : newEntries) {
-					if(lastFrac != null && lastFrac.hasEqualDenominatorAs(f)) {
-						lastFrac.numerator.entries.addAll(f.numerator.entries);
-						lastFrac.numerator = lastFrac.numerator.normalize();
-					}
+				Prod lastProd = null;
+				for(Prod prod : newEntries) {
+					if(lastProd != null && lastProd.facs.equals(prod.facs))
+						lastProd.fac += prod.fac;
 					else {
-						lastFrac = f;
-						sum.entries.add(lastFrac);
+						lastProd = prod;
+						sum.entries.add(lastProd);
 					}
 				}
-				for(Iterator<Frac> fit = sum.entries.iterator(); fit.hasNext();) {
-					if(fit.next().numerator.isZero())
-						fit.remove();
+				for(Iterator<Prod> pit = sum.entries.iterator(); pit.hasNext();) {
+					if(pit.next().isZero())
+						pit.remove();
 				}
 				return sum;
 			}
-			Frac normToOne() {
-				Frac newFrac = new Frac();
-				for(Frac f : entries) {
-					Frac.Sum commonBase = newFrac.denominator.commomBase(f.denominator);
-					Frac.Sum multFor1 = f.denominator.divide(commonBase);
-					Frac.Sum multFor2 = newFrac.denominator.divide(commonBase);
-					newFrac.numerator = newFrac.numerator.mult(multFor1);
-					newFrac.denominator = newFrac.denominator.mult(multFor1);
-					newFrac.numerator.entries.addAll( f.numerator.mult(multFor2).entries );
-					newFrac = newFrac.normalize();
-				}
-				return newFrac;
-			}
-			FracSum minusOne() {
-				FracSum sum = new FracSum();
-				for(Frac f : entries) sum.entries.add(f.minusOne());
+			Sum minusOne() {
+				Sum sum = new Sum();
+				for(Prod prod : entries) sum.entries.add(prod.minusOne());
 				return sum;
 			}
-			FracSum sum(FracSum otherSum) {
-				FracSum sum = new FracSum();
-				for(Frac f : entries) sum.entries.add(f);
-				for(Frac f : otherSum.entries) sum.entries.add(f);
+			Sum sum(Sum other) {
+				Sum sum = new Sum();
+				sum.entries.addAll(entries);
+				sum.entries.addAll(other.entries);
 				return sum;
 			}
-			Frac fracWithDenom(Frac.Sum denominator) {
-				for(Frac f : entries)
-					if(f.denominator.equals(denominator))
-						return f;
-				return null;
-			}
-			Frac fracWithDenom1() { return fracWithDenom(new Frac.Sum(1)); }
-			Frac.Sum numeratorWithDenom1() { return fracWithDenom1().numerator; }
-			FracSum mult(Frac.Sum.Prod prod) {
-				FracSum sum = new FracSum();
-				if(prod.isZero()) return sum;
-				for(Frac f : entries)
-					sum.entries.add(f.mult(prod));
+			Sum mult(Prod other) {
+				Sum sum = new Sum();
+				if(other.isZero()) return sum;
+				for(Prod p : entries)
+					sum.entries.add(p.mult(other));
 				return sum;
+			}
+			Sum mult(Sum other) {
+				Sum sum = new Sum();
+				for(Prod p : other.entries)
+					sum.entries.addAll( mult(p).entries );
+				return sum;
+			}
+			Sum divide(Sum other) {
+				if(other.isZero()) throw new AssertionError("division by 0");
+				if(other.entries.size() > 1) throw new AssertionError("not supported right now");
+				Sum sum = new Sum();
+				for(Prod p : entries)
+					sum.entries.add(p.divide(other.entries.get(0)));
+				return sum;
+			}
+			Sum commomBase(Sum other) {
+				if(isZero() || other.isZero()) return new Sum();
+				if(entries.size() > 1 || other.entries.size() > 1) return new Sum(1); // we should optimize this maybe later...
+				return new Sum(entries.get(0).commonBase(other.entries.get(0)));
 			}
 			@Override Iterable<? extends Expression> childs() { return entries; }
-			FracSum() {}
-			FracSum(VariableSymbol var) { entries.add(new Frac(var)); }
-			FracSum(Frac.Sum.Prod prod) { entries.add(new Frac(prod)); }
-			FracSum(Frac.Sum sum) { entries.add(new Frac(sum)); }
-			FracSum(Frac frac) { entries.add(frac); }
-			FracSum(int num) { entries.add(new Frac(new Frac.Sum.Prod(num))); }
-			FracSum(Utils.OperatorTree ot, Map<String,VariableSymbol> vars) throws ParseError {
-				if(ot.entities.size() == 1
-						&& ot.entities.get(0) instanceof Utils.OperatorTree.RawString
-						&& ((Utils.OperatorTree.RawString) ot.entities.get(0)).content.equals("0"))
-					// empty entries list -> 0
-					return;
-				
-				if(ot.op.equals("+") || ot.entities.size() <= 1) {
-					for(Utils.OperatorTree.Entity e : ot.entities)
-						entries.add( new Frac(e.asTree(), vars) );
-				}
-				else
-					entries.add( new Frac(ot, vars) );
+			static class ExtractedVar {
+				String var;
+				Sum varMult = new Sum();
+				Sum independentPart = new Sum();
 			}
+			ExtractedVar extractVar(String var) {
+				ExtractedVar extracted = new ExtractedVar();
+				extracted.var = var;
+				for(Prod p : entries) {
+					if(p.isZero()) continue;
+					Prod newP = p.divideAndRemove(var);
+					if(newP != null)
+						extracted.varMult.entries.add(newP);
+					else
+						extracted.independentPart.entries.add(p);
+				}
+				if(!extracted.varMult.entries.isEmpty())
+					return extracted;
+				return null;
+			}
+			Sum() {}
+			Sum(String var) { entries.add(new Prod(var)); }
+			Sum(Prod prod) { entries.add(prod); }
+			Sum(int num) { entries.add(new Prod(num)); }
+			Sum(Utils.OperatorTree left, Utils.OperatorTree right) throws ParseError {
+				this(Utils.OperatorTree.mergedEquation(left, right)
+					.transformMinusToPlus()
+					.simplify()
+					.transformMinusPushedDown()
+					.multiplyAllDivisions()
+					.pushdownAllMultiplications());
+			}
+			Sum(Utils.OperatorTree ot) throws ParseError { add(ot); }
+			void add(Utils.OperatorTree ot) throws ParseError {
+				if(ot.op.isEmpty() || ot.op.equals("+")) {
+					for(Utils.OperatorTree.Entity e : ot.entities)
+						add(e.asTree());
+				}
+				else if(ot.op.equals("∙")) {
+					Sum sum = new Sum(1);
+					for(Utils.OperatorTree.Entity e : ot.entities)
+						sum = sum.mult(new Sum(e.asTree()));
+					entries.addAll(sum.entries);
+				}
+				else if(ot.op.equals("/")) {
+					// TODO ...
+				}
+			}
+			@Override String baseOp() { return "+"; }
+			boolean isTautology() { return normalize().isZero(); }
+			Equation asEquation() { return new Equation(asOperatorTree(), Utils.OperatorTree.zero()); }
 		}
-		FracSum left = new FracSum(), right = new FracSum();		
+
+		Utils.OperatorTree left, right;
 		@Override public String toString() { return left.toString() + " = " + right.toString(); }
 		public int compareTo(Equation o) {
 			int r = left.compareTo(o.left); if(r != 0) return r;
@@ -540,51 +448,63 @@ public class EquationSystem {
 			if(!(obj instanceof Equation)) return false;
 			return compareTo((Equation) obj) == 0;
 		}
-		Equation normalize() {
-			Equation eq = new Equation();
-			eq.left.entries.addAll(left.entries);
-			eq.left.entries.addAll(right.minusOne().entries);
-			eq.left = new FracSum(eq.left.normalize().normToOne().numerator).normalize();			
-			return eq;
+		Sum normalizedSum__throwExc() throws ParseError {
+			return new Sum(left, right).normalize();			
 		}
-		Equation minusOne() { return new Equation(left.minusOne(), right.minusOne()); }
-		boolean isTautology() {
-			Equation norm = normalize();
-			return norm.left.isZero() && norm.right.isZero();
+		Sum normalizedSum() {
+			try {
+				return normalizedSum__throwExc();
+			} catch (ParseError e) {
+				// this should not happen; we should have checked that in the constructor
+				e.printStackTrace();
+				return null;
+			}			
 		}
+		Equation normalize() { return normalizedSum().asEquation(); }
+//		Equation minusOne() { return new Equation(left.minusOne(), right.minusOne()); }
+		boolean isTautology() { return normalizedSum().isZero(); }
 		boolean equalNorm(Equation other) {
-			other = other.normalize();
-			Equation normed = normalize();
-			if(other.equals(normed)) return true;
-			if(other.equals(normed.minusOne())) return true;
+			Sum myNorm = normalizedSum();
+			Sum otherNorm = other.normalizedSum();
+			if(myNorm.equals(otherNorm)) return true;
+			if(myNorm.equals(otherNorm.minusOne())) return true;
 			return false;
 		}
-		@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(left, right); }
+//		@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(left, right); }
+		Iterable<String> vars() { return Utils.concatCollectionView(left.vars(), right.vars()); }
 		Equation() {}
-		Equation(FracSum left, FracSum right) { this.left = left; this.right = right; }
-		Equation(Utils.OperatorTree origOt, Map<String,VariableSymbol> vars) throws ParseError {
-			Utils.OperatorTree ot = origOt.transformMinusToPlus().simplify().transformMinusPushedDown();
+		Equation(Utils.OperatorTree left, Utils.OperatorTree right) { this.left = left; this.right = right; }
+		Equation(Utils.OperatorTree ot) throws ParseError {
 			try {
 				if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
 				if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
 				if(ot.entities.size() == 1) throw new ParseError("An equation with '=' needs two sides.", "'=' muss genau 2 Seiten haben.");
 				if(ot.entities.size() > 2) throw new ParseError("Sorry, only two parts for '=' allowed.", "'=' darf nicht mehr als 2 Seiten haben.");
-				left = new FracSum(ot.entities.get(0).asTree(), vars);
-				right = new FracSum(ot.entities.get(1).asTree(), vars);			
+				left = ot.entities.get(0).asTree();
+				right = ot.entities.get(1).asTree();
+				normalizedSum__throwExc(); // do some checks (bad ops etc)
 			}
 			catch(ParseError e) {
 				e.ot = ot;
 				throw e;
 			}
 		}
-		Equation(String str, Map<String,VariableSymbol> vars) throws ParseError {
-			this(Utils.OperatorTree.parse(str), vars);
+		Equation(String str) throws ParseError { this(Utils.OperatorTree.parse(str)); }
+		Equation(Utils.OperatorTree ot, Set<String> allowedVars) throws ParseError { this(ot); assertValidVars(allowedVars); }
+		Equation(String str, Set<String> allowedVars) throws ParseError { this(str); assertValidVars(allowedVars); }
+		
+		void assertValidVars(Set<String> allowedVars) throws ParseError {
+			for(String var : vars()) {
+				if(!allowedVars.contains(var))
+					throw new ParseError("Variable '" + var + "' is unknown.", "Die Variable '" + var + "' ist unbekannt.");
+			}
 		}
-		void swap(Equation eq) {
+		
+		/*void swap(Equation eq) {
 			Equation tmp = new Equation(left, right);
 			left = eq.left; right = eq.right;
 			eq.left = tmp.left; eq.right = tmp.right;
-		}
+		}*/
 
 		static class ParseError extends Exception {
 			private static final long serialVersionUID = 1L;
@@ -610,8 +530,8 @@ public class EquationSystem {
 	Collection<Equation> equations = new LinkedList<Equation>();
 	
 	EquationSystem() {}
-	EquationSystem(Map<String, VariableSymbol> variableSymbols) { this.variableSymbols = variableSymbols; }
-	EquationSystem(Collection<Equation> equations, Map<String, VariableSymbol> variableSymbols) {
+	EquationSystem(Set<String> variableSymbols) { this.variableSymbols = variableSymbols; }
+	EquationSystem(Collection<Equation> equations, Set<String> variableSymbols) {
 		this.equations = equations;
 		this.variableSymbols = variableSymbols;
 	}
@@ -628,6 +548,12 @@ public class EquationSystem {
 				}),
 				variableSymbols);
 	}
+	Iterable<Equation.Sum> normalizedSums() {
+		return Utils.map(equations, new Utils.Function<Equation,Equation.Sum>() {
+			public Equation.Sum eval(Equation obj) { return obj.normalizedSum(); }
+		});
+	}
+	
 	EquationSystem linearIndependent() {
 		EquationSystem eqSys = new EquationSystem(variableSymbols);
 		for(Equation eq : equations)
@@ -636,38 +562,35 @@ public class EquationSystem {
 		return eqSys;
 	}
 	
-	Equation add(String equStr) throws ParseError {
+	Equation add(String equStr) throws Equation.ParseError {
 		Equation eq = new Equation(equStr, variableSymbols);
 		equations.add(eq);
 		return eq;
 	}
 	
 	boolean contains(Equation eq) {
-		Equation minusEq = eq.minusOne();		
-		for(Equation e : normalized().equations) {
-			if(eq.equals(e) || minusEq.equals(e)) {
-				//System.out.println("contains match: " + eq + " equal to " + e);
+		for(Equation e : equations) {
+			if(eq.equals(e))
 				return true;
-			}
-			//System.out.println("contains: " + eq + " unequal to " + e);
 		}
 		return false;
 	}
 	
-	private boolean _canConcludeTo(Equation eq, Set<Equation> usedEquationList) {
+	private boolean _canConcludeTo(Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
 		//System.out.println("to? " + eq);
 		//dump();
 		Set<Equation> equations = new TreeSet<Equation>(this.equations);
 		if(equations.contains(eq))
 			return true;
 		for(Equation myEq : this.equations) {
-			if(usedEquationList.contains(myEq)) continue;
-			Collection<Equation> allConclusions = calcAllConclusions(eq, myEq);
+			Equation.Sum myEqNorm = myEq.normalizedSum();
+			if(usedEquationList.contains(myEqNorm)) continue;
+			Collection<Equation.Sum> allConclusions = calcAllConclusions(eq, myEqNorm);
 			if(!allConclusions.isEmpty()) {
-				usedEquationList.add(myEq);
+				usedEquationList.add(myEqNorm);
 				equations.remove(myEq);
-				Set<Equation> results = new TreeSet<Equation>();
-				for(Equation resultingEq : allConclusions) {
+				Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
+				for(Equation.Sum resultingEq : allConclusions) {
 					if(resultingEq.isTautology())
 						return true;
 					if(results.contains(resultingEq)) continue;
@@ -682,51 +605,47 @@ public class EquationSystem {
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		return normalized()._canConcludeTo(eq.normalize(), new TreeSet<Equation>());
+		return normalized()._canConcludeTo(eq.normalizedSum(), new TreeSet<Equation.Sum>());
 	}
 
 	EquationSystem allConclusions() {
 		return calcAllConclusions(null);
 	}
 	
-	private Set<VariableSymbol> commonVars(Equation eq1, Equation eq2) {
-		Set<VariableSymbol> commonVars = new HashSet<VariableSymbol>(Utils.collFromIter(eq1.vars()));
-		commonVars.retainAll(new HashSet<VariableSymbol>(Utils.collFromIter(eq2.vars())));
+	private Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
+		Set<String> commonVars = new HashSet<String>(Utils.collFromIter(eq1.vars()));
+		commonVars.retainAll(new HashSet<String>(Utils.collFromIter(eq2.vars())));
 		return commonVars;
 	}
 
-	private List<Equation> calcAllConclusions(Equation eq1, Equation eq2) {
-		List<Equation> results = new LinkedList<Equation>();
+	private List<Equation.Sum> calcAllConclusions(Equation.Sum eq1, Equation.Sum eq2) {
+		List<Equation.Sum> results = new LinkedList<Equation.Sum>();
 		
 		if(eq1.isTautology()) return results;
 		if(eq2.isTautology()) return results;
-		if(!(eq1.left.fracWithDenom1() != null)) throw new AssertionError("pair.first.left.fracWithDenom1() != null failed");
-		if(!(eq2.left.fracWithDenom1() != null)) throw new AssertionError("pair.second.left.fracWithDenom1() != null failed");
 
 		//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
 		//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
-		Set<VariableSymbol> commonVars = commonVars(eq1, eq2);
+		Set<String> commonVars = commonVars(eq1, eq2);
 		//System.out.println("common vars in " + pair.first + " and " + pair.second + ": " + commonVars);
 		
-		for(VariableSymbol var : commonVars) {					
-			Equation.FracSum.Frac.Sum.ExtractedVar extract1 = eq1.left.numeratorWithDenom1().extractVar(var);
-			Equation.FracSum.Frac.Sum.ExtractedVar extract2 = eq2.left.numeratorWithDenom1().extractVar(var);
+		for(String var : commonVars) {					
+			Equation.Sum.ExtractedVar extract1 = eq1.extractVar(var);
+			Equation.Sum.ExtractedVar extract2 = eq2.extractVar(var);
 			if(extract1 == null) continue; // can happen if we have higher order polynoms
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 			if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
 			if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
-			Equation.FracSum.Frac.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
-			Equation.FracSum.Frac.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
-			Equation.FracSum.Frac.Sum.Prod commonBase = varMult1.commonBase(varMult2);
+			Equation.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
+			Equation.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
+			Equation.Sum.Prod commonBase = varMult1.commonBase(varMult2);
 			varMult1 = varMult1.divide(commonBase);
 			varMult2 = varMult2.divide(commonBase);
 			if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
 			if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
-			Equation.FracSum newSum1 = eq1.left.mult(varMult2);
-			Equation.FracSum newSum2 = eq2.left.mult(varMult1.minusOne());
-			Equation.FracSum bothSums = newSum1.sum(newSum2);
-			Equation resultingEquation = new Equation(bothSums, new Equation.FracSum(0));
-			resultingEquation = resultingEquation.normalize();
+			Equation.Sum newSum1 = eq1.mult(varMult2);
+			Equation.Sum newSum2 = eq2.mult(varMult1.minusOne());
+			Equation.Sum resultingEquation = newSum1.sum(newSum2);
 			results.add(resultingEquation);			
 		}
 		
@@ -740,22 +659,22 @@ public class EquationSystem {
 		}
 		
 		// map values are the set of used based equations
-		Map<Equation, Set<Equation>> resultingEquations = new TreeMap<Equation, Set<Equation>>();
-		Set<Equation> normalizedEquations = new TreeSet<Equation>(normalized().equations);
-		Iterable<Equation> nextEquations = normalizedEquations;
+		Map<Equation.Sum, Set<Equation.Sum>> resultingEquations = new TreeMap<Equation.Sum, Set<Equation.Sum>>();
+		Set<Equation.Sum> normalizedEquations = new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedSums()));
+		Iterable<Equation.Sum> nextEquations = normalizedEquations;
 		
 		int iteration = 0;
 		while(true) {
 			iteration++;
-			List<Equation> newResults = new LinkedList<Equation>();
-			for(Utils.Pair<Equation,Equation> pair : Utils.allPairs(normalizedEquations, nextEquations) ) {
+			List<Equation.Sum> newResults = new LinkedList<Equation.Sum>();
+			for(Utils.Pair<Equation.Sum,Equation.Sum> pair : Utils.allPairs(normalizedEquations, nextEquations) ) {
 				// if we have used the same base equation in this resulted equation already, skip this one
 				if(resultingEquations.containsKey(pair.second) && resultingEquations.get(pair.second).contains(pair.first)) continue;
 
-				for(Equation resultingEquation : calcAllConclusions(pair.first, pair.second)) {
+				for(Equation.Sum resultingEquation : calcAllConclusions(pair.first, pair.second)) {
 					if(!resultingEquation.isTautology() && !resultingEquations.containsKey(resultingEquation)) {
 						//System.out.println("in iteration " + iteration + ": " + pair.first + " and " + pair.second + " -> " + resultingEquation);
-						resultingEquations.put(resultingEquation, new TreeSet<Equation>(Utils.listFromArgs(pair.first)));
+						resultingEquations.put(resultingEquation, new TreeSet<Equation.Sum>(Utils.listFromArgs(pair.first)));
 						if(normalizedEquations.contains(pair.second)) resultingEquations.get(resultingEquation).add(pair.second);
 						else resultingEquations.get(resultingEquation).addAll(resultingEquations.get(pair.second));
 						newResults.add(resultingEquation);
@@ -780,7 +699,13 @@ public class EquationSystem {
 		System.out.println("}");
 		*/
 		
-		return new EquationSystem(new LinkedList<Equation>(Utils.concatCollectionView(normalizedEquations, resultingEquations.keySet())), variableSymbols);
+		Iterable<Equation.Sum> concludedEquSums = Utils.concatCollectionView(normalizedEquations, resultingEquations.keySet());
+		Iterable<Equation> concludedNormedEqu = Utils.map(concludedEquSums, new Utils.Function<Equation.Sum,Equation>() {
+			public Equation eval(Equation.Sum obj) {
+				return obj.asEquation();
+			}
+		});
+		return new EquationSystem(new LinkedList<Equation>(Utils.collFromIter(concludedNormedEqu)), variableSymbols);
 	}
 		
 	void dump() {
@@ -790,22 +715,22 @@ public class EquationSystem {
 		System.out.println(" ]");
 	}
 
-	void assertCanConcludeTo(String eqStr) throws ParseError {
+	void assertCanConcludeTo(String eqStr) throws Equation.ParseError {
 		Equation eq = new Equation(eqStr, variableSymbols);
 		if(!canConcludeTo(eq)) throw new AssertionError("must follow: " + eq);
 	}
 	
-	void assertAndAdd(String eqStr) throws ParseError {
+	void assertAndAdd(String eqStr) throws Equation.ParseError {
 		assertCanConcludeTo(eqStr);
 		add(eqStr);
 	}
 	
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
-		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i, "");		
-		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("U" + i, "");		
-		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i, "");		
-		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i, "");		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i);		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("U" + i);		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i);		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
 		try {
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
@@ -842,11 +767,11 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("U3 / I3 = R2 ∙ I2 / (I4 + I2)");
 			sys.equations.clear();
 			
-		} catch (ParseError e) {
+		} catch (Equation.ParseError e) {
 			System.out.println("Error: " + e.english);
-			OperatorTree.debugOperatorTreeDump = true;
+			Utils.OperatorTree.debugOperatorTreeDump = true;
 			System.out.println(" in " + e.ot);
-			OperatorTree.debugOperatorTreeDump = false;
+			Utils.OperatorTree.debugOperatorTreeDump = false;
 			e.printStackTrace(System.out);
 			
 		} catch (Throwable e) {
