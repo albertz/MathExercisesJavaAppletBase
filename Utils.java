@@ -1498,6 +1498,17 @@ public class Utils {
         	}
         }
 
+        static OperatorTree zero() { return new OperatorTree(); }        
+        boolean isZero() {
+        	if(op.equals("∙") && entities.isEmpty()) return false;
+        	if(entities.isEmpty()) return true;
+        	if(entities.size() > 1) return false;
+        	Entity e = entities.get(0);
+        	if(e instanceof RawString)
+        		return ((RawString) e).content.equals("0");
+        	return ((Subtree) e).content.isZero();
+        }
+
         static OperatorTree one() { return new OperatorTree("∙"); }        
         boolean isOne() {
         	if(op.equals("∙") && entities.isEmpty()) return true;
