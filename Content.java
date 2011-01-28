@@ -30,10 +30,10 @@ public class Content {
 	static void doSomeDebugStuffWithOpTree(Utils.OperatorTree ot) {		
 		//opTreeDebugOutput("minustoplus", ot.transformMinusToPlus());
 		EquationSystem s = new EquationSystem();
-		s.registerVariableSymbol("A", "!");
-		s.registerVariableSymbol("B1", "!");
-		s.registerVariableSymbol("B2", "!");
-		s.registerVariableSymbol("C", "!");
+		s.registerVariableSymbol("A");
+		s.registerVariableSymbol("B1");
+		s.registerVariableSymbol("B2");
+		s.registerVariableSymbol("C");
 		s.debugEquation(ot);
 	}
 	
