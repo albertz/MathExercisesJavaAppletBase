@@ -1214,6 +1214,16 @@ public class Utils {
     		return entities.get(1);
     	}
     	
+    	boolean isNegative() {
+    		if(entities.size() == 1) {
+    			Entity e = entities.get(0);
+    			if(e instanceof RawString) return false;
+    			return ((Subtree) e).content.isNegative();
+    		}
+    		
+    		return canBeInterpretedAsUnaryPrefixed() && op.equals("-") && !unaryPrefixedContent().asTree().isNegative();
+    	}
+    	
     	@Override public String toString() {
     		if(debugOperatorTreeDump)
         		return "[" + op + "] " + concat(entities, ", ");    			
@@ -1288,8 +1298,7 @@ public class Utils {
         	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
         		return ((Subtree) entities.get(0)).content.mergeOps(ops);
         	
-        	OperatorTree ot = new OperatorTree();
-        	ot.op = op;
+        	OperatorTree ot = new OperatorTree(op);
         	for(Entity e : entities) {
         		if(e instanceof RawString)
         			ot.entities.add(e);
@@ -1359,14 +1368,14 @@ public class Utils {
         	return ot;
         }
         
-        static Function<Entity,Entity> prefixByOp(final String op) {
+        static Function<Entity,Entity> DoPrefixByOp(final String op) {
         	return new Function<Entity,Entity>() {
         		public Entity eval(Entity obj) { return new Subtree(obj.prefixed(op)); }
         	};
         }
         
         OperatorTree transformMinusToPlus() {
-			return transformOp("-", "+", null, prefixByOp("-"));
+			return transformOp("-", "+", null, DoPrefixByOp("-"));
         }
         
         OperatorTree transformMinusPushedDown() {
@@ -1424,6 +1433,9 @@ public class Utils {
 		}
 
         OperatorTree minusOne() {
+        	if(canBeInterpretedAsUnaryPrefixed() && op.equals("-"))
+        		return unaryPrefixedContent().asTree();
+        	
         	Entity e = transformMinusPushedDown(true);
         	if(e instanceof Subtree)
         		return ((Subtree) e).content;
