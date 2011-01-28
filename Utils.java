@@ -762,7 +762,7 @@ public class Utils {
     	static class RawString extends Entity {
     		String content = "";
     		RawString() {}
-    		RawString(String s) { content = s; }
+    		RawString(String s) { if(s == null) throw new AssertionError("string must be non-null"); content = s; }
     		@Override public String toString() { return debugOperatorTreeDump ? ("{" + content + "}") : content; }
 			public int compareTo(Entity o) {
 				if(o instanceof RawString) return content.compareTo(((RawString) o).content);
@@ -833,7 +833,15 @@ public class Utils {
         	return ((Subtree) e).content.isOne();
         }
         
-        static OperatorTree Variable(String var) { return new RawString(var).asTree(); }
+        static OperatorTree Variable(String var) {
+        	try {
+        		Integer.parseInt(var);
+        		throw new AssertionError("Variable '" + var + "' must not be interpretable as a number.");
+        	}
+        	catch(NumberFormatException e) {
+            	return new RawString(var).asTree();        		
+        	}
+        }
     	
     	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
     	
