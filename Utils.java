@@ -1302,6 +1302,36 @@ public class Utils {
 			};
 		}
 		
+		OperatorTree removeObsolete() {			
+			OperatorTree ot = new OperatorTree(op);
+
+			if(op.equals("+") || op.equals("-")) {
+				for(Entity e : entities) {
+					if(e instanceof Subtree)
+						e = ((Subtree) e).content.removeObsolete().asEntity();
+					if(!e.asTree().isZero())
+						ot.entities.add(e);
+				}
+			}
+			else if(op.equals("∙") || op.equals("/")) {
+				for(Entity e : entities) {
+					if(e instanceof Subtree)
+						e = ((Subtree) e).content.removeObsolete().asEntity();
+					if(!e.asTree().isOne())
+						ot.entities.add(e);
+				}
+			}
+			else {
+				for(Entity e : entities) {
+					if(e instanceof Subtree)
+						e = ((Subtree) e).content.removeObsolete().asEntity();
+					ot.entities.add(e);
+				}
+			}
+			
+			return ot;
+		}
+		
         OperatorTree mergeOps(Set<String> ops) {
         	if(entities.size() == 1 && entities.get(0) instanceof Subtree)
         		return ((Subtree) entities.get(0)).content.mergeOps(ops);
@@ -1344,8 +1374,8 @@ public class Utils {
         }        
         
         OperatorTree mergeOps(String ops) { return mergeOps(simpleParseOps(ops)); }        
-        OperatorTree mergeOpsFromRight(String ops) { return mergeOpsFromRight(simpleParseOps(ops)); }        
-        OperatorTree simplify() { return mergeOps("=+∙").mergeOpsFromRight("-/"); }
+        OperatorTree mergeOpsFromRight(String ops) { return mergeOpsFromRight(simpleParseOps(ops)); }
+        OperatorTree simplify() { return mergeOps("=+∙").mergeOpsFromRight("-/").removeObsolete(); }
         
         OperatorTree transformOp(String oldOp, String newOp, Function<Entity,Entity> leftTransform, Function<Entity,Entity> rightTransform) {
         	OperatorTree ot = new OperatorTree();
@@ -1360,6 +1390,7 @@ public class Utils {
             	return ot;
         	}
         	
+        	// op == oldOp here 
         	ot.op = newOp;
         	boolean first = true;
         	for(Entity e : entities) {
