@@ -732,6 +732,37 @@ public class EquationSystem {
 		add(eqStr);
 	}
 	
+	static void debugEquationParsing(String equ) throws Equation.ParseError {
+		Utils.OperatorTree ot = Utils.OperatorTree.parse(equ);
+		if(!ot.op.equals("=")) throw new Equation.ParseError("'" + equ + "' must have '=' at the root.", "");
+		if(ot.entities.size() != 2) throw new Equation.ParseError("'" + equ + "' must have '=' with 2 sides.", "");		
+		Utils.OperatorTree left = ot.entities.get(0).asTree(), right = ot.entities.get(1).asTree();
+
+		Utils.OperatorTree.debugOperatorTreeDump = true;
+		System.out.println("equ (" + left + ") = (" + right + "): {");
+
+		ot = Utils.OperatorTree.MergedEquation(left, right);
+		System.out.println("  merge: " + ot);
+		
+		ot = ot.transformMinusToPlus();
+		System.out.println("  transformMinusToPlus: " + ot);
+
+		ot = ot.simplify();
+		System.out.println("  simplify: " + ot);
+		
+		ot = ot.transformMinusPushedDown();
+		System.out.println("  transformMinusPushedDown: " + ot);
+		
+		ot = ot.multiplyAllDivisions();
+		System.out.println("  multiplyAllDivisions: " + ot);
+		
+		ot = ot.pushdownAllMultiplications();
+		System.out.println("  pushdownAllMultiplications: " + ot);
+
+		Utils.OperatorTree.debugOperatorTreeDump = false;
+		System.out.println("}");
+	}
+	
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i);		
@@ -739,6 +770,8 @@ public class EquationSystem {
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i);		
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
 		try {
+			debugEquationParsing("x3 - x4 - x5 = 0");
+			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
 			sys.add("-x1 + x2 = 0");
