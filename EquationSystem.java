@@ -583,49 +583,49 @@ public class EquationSystem {
 		return false;
 	}
 	
-	private boolean _canConcludeTo(Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
+	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
 		//System.out.println("to? " + eq);
 		//dump();
-		Set<Equation> equations = new TreeSet<Equation>(this.equations);
+		Set<Equation.Sum> equations = new TreeSet<Equation.Sum>(baseEquations);
 		if(equations.contains(eq))
 			return true;
-		for(Equation myEq : this.equations) {
-			Equation.Sum myEqNorm = myEq.normalizedSum();
-			if(usedEquationList.contains(myEqNorm)) continue;
-			Collection<Equation.Sum> allConclusions = calcAllConclusions(eq, myEqNorm);
-			if(!allConclusions.isEmpty()) {
-				usedEquationList.add(myEqNorm);
-				equations.remove(myEq);
-				Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
-				for(Equation.Sum resultingEq : allConclusions) {
-					if(resultingEq.isTautology())
-						return true;
-					if(results.contains(resultingEq)) continue;
-					results.add(resultingEq);
-					if(new EquationSystem(equations, variableSymbols)._canConcludeTo(resultingEq, usedEquationList))
-						return true;
-				}
-				equations.add(myEq);
+		for(Equation.Sum myEq : baseEquations) {
+			if(usedEquationList.contains(myEq)) continue;
+			Collection<Equation.Sum> allConclusions = calcAllConclusions(eq, myEq);
+			if(allConclusions.isEmpty()) continue;
+			
+			usedEquationList.add(myEq);
+			equations.remove(myEq);
+			Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
+			for(Equation.Sum resultingEq : allConclusions) {
+				if(resultingEq.isTautology())
+					return true;
+				if(results.contains(resultingEq)) continue;
+				results.add(resultingEq);
+				
+				if(_canConcludeTo(equations, resultingEq, usedEquationList))
+					return true;
 			}
+			equations.add(myEq);
 		}
 		return false;		
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		return normalized()._canConcludeTo(eq.normalizedSum(), new TreeSet<Equation.Sum>());
+		return _canConcludeTo(Utils.collFromIter(normalizedSums()), eq.normalizedSum(), new TreeSet<Equation.Sum>());
 	}
 
 	EquationSystem allConclusions() {
 		return calcAllConclusions(null);
 	}
 	
-	private Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
+	private static Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
 		Set<String> commonVars = new HashSet<String>(Utils.collFromIter(eq1.vars()));
 		commonVars.retainAll(new HashSet<String>(Utils.collFromIter(eq2.vars())));
 		return commonVars;
 	}
 
-	private List<Equation.Sum> calcAllConclusions(Equation.Sum eq1, Equation.Sum eq2) {
+	private static List<Equation.Sum> calcAllConclusions(Equation.Sum eq1, Equation.Sum eq2) {
 		List<Equation.Sum> results = new LinkedList<Equation.Sum>();
 		
 		if(eq1.isTautology()) return results;
@@ -770,7 +770,7 @@ public class EquationSystem {
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i);		
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
 		try {
-			debugEquationParsing("x3 - x4 - x5 = 0");
+			//debugEquationParsing("x3 - x4 - x5 = 0");
 			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
