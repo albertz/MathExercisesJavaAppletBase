@@ -419,19 +419,26 @@ public class EquationSystem {
 			}
 			Sum(Utils.OperatorTree ot) throws ParseError { add(ot); }
 			void add(Utils.OperatorTree ot) throws ParseError {
-				if(ot.op.isEmpty() || ot.op.equals("+")) {
+				if(ot.entities.isEmpty()) return;
+				if(ot.entities.size() == 1) {
+					Utils.OperatorTree.Entity e = ot.entities.get(0); 
+					if(e instanceof Utils.OperatorTree.Subtree)
+						add(((Utils.OperatorTree.Subtree) e).content);
+					else
+						entries.add(new Prod(ot));
+					return;
+				}
+				
+				if(ot.op.equals("+")) {
 					for(Utils.OperatorTree.Entity e : ot.entities)
 						add(e.asTree());
 				}
 				else if(ot.op.equals("∙")) {
-					Sum sum = new Sum(1);
-					for(Utils.OperatorTree.Entity e : ot.entities)
-						sum = sum.mult(new Sum(e.asTree()));
-					entries.addAll(sum.entries);
+					entries.add(new Prod(ot));
 				}
-				else if(ot.op.equals("/")) {
-					// TODO ...
-				}
+				else
+					// all necessary transformation should have been done already (e.g. in Sum(left,right))
+					throw new ParseError("'" + ot.op + "' not supported.", "'" + ot.op + "' nicht unterstützt.");
 			}
 			@Override String baseOp() { return "+"; }
 			boolean isTautology() { return normalize().isZero(); }
