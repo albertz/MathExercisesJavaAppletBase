@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.VariableSymbol;
 
 public class ElectronicCircuit {
 		
@@ -65,11 +64,11 @@ public class ElectronicCircuit {
 			drawUserString(g, start, end);
 		}
 
-		EquationSystem.Equation.FracSum getFlowFromIn() { return end.getFlow(this); }
-		EquationSystem.Equation.FracSum getFlowFromOut() { return start.getFlow(this); }
-		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFromOut() { return new EquationSystem.Equation.FracSum.Frac.Sum.Prod(0); }
-		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFrom(Node n) {
-			EquationSystem.Equation.FracSum.Frac.Sum.Prod voltageFromOut = getVoltageFromOut();
+		Utils.OperatorTree getFlowFromIn() { return end.getFlow(this); }
+		Utils.OperatorTree getFlowFromOut() { return start.getFlow(this); }
+		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Zero(); }
+		Utils.OperatorTree getVoltageFrom(Node n) {
+			Utils.OperatorTree voltageFromOut = getVoltageFromOut();
 			if(n == end) return voltageFromOut;
 			if(n == start) return voltageFromOut.minusOne();
 			throw new AssertionError("node must be either start or end");
@@ -77,25 +76,21 @@ public class ElectronicCircuit {
 		
 		void initVarNames(int index) {}
 		String userString() { return ""; } // usually varname(s)
-		List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(); }		
+		List<String> vars() { return Utils.listFromArgs(); }		
 	}
 			
 	static class EResistance extends Conn {
-		EquationSystem.VariableSymbol varRes = null;
-		EquationSystem.VariableSymbol varFlow = null;		
-		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
-		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
-		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFromOut() { return new EquationSystem.Equation.FracSum.Frac.Sum.Prod(Utils.listFromArgs(varRes, varFlow)); }
+		String varRes = null;
+		String varFlow = null;		
+		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
+		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
+		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Product(Utils.listFromArgs(Utils.OperatorTree.Variable(varRes).asEntity(), Utils.OperatorTree.Variable(varFlow).asEntity())); }
 		@Override void initVarNames(int index) {
-			varRes.name = "R" + index;
-			varFlow.name = "I" + index;
+			varRes = "R" + index;
+			varFlow = "I" + index;
 		}
-		@Override String userString() { return varRes.name + ", " + varFlow.name; }
-		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varRes, varFlow); }
-		EResistance() {
-			 this.varRes = new EquationSystem.VariableSymbol("Ω");
-			 this.varFlow = new EquationSystem.VariableSymbol("A");
-		}
+		@Override String userString() { return varRes + ", " + varFlow; }
+		@Override List<String> vars() { return Utils.listFromArgs(varRes, varFlow); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			// resistance in/out connection
 			PGraph.Point diff = end.diff(start).mult(1.0/3.0);			
@@ -132,21 +127,17 @@ public class ElectronicCircuit {
 	}
 	
 	static class VoltageSource extends Conn {
-		EquationSystem.VariableSymbol varVolt = null;
-		EquationSystem.VariableSymbol varFlow = null;
+		String varVolt = null;
+		String varFlow = null;
 		@Override void initVarNames(int index) {
-			varVolt.name = "U" + index;
-			varFlow.name = "I" + index;
+			varVolt = "U" + index;
+			varFlow = "I" + index;
 		}
-		@Override String userString() { return varVolt.name + ", " + varFlow.name; }
-		@Override List<EquationSystem.VariableSymbol> vars() { return Utils.listFromArgs(varVolt, varFlow); }
-		EquationSystem.Equation.FracSum getFlowFromIn() { return new EquationSystem.Equation.FracSum(varFlow); }
-		EquationSystem.Equation.FracSum getFlowFromOut() { return new EquationSystem.Equation.FracSum(varFlow); }
-		EquationSystem.Equation.FracSum.Frac.Sum.Prod getVoltageFromOut() { return new EquationSystem.Equation.FracSum.Frac.Sum.Prod(varVolt).minusOne(); }
-		VoltageSource() {
-			this.varVolt = new EquationSystem.VariableSymbol("V");
-			this.varFlow = new EquationSystem.VariableSymbol("A");
-		}
+		@Override String userString() { return varVolt + ", " + varFlow; }
+		@Override List<String> vars() { return Utils.listFromArgs(varVolt, varFlow); }
+		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
+		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
+		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Variable(varVolt).minusOne(); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
 			PGraph.Point diff2 = diff.mult(1.0/24.0);
@@ -246,9 +237,9 @@ public class ElectronicCircuit {
 			}
 		}
 		
-		EquationSystem.Equation.FracSum getFlow() { return getFlow(null); }
-		EquationSystem.Equation.FracSum getFlow(Conn conn) {
-			EquationSystem.Equation.FracSum sum = new EquationSystem.Equation.FracSum();
+		Utils.OperatorTree getFlow() { return getFlow(null); }
+		Utils.OperatorTree getFlow(Conn conn) {
+			Utils.OperatorTree sum = Utils.OperatorTree.Zero();
 			for(Conn c : in)
 				if(c != conn)
 					sum = sum.sum(c.getFlowFromOut().minusOne());
@@ -258,10 +249,10 @@ public class ElectronicCircuit {
 			return sum;
 		}
 		EquationSystem.Equation getFlowEquation() {
-			EquationSystem.Equation.FracSum left = new EquationSystem.Equation.FracSum();
+			Utils.OperatorTree left = Utils.OperatorTree.Zero();
 			for(Conn c : in)
 				left = left.sum(c.getFlowFromOut());
-			EquationSystem.Equation.FracSum right = new EquationSystem.Equation.FracSum();
+			Utils.OperatorTree right = Utils.OperatorTree.Zero();
 			for(Conn c : out)
 				right = right.sum(c.getFlowFromIn());
 			return new EquationSystem.Equation(left, right);
@@ -313,11 +304,11 @@ public class ElectronicCircuit {
 	EquationSystem.Equation equationFromMesh(List<MeshPart> mesh) {
 		EquationSystem.Equation eq = new EquationSystem.Equation();
 		for(MeshPart part : mesh) {
-			EquationSystem.Equation.FracSum.Frac.Sum.Prod prod = part.conn.getVoltageFrom(part.nextNode);
-			if(prod.fac < 0)
-				eq.left.entries.add(new EquationSystem.Equation.FracSum.Frac(prod.minusOne()));
-			else if(prod.fac > 0)
-				eq.right.entries.add(new EquationSystem.Equation.FracSum.Frac(prod));
+			Utils.OperatorTree prod = part.conn.getVoltageFrom(part.nextNode);
+			if(prod.isNegative())
+				eq.left = eq.left.sum(prod.minusOne());
+			else if(!prod.isZero())
+				eq.right = eq.right.sum(prod);
 		}
 		return eq;
 	}
@@ -326,9 +317,9 @@ public class ElectronicCircuit {
 		boolean haveNegative = false;
 		boolean havePositive = false;
 		for(MeshPart part : mesh) {
-			int fac = part.conn.getVoltageFrom(part.nextNode).fac;
-			if(fac < 0) haveNegative = true;
-			if(fac > 0) havePositive = true;
+			Utils.OperatorTree volt = part.conn.getVoltageFrom(part.nextNode);
+			if(volt.isNegative()) haveNegative = true;
+			else if(!volt.isZero()) havePositive = true;
 		}
 		return haveNegative ^ havePositive;
 	}
@@ -732,7 +723,7 @@ public class ElectronicCircuit {
 	public EquationSystem getEquationSystem() {
 		EquationSystem eqSys = new EquationSystem();
 		for(Conn c : allConns())
-			for(EquationSystem.VariableSymbol var : c.vars())
+			for(String var : c.vars())
 				eqSys.registerVariableSymbol(var);
 		for(Node n : allNodesPartitionedByFlowInvariant()) {
 			EquationSystem.Equation eq = n.getFlowEquation();
@@ -755,13 +746,10 @@ public class ElectronicCircuit {
 	EquationQuestion randomEquationQuestion() {
 		EquationQuestion q = new EquationQuestion();
 		VoltageSource voltSrc = Utils.randomChoiceFrom(new ArrayList<VoltageSource>(Utils.collFromIter(Utils.filterType(allConns(), VoltageSource.class))), r);
-		q.wantedExpr = voltSrc.varVolt.name + "/" + voltSrc.varFlow.name;
+		q.wantedExpr = voltSrc.varVolt + "/" + voltSrc.varFlow;
 		for(Conn c : allConns()) {
 			if(c == voltSrc) continue;
-			q.allowedVars.addAll(Utils.map(c.vars(), new Utils.Function<EquationSystem.VariableSymbol,String>() {
-				public String eval(VariableSymbol obj) {
-					return obj.name;
-				}}));
+			q.allowedVars.addAll(c.vars());
 		}
 		return q;
 	}
