@@ -1408,12 +1408,12 @@ public class Utils {
         }
         
 		OperatorTree sum(OperatorTree other) {
-			if((this.op.equals("+") || this.entities.size() == 1) && (other.op.equals("+") || other.entities.size() == 1))
-				return Sum(new LinkedList<Entity>(concatCollectionView(entities, other.entities)));
-			
 			if(this.isZero()) return other;
 			if(other.isZero()) return this;
-			
+
+			if((this.op.equals("+") || this.entities.size() == 1) && (other.op.equals("+") || other.entities.size() == 1))
+				return Sum(new LinkedList<Entity>(concatCollectionView(entities, other.entities)));
+						
 			if(this.op.equals("+"))
 				return Sum(new LinkedList<Entity>(concatCollectionView(this.entities, listFromArgs(other.asEntity()))));
 
