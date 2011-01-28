@@ -805,9 +805,35 @@ public class Utils {
     	OperatorTree(String op) { this.op = op; } 
     	OperatorTree(String op, Entity e) { this.op = op; entities.add(e); } 
     	OperatorTree(String op, List<Entity> entities) { this.op = op; this.entities = entities; }
-    	static OperatorTree mergedEquation(OperatorTree left, OperatorTree right) {
+    	static OperatorTree MergedEquation(OperatorTree left, OperatorTree right) {
 			return new OperatorTree("+", listFromArgs(left.asEntity(), right.minusOne().asEntity()));
-    	}
+    	}    	
+    	static OperatorTree Sum(List<Entity> entities) { return new OperatorTree("+", entities); }
+    	static OperatorTree Product(List<Entity> entities) { return new OperatorTree("∙", entities); }
+    	
+        static OperatorTree Zero() { return new OperatorTree(); }        
+        boolean isZero() {
+        	if(op.equals("∙") && entities.isEmpty()) return false;
+        	if(entities.isEmpty()) return true;
+        	if(entities.size() > 1) return false;
+        	Entity e = entities.get(0);
+        	if(e instanceof RawString)
+        		return ((RawString) e).content.equals("0");
+        	return ((Subtree) e).content.isZero();
+        }
+
+        static OperatorTree One() { return new OperatorTree("∙"); }        
+        boolean isOne() {
+        	if(op.equals("∙") && entities.isEmpty()) return true;
+        	if(entities.isEmpty()) return false;
+        	if(entities.size() > 1) return false;
+        	Entity e = entities.get(0);
+        	if(e instanceof RawString)
+        		return ((RawString) e).content.equals("1");
+        	return ((Subtree) e).content.isOne();
+        }
+        
+        static OperatorTree Variable(String var) { return new RawString(var).asTree(); }
     	
     	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
     	
@@ -1476,7 +1502,7 @@ public class Utils {
         
         OperatorTree pushdownAllMultiplications() {
         	if(op.equals("∙")) {
-        		OperatorTree ot = one();
+        		OperatorTree ot = One();
         		for(Entity e : entities)
         			ot = ot.pushdownMultiplication(e.asTree());
         		return ot;
@@ -1496,28 +1522,6 @@ public class Utils {
 	        	}
 	        	return ot;
         	}
-        }
-
-        static OperatorTree zero() { return new OperatorTree(); }        
-        boolean isZero() {
-        	if(op.equals("∙") && entities.isEmpty()) return false;
-        	if(entities.isEmpty()) return true;
-        	if(entities.size() > 1) return false;
-        	Entity e = entities.get(0);
-        	if(e instanceof RawString)
-        		return ((RawString) e).content.equals("0");
-        	return ((Subtree) e).content.isZero();
-        }
-
-        static OperatorTree one() { return new OperatorTree("∙"); }        
-        boolean isOne() {
-        	if(op.equals("∙") && entities.isEmpty()) return true;
-        	if(entities.isEmpty()) return false;
-        	if(entities.size() > 1) return false;
-        	Entity e = entities.get(0);
-        	if(e instanceof RawString)
-        		return ((RawString) e).content.equals("1");
-        	return ((Subtree) e).content.isOne();
         }
         
         static abstract class PositionInfo {

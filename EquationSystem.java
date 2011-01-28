@@ -410,7 +410,7 @@ public class EquationSystem {
 			Sum(Prod prod) { entries.add(prod); }
 			Sum(int num) { entries.add(new Prod(num)); }
 			Sum(Utils.OperatorTree left, Utils.OperatorTree right) throws ParseError {
-				this(Utils.OperatorTree.mergedEquation(left, right)
+				this(Utils.OperatorTree.MergedEquation(left, right)
 					.transformMinusToPlus()
 					.simplify()
 					.transformMinusPushedDown()
@@ -442,7 +442,7 @@ public class EquationSystem {
 			}
 			@Override String baseOp() { return "+"; }
 			boolean isTautology() { return normalize().isZero(); }
-			Equation asEquation() { return new Equation(asOperatorTree(), Utils.OperatorTree.zero()); }
+			Equation asEquation() { return new Equation(asOperatorTree(), Utils.OperatorTree.Zero()); }
 		}
 
 		Utils.OperatorTree left, right;
