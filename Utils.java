@@ -752,6 +752,7 @@ public class Utils {
     			return ot;
     		}
     		boolean isEnclosedImplicitely() { return true; }
+			String toString(String parentOp) { return toString(); }
     		abstract Object getContent();
 			@Override public int hashCode() { return 31 + getContent().hashCode(); }
 			@Override public boolean equals(Object obj) {
@@ -791,6 +792,19 @@ public class Utils {
     			if(implicitEnclosing)
     				return content.toString(); 
 				return "(" + content.toString() + ")";
+    		}
+    		@Override String toString(String parentOp) {
+    			if(debugOperatorTreeDump)
+    				return "(" + content.toString() + ")";
+    			if(content.canBeInterpretedAsUnaryPrefixed())
+    				return content.toString();
+    			final String ops = "∙/+-";
+    			int parentOpIdx = ops.indexOf(parentOp);
+    			int childOpIdx = ops.indexOf(content.op);
+    			if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
+    			parentOpIdx = Math.min(parentOpIdx, 3); childOpIdx = Math.min(childOpIdx, 3); // take +- as equal
+    			if(childOpIdx <= parentOpIdx) return toString();
+    			return "(" + content.toString() + ")";
     		}
     		@Override OperatorTree asTree() { return content; }
 			Object getContent() { return content; }
@@ -1237,11 +1251,26 @@ public class Utils {
         		return "[" + op + "] " + concat(entities, ", ");    			
     		if(canBeInterpretedAsUnaryPrefixed())
     			// this is a special case used for unary ops (or ops which look like those)
-    			return op + unaryPrefixedContent();
-    		return concat(entities, " " + op + " ");
+    			return op + unaryPrefixedContent().toString(""); // always put brackets if it is a subtree
+    		Iterable<String> entitiesStr = map(entities, new Function<Entity,String>() {
+				public String eval(Entity obj) {
+					return obj.toString(op);
+				}
+    		});
+    		return concat(entitiesStr, " " + op + " ");
     	}
         static boolean debugOperatorTreeDump = false;
 
+        String toString(boolean debug) {
+        	boolean oldDebugState = debugOperatorTreeDump;
+        	debugOperatorTreeDump = debug;
+        	String s = toString();
+        	debugOperatorTreeDump = oldDebugState;
+        	return s;
+        }
+        
+        String debugStringDouble() { return toString(false) + " // " + toString(true); }
+        
 		public int compareTo(OperatorTree o) {
 			int c = op.compareTo(o.op);
 			if(c != 0) return c;
@@ -1306,11 +1335,13 @@ public class Utils {
 			OperatorTree ot = new OperatorTree(op);
 
 			if(op.equals("+") || op.equals("-")) {
+				boolean first = true;
 				for(Entity e : entities) {
 					if(e instanceof Subtree)
 						e = ((Subtree) e).content.removeObsolete().asEntity();
-					if(!e.asTree().isZero())
+					if(!e.asTree().isZero() || (op.equals("-") && first))
 						ot.entities.add(e);
+					first = false;
 				}
 			}
 			else if(op.equals("∙") || op.equals("/")) {
@@ -1489,7 +1520,10 @@ public class Utils {
         
 		OperatorTree nextDivision() {
 			if(entities.isEmpty()) return null;
-			if(op.equals("/")) return entities.get(entities.size()-1).asTree();
+			if(op.equals("/")) {
+				System.out.println("next div from " + this);
+				return entities.get(entities.size()-1).asTree();
+			}
 			for(Entity e : entities) {
 				if(e instanceof Subtree) {
 					OperatorTree next = ((Subtree) e).content.nextDivision();
@@ -1502,22 +1536,41 @@ public class Utils {
         OperatorTree multiplyAllDivisions() {
         	OperatorTree ot = this;
         	OperatorTree nextDiv = null;
-        	while((nextDiv = nextDivision()) != null)
+        	while((nextDiv = ot.nextDivision()) != null) {
+        		System.out.println("next div [" + nextDiv + "] for " + ot);
         		ot = ot.multiply(nextDiv);
+        	}
+        	System.out.println("-> result: " + ot);
         	return ot;
         }
         
         OperatorTree multiply(OperatorTree other) {
-        	OperatorTree ot = new OperatorTree();
-        	ot.op = op;
+        	if(isZero()) return Zero();
+        	if(isOne()) return other;
+        	if(other.isOne()) return this;
+        	        	
+        	OperatorTree ot = new OperatorTree(op);
+
         	if(op.equals("∙")) {
         		ot.entities.addAll(entities);
         		if(other.op.equals(op))
         			ot.entities.addAll(other.entities);
         		else
         			ot.entities.add(other.asEntity());
+        		return ot;
         	}
-        	else if(op.equals("/")) {
+        	
+        	if(entities.size() == 1) {
+        		Entity e = entities.get(0);
+        		if(e instanceof Subtree)
+        			return ((Subtree) e).content.multiply(other);
+        		ot.op = "∙";
+        		ot.entities.add(e);
+        		ot.entities.add(other.asEntity());
+        		return ot;
+        	}
+
+        	if(op.equals("/")) {
         		if(entities.isEmpty())
         			ot.entities.add(other.asEntity());
         		else if(entities.get(entities.size()-1).asTree().equals(other)) {
@@ -1531,11 +1584,12 @@ public class Utils {
         			ot.entities.add(this.asEntity());
         			ot = ot.multiply(other);
         		}
+        		return ot;
         	}
-        	else { // +, - or whatever else -> mult each entry
-        		for(Entity e : entities)
-        			ot.entities.add(e.asTree().multiply(other).asEntity());
-        	}
+        	
+        	// +, - or whatever else -> mult each entry
+        	for(Entity e : entities)
+        		ot.entities.add(e.asTree().multiply(other).asEntity());
         	return ot;
         }
         
