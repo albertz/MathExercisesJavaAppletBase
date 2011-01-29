@@ -1520,10 +1520,7 @@ public class Utils {
         
 		OperatorTree nextDivision() {
 			if(entities.isEmpty()) return null;
-			if(op.equals("/")) {
-				System.out.println("next div from " + this);
-				return entities.get(entities.size()-1).asTree();
-			}
+			if(op.equals("/")) return entities.get(entities.size()-1).asTree();
 			for(Entity e : entities) {
 				if(e instanceof Subtree) {
 					OperatorTree next = ((Subtree) e).content.nextDivision();
@@ -1536,12 +1533,22 @@ public class Utils {
         OperatorTree multiplyAllDivisions() {
         	OperatorTree ot = this;
         	OperatorTree nextDiv = null;
-        	while((nextDiv = ot.nextDivision()) != null) {
-        		System.out.println("next div [" + nextDiv + "] for " + ot);
+        	while((nextDiv = ot.nextDivision()) != null)
         		ot = ot.multiply(nextDiv);
-        	}
-        	System.out.println("-> result: " + ot);
         	return ot;
+        }
+        
+        boolean matchDenominatorInDiv(OperatorTree denom) {
+        	return op.equals("/") && entities.size() > 1 && entities.get(entities.size()-1).asTree().equals(denom);
+        }
+        
+        boolean haveDenominatorInSubtree(OperatorTree denom) {
+        	if(matchDenominatorInDiv(denom)) return true;
+        	for(Entity e : entities) {
+        		if(e instanceof Subtree && e.asTree().haveDenominatorInSubtree(denom))
+        			return true;
+        	}
+        	return false;
         }
         
         OperatorTree multiply(OperatorTree other) {
@@ -1552,6 +1559,17 @@ public class Utils {
         	OperatorTree ot = new OperatorTree(op);
 
         	if(op.equals("∙")) {
+        		for(int i = 0; i < entities.size(); ++i) {
+        			if(entities.get(i).asTree().haveDenominatorInSubtree(other)) {
+        				for(int j = 0; j < entities.size(); ++j) {
+        					if(i != j)
+        						ot.entities.add(entities.get(j));
+        					else
+        						ot.entities.add(entities.get(j).asTree().multiply(other).asEntity());
+        				}
+        				return ot;
+        			}
+        		}
         		ot.entities.addAll(entities);
         		if(other.op.equals(op))
         			ot.entities.addAll(other.entities);
@@ -1573,16 +1591,21 @@ public class Utils {
         	if(op.equals("/")) {
         		if(entities.isEmpty())
         			ot.entities.add(other.asEntity());
-        		else if(entities.get(entities.size()-1).asTree().equals(other)) {
+        		else if(matchDenominatorInDiv(other)) {
         			ot.entities.addAll(entities);
         			ot.entities.remove(entities.size()-1);
         			if(ot.entities.size() == 1)
         				ot = ot.entities.get(0).asTree();
         		}
         		else {
-        			ot.op = "∙";
-        			ot.entities.add(this.asEntity());
-        			ot = ot.multiply(other);
+        			boolean first = true;
+                	for(Entity e : entities) {
+                		if(first)
+                			ot.entities.add(e.asTree().multiply(other).asEntity());
+                		else
+                			ot.entities.add(e);
+                		first = false;
+                	}
         		}
         		return ot;
         	}
