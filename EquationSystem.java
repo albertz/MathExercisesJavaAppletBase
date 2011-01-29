@@ -429,6 +429,18 @@ public class EquationSystem {
 					return;
 				}
 				
+				if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
+					Utils.OperatorTree.Entity e = ot.unaryPrefixedContent();
+					try {
+						entries.add(new Prod(e.asTree()).minusOne());
+					} catch(ParseError exc) {
+						throw new ParseError(
+								"Prefix '-' only allowed for single products: " + ot + "; " + exc.english,
+								"Prexif '-' nur für einzelne Produkte erlaubt: " + ot + "; " + exc.german);
+					}
+					return;
+				}
+				
 				if(ot.op.equals("+")) {
 					for(Utils.OperatorTree.Entity e : ot.entities)
 						add(e.asTree());
@@ -724,42 +736,43 @@ public class EquationSystem {
 
 	void assertCanConcludeTo(String eqStr) throws Equation.ParseError {
 		Equation eq = new Equation(eqStr, variableSymbols);
-		if(!canConcludeTo(eq)) throw new AssertionError("must follow: " + eq);
+		if(!canConcludeTo(eq)) {
+			debugEquationParsing(eqStr);
+			throw new AssertionError("must follow: " + eq);
+		}
 	}
 	
 	void assertAndAdd(String eqStr) throws Equation.ParseError {
 		assertCanConcludeTo(eqStr);
 		add(eqStr);
 	}
-	
+		
 	static void debugEquationParsing(String equ) throws Equation.ParseError {
 		Utils.OperatorTree ot = Utils.OperatorTree.parse(equ);
 		if(!ot.op.equals("=")) throw new Equation.ParseError("'" + equ + "' must have '=' at the root.", "");
 		if(ot.entities.size() != 2) throw new Equation.ParseError("'" + equ + "' must have '=' with 2 sides.", "");		
 		Utils.OperatorTree left = ot.entities.get(0).asTree(), right = ot.entities.get(1).asTree();
 
-		Utils.OperatorTree.debugOperatorTreeDump = true;
-		System.out.println("equ (" + left + ") = (" + right + "): {");
+		System.out.println("equ (" + left.debugStringDouble() + ") = (" + right.debugStringDouble() + "): {");
 
 		ot = Utils.OperatorTree.MergedEquation(left, right);
-		System.out.println("  merge: " + ot);
+		System.out.println("  merge: " + ot.debugStringDouble());
 		
 		ot = ot.transformMinusToPlus();
-		System.out.println("  transformMinusToPlus: " + ot);
+		System.out.println("  transformMinusToPlus: " + ot.debugStringDouble());
 
 		ot = ot.simplify();
-		System.out.println("  simplify: " + ot);
+		System.out.println("  simplify: " + ot.debugStringDouble());
 		
 		ot = ot.transformMinusPushedDown();
-		System.out.println("  transformMinusPushedDown: " + ot);
+		System.out.println("  transformMinusPushedDown: " + ot.debugStringDouble());
 		
 		ot = ot.multiplyAllDivisions();
-		System.out.println("  multiplyAllDivisions: " + ot);
+		System.out.println("  multiplyAllDivisions: " + ot.debugStringDouble());
 		
 		ot = ot.pushdownAllMultiplications();
-		System.out.println("  pushdownAllMultiplications: " + ot);
+		System.out.println("  pushdownAllMultiplications: " + ot.debugStringDouble());
 
-		Utils.OperatorTree.debugOperatorTreeDump = false;
 		System.out.println("}");
 	}
 	
@@ -770,7 +783,7 @@ public class EquationSystem {
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i);		
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
 		try {
-			//debugEquationParsing("x3 - x4 - x5 = 0");
+			debugEquationParsing("x3 - x4 - x5 = 0");
 			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
