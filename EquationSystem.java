@@ -783,7 +783,7 @@ public class EquationSystem {
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i);		
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
 		try {
-			debugEquationParsing("x3 - x4 - x5 = 0");
+			//debugEquationParsing("x3 - x4 - x5 = 0");
 			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
