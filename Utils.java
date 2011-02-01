@@ -1243,6 +1243,13 @@ public class Utils {
     			return ((Subtree) e).content.isNegative();
     		}
     		
+    		if(op.equals("∙")) {
+    			boolean neg = false;
+    			for(Entity e : entities)
+    				neg ^= e.asTree().isNegative();
+    			return neg;
+    		}
+    		
     		return canBeInterpretedAsUnaryPrefixed() && op.equals("-") && !unaryPrefixedContent().asTree().isNegative();
     	}
     	
