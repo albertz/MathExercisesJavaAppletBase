@@ -307,10 +307,8 @@ public class ElectronicCircuit {
 			Utils.OperatorTree prod = part.conn.getVoltageFrom(part.nextNode);
 			if(prod.isNegative())
 				eq.left = eq.left.sum(prod.minusOne());
-			else if(!prod.isZero()) {
-				System.out.println("not negative: " + prod);
-				eq.right = eq.right.sum(prod);
-			}
+			else if(!prod.isZero())
+				eq.right = eq.right.sum(prod);		
 		}
 		return eq;
 	}
