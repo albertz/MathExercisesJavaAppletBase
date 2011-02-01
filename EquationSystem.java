@@ -491,7 +491,7 @@ public class EquationSystem {
 		}
 //		@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(left, right); }
 		Iterable<String> vars() { return Utils.concatCollectionView(left.vars(), right.vars()); }
-		Equation() {}
+		Equation() { left = new Utils.OperatorTree(); right = new Utils.OperatorTree(); }
 		Equation(Utils.OperatorTree left, Utils.OperatorTree right) { this.left = left; this.right = right; }
 		Equation(Utils.OperatorTree ot) throws ParseError {
 			try {
