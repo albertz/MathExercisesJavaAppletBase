@@ -1243,7 +1243,7 @@ public class Utils {
     			return ((Subtree) e).content.isNegative();
     		}
     		
-    		if(op.equals("∙")) {
+    		if(op.equals("∙") || op.equals("/")) {
     			boolean neg = false;
     			for(Entity e : entities)
     				neg ^= e.asTree().isNegative();
