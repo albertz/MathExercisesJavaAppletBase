@@ -80,8 +80,8 @@ public class ElectronicCircuit {
 	}
 			
 	static class EResistance extends Conn {
-		String varRes = null;
-		String varFlow = null;		
+		String varRes = "_R" + this.hashCode();
+		String varFlow = "_I" + this.hashCode();
 		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
 		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
 		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Product(Utils.listFromArgs(Utils.OperatorTree.Variable(varRes).asEntity(), Utils.OperatorTree.Variable(varFlow).asEntity())); }
@@ -127,8 +127,8 @@ public class ElectronicCircuit {
 	}
 	
 	static class VoltageSource extends Conn {
-		String varVolt = null;
-		String varFlow = null;
+		String varVolt = "_U" + this.hashCode();
+		String varFlow = "_I" + this.hashCode();
 		@Override void initVarNames(int index) {
 			varVolt = "U" + index;
 			varFlow = "I" + index;
@@ -307,8 +307,10 @@ public class ElectronicCircuit {
 			Utils.OperatorTree prod = part.conn.getVoltageFrom(part.nextNode);
 			if(prod.isNegative())
 				eq.left = eq.left.sum(prod.minusOne());
-			else if(!prod.isZero())
+			else if(!prod.isZero()) {
+				System.out.println("not negative: " + prod);
 				eq.right = eq.right.sum(prod);
+			}
 		}
 		return eq;
 	}
