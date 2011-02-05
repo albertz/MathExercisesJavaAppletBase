@@ -1,7 +1,6 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.lang.reflect.Array;
-import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,8 +14,6 @@ import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
-import java.util.StringTokenizer;
-import java.util.Vector;
 
 
 public class Utils {
