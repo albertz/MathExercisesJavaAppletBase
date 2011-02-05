@@ -118,7 +118,7 @@ public class EquationSystem {
 			Utils.OperatorTree ot = new Utils.OperatorTree();
 			ot.op = baseOp();
 			for(Expression child : childs())
-				ot.entities.add(new Utils.OperatorTree.Subtree(child.asOperatorTree()));
+				ot.entities.add(child.asOperatorTree().asEntity());
 			return ot;
 		}
 
