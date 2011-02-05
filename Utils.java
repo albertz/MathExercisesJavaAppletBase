@@ -797,7 +797,7 @@ public class Utils {
     			int childOpIdx = ops.indexOf(content.op);
     			if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
     			if(parentOpIdx == 3) parentOpIdx--; if(childOpIdx == 3) childOpIdx--; // take +- as equal
-    			if(childOpIdx <= parentOpIdx) return toString();
+    			if(childOpIdx <= parentOpIdx) return content.toString();
     			return "(" + content.toString() + ")";
     		}
     		@Override OperatorTree asTree() { return content; }
