@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import applets.Termumformungen$in$der$Technik_01_URI.Utils.OperatorTree;
+
 
 
 public class EquationSystem {
@@ -316,6 +318,15 @@ public class EquationSystem {
 						throw new ParseError("'" + ot + "' must contain at least one variable.", "'" + ot + "' muss mindestens eine Variable enthalten.");
 				}
 				@Override String baseOp() { return "∙"; }
+				@Override OperatorTree asOperatorTree() {
+					if(fac == 0) return Utils.OperatorTree.Zero();
+					if(fac == 1) return super.asOperatorTree();
+					if(fac == -1) return super.asOperatorTree().minusOne();
+					return Utils.OperatorTree.Product(Utils.listFromArgs(
+							Utils.OperatorTree.Number(fac).asEntity(),
+							super.asOperatorTree().asEntity()
+							));
+				}
 			}
 			List<Prod> entries = new LinkedList<Prod>();
 			@Override public String toString() { return Utils.concat(entries, " + "); }
