@@ -727,12 +727,12 @@ public class ElectronicCircuit {
 				eqSys.registerVariableSymbol(var);
 		for(Node n : allNodesPartitionedByFlowInvariant()) {
 			EquationSystem.Equation eq = n.getFlowEquation();
-			if(!eq.isTautology() && !eqSys.contains(eq.normalize()))
+			if(!eq.isTautology() && !eqSys.containsNormed(eq.normalize()))
 				eqSys.equations.add(eq);
 		}
 		for(List<MeshPart> mesh : allMeshs()) {
 			EquationSystem.Equation eq = equationFromMesh(mesh);
-			if(!eq.isTautology() && !eqSys.contains(eq))
+			if(!eq.isTautology() && !eqSys.containsNormed(eq))
 				eqSys.equations.add(eq);
 		}
 		return eqSys;
