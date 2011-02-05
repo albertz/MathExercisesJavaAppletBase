@@ -316,6 +316,9 @@ public class VTEquationInput extends VisualThing {
 				}
 				else {
 					eqp.setInputWrong("kann nicht hergeleitet werden");
+					//System.out.println("eq: " + eqp.eq);
+					//System.out.println("sys: ");
+					//eqSys.dump();
 					return false;
 				}
 				return true;
