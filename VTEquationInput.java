@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -127,7 +129,10 @@ public class VTEquationInput extends VisualThing {
 			this.setBorder(new LineBorder(Color.black, 1));
 			addNewEquationButton.setText("+");
 			addNewEquationButton.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent e) { addEquation().requestFocus(); }
+				public void actionPerformed(ActionEvent e) {
+					EquationPanel p = addEquation();
+					p.textField.requestFocus();
+				}
 			});
 			this.add(descriptionLabel);
 			this.add(addNewEquationButton);
@@ -136,11 +141,26 @@ public class VTEquationInput extends VisualThing {
 		}
 				
 		EquationPanel addEquation() {
-			EquationPanel eqp = new EquationPanel() {
+			final EquationPanel eqp = new EquationPanel() {
 				private static final long serialVersionUID = 1L;
 				@Override void onEquationUpdate() { EquationsPanel.this.onEquationUpdate(this); }
 				@Override void onRemoveClick() { removeEquation(this); }
 			};
+			eqp.textField.addKeyListener(new KeyListener() {
+				public void keyTyped(KeyEvent e) {}
+				public void keyReleased(KeyEvent e) {}
+				public void keyPressed(KeyEvent e) {
+					switch(e.getKeyCode()) {
+					case KeyEvent.VK_ENTER:
+						addNewEquationButton.doClick();
+						break;
+					case KeyEvent.VK_BACK_SPACE:
+						if(eqp.textField.getText().isEmpty())
+							removeEquation(eqp);
+						break;
+					}
+				}
+			});
 			equations.add(eqp);
 			this.add(eqp, equations.size());
 			revalidate();
@@ -148,13 +168,17 @@ public class VTEquationInput extends VisualThing {
 		}
 		
 		void removeEquation(EquationPanel eqp) {
+			EquationPanel last = null;
 			for(Iterator<EquationPanel> i = equations.iterator(); i.hasNext();) {
-				if(i.next() == eqp) {
+				EquationPanel p = i.next();
+				if(p == eqp) {
 					i.remove();
-					this.remove(eqp);
+					this.remove(p);
+					if(last != null) last.textField.requestFocus();
 					revalidate();
 					return;
 				}
+				last = p;
 			}
 			throw new AssertionError("equation panel not found");
 		}
@@ -235,7 +259,7 @@ public class VTEquationInput extends VisualThing {
 			
 			@Override boolean recheck(EquationPanel eqp) {
 				if(!eqp.correctInput) return false;
-				if(eqSys.contains(eqp.eq.normalize())) {
+				if(eqSys.containsNormed(eqp.eq)) {
 					if(!haveEarlierSameEquation(eqp))
 						eqp.setInputRight("");
 					else
