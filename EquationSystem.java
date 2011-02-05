@@ -327,12 +327,13 @@ public class EquationSystem {
 			boolean isZero() { return entries.isEmpty(); }
 			boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
 			Sum normalize() {
-				Sum sum = new Sum();
 				List<Prod> newEntries = new LinkedList<Prod>();
 				for(Prod prod : entries)
 					newEntries.add(prod.normalize());
 				Collections.sort(newEntries);
 				Prod lastProd = null;
+
+				Sum sum = new Sum();
 				for(Prod prod : newEntries) {
 					if(lastProd != null && lastProd.facs.equals(prod.facs))
 						lastProd.fac += prod.fac;
@@ -345,6 +346,8 @@ public class EquationSystem {
 					if(pit.next().isZero())
 						pit.remove();
 				}
+				Collections.sort(sum.entries);
+				
 				return sum;
 			}
 			Sum minusOne() {
@@ -593,6 +596,15 @@ public class EquationSystem {
 				return true;
 		}
 		return false;
+	}
+	
+	boolean containsNormed(Equation eq) {
+		Equation.Sum eqSum = eq.normalizedSum();
+		for(Equation.Sum s : normalizedSums()) {
+			if(eqSum.equals(s) || eqSum.minusOne().equals(s))
+				return true;
+		}
+		return false;		
 	}
 	
 	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
