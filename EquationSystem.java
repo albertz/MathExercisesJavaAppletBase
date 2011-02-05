@@ -483,7 +483,6 @@ public class EquationSystem {
 			}			
 		}
 		Equation normalize() { return normalizedSum().asEquation(); }
-//		Equation minusOne() { return new Equation(left.minusOne(), right.minusOne()); }
 		boolean isTautology() { return normalizedSum().isZero(); }
 		boolean equalNorm(Equation other) {
 			Sum myNorm = normalizedSum();
@@ -492,7 +491,6 @@ public class EquationSystem {
 			if(myNorm.equals(otherNorm.minusOne())) return true;
 			return false;
 		}
-//		@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(left, right); }
 		Iterable<String> vars() { return Utils.concatCollectionView(left.vars(), right.vars()); }
 		Equation() { left = new Utils.OperatorTree(); right = new Utils.OperatorTree(); }
 		Equation(Utils.OperatorTree left, Utils.OperatorTree right) { this.left = left; this.right = right; }
@@ -521,12 +519,6 @@ public class EquationSystem {
 					throw new ParseError("Variable '" + var + "' is unknown.", "Die Variable '" + var + "' ist unbekannt.");
 			}
 		}
-		
-		/*void swap(Equation eq) {
-			Equation tmp = new Equation(left, right);
-			left = eq.left; right = eq.right;
-			eq.left = tmp.left; eq.right = tmp.right;
-		}*/
 
 		static class ParseError extends Exception {
 			private static final long serialVersionUID = 1L;
