@@ -856,7 +856,8 @@ public class Utils {
             	return new RawString(var).asTree();        		
         	}
         }
-    	
+    	static OperatorTree Number(int num) { return new RawString("" + num).asTree(); }
+        
     	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
     	
     	static class RawStringIterator implements Iterator<RawString> {
