@@ -841,6 +841,12 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("I3 = I2");
 			sys.equations.clear();
 			
+			sys.add("I1 = I3");
+			sys.add("I2 = I3");
+			sys.add("U2 = R1 ∙ I1 + R3 ∙ I3");
+			sys.assertCanConcludeTo("I1 = I2");
+			sys.equations.clear();
+			
 		} catch (Equation.ParseError e) {
 			System.out.println("Error: " + e.english);
 			Utils.OperatorTree.debugOperatorTreeDump = true;
