@@ -825,7 +825,7 @@ public class Utils {
     	static OperatorTree Sum(List<Entity> entities) { return new OperatorTree("+", entities); }
     	static OperatorTree Product(List<Entity> entities) { return new OperatorTree("∙", entities); }
     	
-        static OperatorTree Zero() { return new OperatorTree(); }        
+        static OperatorTree Zero() { return Number(0); }        
         boolean isZero() {
         	if(op.equals("∙") && entities.isEmpty()) return false;
         	if(entities.isEmpty()) return true;
@@ -836,7 +836,7 @@ public class Utils {
         	return ((Subtree) e).content.isZero();
         }
 
-        static OperatorTree One() { return new OperatorTree("∙"); }        
+        static OperatorTree One() { return Number(1); }        
         boolean isOne() {
         	if(op.equals("∙") && entities.isEmpty()) return true;
         	if(entities.isEmpty()) return false;
@@ -1564,7 +1564,7 @@ public class Utils {
         }
         
         OperatorTree multiply(OperatorTree other) {
-        	if(isZero()) return Zero();
+        	if(isZero()) return this;
         	if(isOne()) return other;
         	if(other.isOne()) return this;
         	        	
