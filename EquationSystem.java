@@ -836,6 +836,11 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("U3 / I3 = R2 ∙ I2 / (I4 + I2)");
 			sys.equations.clear();
 			
+			sys.add("I2 = I4");
+			sys.add("I4 = I3");
+			sys.assertCanConcludeTo("I3 = I2");
+			sys.equations.clear();
+			
 		} catch (Equation.ParseError e) {
 			System.out.println("Error: " + e.english);
 			Utils.OperatorTree.debugOperatorTreeDump = true;
