@@ -752,7 +752,12 @@ public class EquationSystem {
 	void assertCanConcludeTo(String eqStr) throws Equation.ParseError {
 		Equation eq = new Equation(eqStr, variableSymbols);
 		if(!canConcludeTo(eq)) {
+			System.out.println("Error: assertCanConcludeTo failed.");
+			System.out.println("equation:");
 			debugEquationParsing(eqStr);
+			System.out.println("normed system:");
+			for(Equation e : equations)
+				System.out.println("  " + e.normalize());
 			throw new AssertionError("must follow: " + eq);
 		}
 	}
