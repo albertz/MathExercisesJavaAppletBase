@@ -751,7 +751,6 @@ public class Utils {
     			ot.entities.add(this);
     			return ot;
     		}
-    		boolean isEnclosedImplicitely() { return true; }
 			String toString(String parentOp) { return toString(); }
     		abstract Object getContent();
 			@Override public int hashCode() { return 31 + getContent().hashCode(); }
@@ -780,17 +779,12 @@ public class Utils {
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
-    		boolean implicitEnclosing = true;
     		Subtree(OperatorTree t) { content = t; }
-    		Subtree(OperatorTree t, boolean implicitEnclosing) { content = t; this.implicitEnclosing = implicitEnclosing; }
-			@Override boolean isEnclosedImplicitely() { return implicitEnclosing; }
     		@Override public String toString() {
     			if(debugOperatorTreeDump)
     				return "(" + content.toString() + ")";
     			if(content.canBeInterpretedAsUnaryPrefixed())
     				return content.toString();
-    			if(implicitEnclosing)
-    				return content.toString(); 
 				return "(" + content.toString() + ")";
     		}
     		@Override String toString(String parentOp) {
@@ -1008,7 +1002,7 @@ public class Utils {
         		return new Subtree(ot);        		
     		}
     		else
-    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList), ((Subtree) source).implicitEnclosing);
+    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList));
     	}
 
     	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<Entity> rest) {
@@ -1143,7 +1137,7 @@ public class Utils {
     				if(e instanceof RawString)
     					ot.entities.add(e); // we already parsed that in splitByOps
     				else
-    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList ), ((Subtree) e).implicitEnclosing));
+    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList )));
     			}
     			return ot;
     		}
@@ -1165,7 +1159,7 @@ public class Utils {
     			if(e instanceof RawString)
     				ot.entities.add(e);
     			else
-    				ot.entities.add( new Subtree( parseDefaultAnonBinOpInTree( ((Subtree) e).content, defaultOp ), ((Subtree) e).implicitEnclosing ) );
+    				ot.entities.add( new Subtree( parseDefaultAnonBinOpInTree( ((Subtree) e).content, defaultOp ) ) );
     		}
     		return ot;
     	}
@@ -1187,7 +1181,7 @@ public class Utils {
     			if(e instanceof ParseTree.RawString)
     				ot.entities.add( new RawString(((ParseTree.RawString)e).content) );
     			else
-    				ot.entities.add( new Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content), false ) );
+    				ot.entities.add( new Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content) ) );
     		}
     		return ot;
     	}
@@ -1426,7 +1420,7 @@ public class Utils {
         		ot.op = op;
             	for(Entity e : entities) {
             		if(e instanceof Subtree)
-            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).implicitEnclosing ) );
+            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform) ) );
             		else // e instanceof RawString
             			ot.entities.add(e);
             	}
@@ -1438,7 +1432,7 @@ public class Utils {
         	boolean first = true;
         	for(Entity e : entities) {
         		if(e instanceof Subtree)
-        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).implicitEnclosing );
+        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform) );
         		if(first) {
         			if(leftTransform != null) e = leftTransform.eval(e);
         		} else {
@@ -1483,8 +1477,6 @@ public class Utils {
         			if(e instanceof Subtree) {
         				Subtree origSubtree = (Subtree) e;
         				e = origSubtree.content.transformMinusPushedDown(negate);
-        				if(e instanceof Subtree)
-        					((Subtree) e).implicitEnclosing = origSubtree.implicitEnclosing;
         			}
         			else {
         				if(negate)
