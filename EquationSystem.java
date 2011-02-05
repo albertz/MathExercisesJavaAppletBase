@@ -433,7 +433,7 @@ public class EquationSystem {
 			}
 			Sum(Utils.OperatorTree ot) throws ParseError { add(ot); }
 			void add(Utils.OperatorTree ot) throws ParseError {
-				if(ot.entities.isEmpty()) return;
+				if(ot.isZero()) return;
 				if(ot.entities.size() == 1) {
 					Utils.OperatorTree.Entity e = ot.entities.get(0); 
 					if(e instanceof Utils.OperatorTree.Subtree)
@@ -799,6 +799,7 @@ public class EquationSystem {
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
 		try {
 			//debugEquationParsing("x3 - x4 - x5 = 0");
+			//debugEquationParsing("x1 * x5 = x2 * x5 + x3 * x5");
 			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
@@ -813,7 +814,7 @@ public class EquationSystem {
 
 			sys.add("x1 = x2 + x3");
 			sys.assertCanConcludeTo("x1 / x5 = (x2 + x3) / x5");			
-			sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");			
+			sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");
 			sys.equations.clear();
 
 			sys.add("x1 + x2 * x3 + x4 + x5 * x6 = 0");
