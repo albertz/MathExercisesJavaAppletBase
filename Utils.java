@@ -621,6 +621,22 @@ public class Utils {
         return null;
     }
 	
+    static int countStackFrames(String functionName) {
+    	StackTraceElement[] stack = new Exception().getStackTrace();
+    	int count = 0;
+    	for(StackTraceElement frame : stack) {
+    		if(frame.getMethodName().contains(functionName))
+    			count++;
+    	}
+    	return count;
+    }
+    
+    static String multiplyString(String s, int fac) {
+    	String r = "";
+    	for(int i = 0; i < fac; ++i) r += s;
+    	return r;
+    }
+    
     static class ParseTree {
     	static abstract class Entity { abstract Entity trim(); }
     	static class Subtree extends Entity {
