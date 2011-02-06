@@ -1643,7 +1643,7 @@ public class Utils {
         
         OperatorTree pushdownMultiplication(OperatorTree other) {
         	if(this.isOne()) return other;
-			if(op.equals("+") || op.equals("-")) {
+			if((op.equals("+") || op.equals("-")) && !canBeInterpretedAsUnaryPrefixed()) {
 				OperatorTree newOt = new OperatorTree(op);
 				for(Entity e : entities) {
 					OperatorTree ot = e.asTree().pushdownMultiplication(other);
@@ -1654,8 +1654,19 @@ public class Utils {
 				}
 				return newOt;
 			}
-			if(other.op.equals("+") || other.op.equals("-")) {
-				return other.pushdownMultiplication(this);
+			if(other.op.equals("+") || other.op.equals("-") && !other.canBeInterpretedAsUnaryPrefixed()) {
+				OperatorTree newOt = new OperatorTree(other.op);
+				for(Entity e : other.entities) {
+					OperatorTree ot = pushdownMultiplication(e.asTree());
+					if(ot.op.equals("+"))
+						newOt.entities.addAll(ot.entities);
+					else
+						newOt.entities.add(ot.asEntity());
+				}
+				return newOt;
+			}
+			if(canBeInterpretedAsUnaryPrefixed() && op.equals("-") && other.canBeInterpretedAsUnaryPrefixed() && other.op.equals("-")) {
+				return unaryPrefixedContent().asTree().pushdownMultiplication(other.unaryPrefixedContent().asTree());
 			}
 			if(op.equals("∙")) {
 				OperatorTree newOt = new OperatorTree(op);
