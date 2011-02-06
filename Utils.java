@@ -793,22 +793,24 @@ public class Utils {
     	}
     	static class Subtree extends Entity {
     		OperatorTree content;
-    		boolean implicitEnclosing = true;
+    		boolean explicitEnclosing = false;
     		Subtree(OperatorTree t) { content = t; }
-    		Subtree(OperatorTree t, boolean implicitEnclosing) { content = t; this.implicitEnclosing = implicitEnclosing; }
-			@Override boolean isEnclosedImplicitely() { return implicitEnclosing; }
+    		Subtree(OperatorTree t, boolean explicitEnclosing) { content = t; this.explicitEnclosing = explicitEnclosing; }
+			@Override boolean isEnclosedImplicitely() { return explicitEnclosing; }
     		@Override public String toString() {
-    			if(debugOperatorTreeDump)
+    			if(debugOperatorTreeDump || explicitEnclosing)
     				return "(" + content.toString() + ")";
+    			if(content.entities.size() == 1)
+    				return content.toString();
     			if(content.canBeInterpretedAsUnaryPrefixed())
     				return content.toString();
-    			if(implicitEnclosing)
-    				return content.toString(); 
 				return "(" + content.toString() + ")";
     		}
     		@Override String toString(String parentOp) {
-    			if(debugOperatorTreeDump)
+    			if(debugOperatorTreeDump || explicitEnclosing)
     				return "(" + content.toString() + ")";
+    			if(content.entities.size() == 1)
+    				return content.toString();
     			if(content.canBeInterpretedAsUnaryPrefixed())
     				return content.toString();
     			final String ops = "∙/+-=";
@@ -816,14 +818,14 @@ public class Utils {
     			int childOpIdx = ops.indexOf(content.op);
     			if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
     			if(parentOpIdx == 3) parentOpIdx--; if(childOpIdx == 3) childOpIdx--; // take +- as equal
-    			if(childOpIdx <= parentOpIdx) return toString();
+    			if(childOpIdx <= parentOpIdx) return content.toString();
     			return "(" + content.toString() + ")";
     		}
     		@Override OperatorTree asTree() { return content; }
 			Object getContent() { return content; }
 			public int compareTo(Entity o) {
 				if(o instanceof Subtree) return content.compareTo(((Subtree) o).content);
-				return 1;
+				return 1; // not subtree, i.e. rawstring, i.e. greater
 			}
     	}
     	List<Entity> entities = new LinkedList<Entity>();
@@ -1021,7 +1023,7 @@ public class Utils {
         		return new Subtree(ot);        		
     		}
     		else
-    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList), ((Subtree) source).implicitEnclosing);
+    			return new Subtree(parseOpsInTree(((Subtree)source).content, binOps, binOpList), ((Subtree) source).explicitEnclosing);
     	}
 
     	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<Entity> rest) {
@@ -1156,7 +1158,7 @@ public class Utils {
     				if(e instanceof RawString)
     					ot.entities.add(e); // we already parsed that in splitByOps
     				else
-    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList ), ((Subtree) e).implicitEnclosing));
+    					ot.entities.add(new Subtree(parseOpsInTree( ((Subtree) e).content, binOps, binOpList ), ((Subtree) e).explicitEnclosing));
     			}
     			return ot;
     		}
@@ -1178,7 +1180,7 @@ public class Utils {
     			if(e instanceof RawString)
     				ot.entities.add(e);
     			else
-    				ot.entities.add( new Subtree( parseDefaultAnonBinOpInTree( ((Subtree) e).content, defaultOp ), ((Subtree) e).implicitEnclosing ) );
+    				ot.entities.add( new Subtree( parseDefaultAnonBinOpInTree( ((Subtree) e).content, defaultOp ), ((Subtree) e).explicitEnclosing ) );
     		}
     		return ot;
     	}
@@ -1200,7 +1202,7 @@ public class Utils {
     			if(e instanceof ParseTree.RawString)
     				ot.entities.add( new RawString(((ParseTree.RawString)e).content) );
     			else
-    				ot.entities.add( new Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content), false ) );
+    				ot.entities.add( new Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content), true ) );
     		}
     		return ot;
     	}
@@ -1272,7 +1274,7 @@ public class Utils {
         		return "[" + op + "] " + concat(entities, ", ");    			
     		if(canBeInterpretedAsUnaryPrefixed())
     			// this is a special case used for unary ops (or ops which look like those)
-    			return op + unaryPrefixedContent().toString(""); // always put brackets if it is a subtree
+    			return op + unaryPrefixedContent().toString(); // always put brackets if it is a subtree
     		/*if(entities.isEmpty()) {
     			if(isZero()) return "0";
     			if(isOne()) return "1";
@@ -1439,7 +1441,7 @@ public class Utils {
         		ot.op = op;
             	for(Entity e : entities) {
             		if(e instanceof Subtree)
-            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).implicitEnclosing ) );
+            			ot.entities.add( new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).explicitEnclosing ) );
             		else // e instanceof RawString
             			ot.entities.add(e);
             	}
@@ -1451,7 +1453,7 @@ public class Utils {
         	boolean first = true;
         	for(Entity e : entities) {
         		if(e instanceof Subtree)
-        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).implicitEnclosing );
+        			e = new Subtree( ((Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((Subtree) e).explicitEnclosing );
         		if(first) {
         			if(leftTransform != null) e = leftTransform.eval(e);
         		} else {
@@ -1497,7 +1499,7 @@ public class Utils {
         				Subtree origSubtree = (Subtree) e;
         				e = origSubtree.content.transformMinusPushedDown(negate);
         				if(e instanceof Subtree)
-        					((Subtree) e).implicitEnclosing = origSubtree.implicitEnclosing;
+        					((Subtree) e).explicitEnclosing = origSubtree.explicitEnclosing;
         			}
         			else {
         				if(negate)
