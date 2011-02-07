@@ -1594,6 +1594,79 @@ public class Utils {
 			return new OperatorTree("/", listFromArgs(asEntity(), other.asEntity()));
 		}
 		
+		OperatorTree mergeDivisions() {
+			if(entities.size() == 1) {
+				Entity e = entities.get(0);
+				if(e instanceof Subtree)
+					return ((Subtree)e).content.mergeDivisions();
+				return this;
+			}
+			
+			if(op.equals("∙")) {
+				OperatorTree nom = One(), denom = One();
+				for(Entity e : entities) {
+					OperatorTree ot = e.asTree().mergeDivisions();
+					if(ot.op.equals("/")) {
+						int i = 0;
+						for(Entity e2 : ot.entities) {
+							if(i == 0) nom = nom.multiply(e2.asTree());
+							else denom = denom.multiply(e2.asTree());
+							i++;
+						}
+					}
+					else nom.multiply(ot);
+				}
+				return nom.divide(denom);
+			}
+			else if(op.equals("/")) {
+				OperatorTree nom = One(), denom = One();
+				int i = 0;
+				for(Entity e : entities) {
+					OperatorTree ot = e.asTree().mergeDivisions();
+					if(ot.op.equals("/")) {
+						int j = 0;
+						for(Entity e2 : ot.entities) {
+							if(j == 0 && i == 0 || j > 0 && i > 0) nom = nom.multiply(e2.asTree());
+							else denom = denom.multiply(e2.asTree());
+							j++;
+						}
+					}
+					else {
+						if(i == 0) nom = nom.multiply(e.asTree());
+						else denom = denom.multiply(e.asTree());
+					}
+					i++;
+				}
+				return nom.divide(denom);
+			}
+			else {
+				OperatorTree ot = new OperatorTree(op);
+				for(Entity e : entities)
+					ot.entities.add(e.asTree().mergeDivisions().asEntity());
+				return ot;
+			}
+		}
+		
+		OperatorTree simplifyDivision() {
+			if(op.equals("/") && entities.size() == 2) {
+				OperatorTree nom = entities.get(0).asTree(), denom = entities.get(1).asTree();
+				List<Entity> nomProd = nom.entities;
+				if(!nom.op.equals("∙")) nomProd = listFromArgs(nom.asEntity());
+				List<Entity> denomProd = denom.entities;
+				if(!denom.op.equals("∙")) denomProd = listFromArgs(denom.asEntity());
+				for(int i = 0; i < nomProd.size(); ++i) {
+					Entity e = nomProd.get(i);
+					if(denomProd.contains(e)) {
+						denomProd.remove(e);
+						nomProd.remove(i);
+						--i;
+					}
+				}
+				return nom.divide(denom);
+			}
+			return this;
+		}
+		
 		OperatorTree nextDivision() {
 			if(entities.isEmpty()) return null;
 			if(op.equals("/")) return entities.get(entities.size()-1).asTree();
