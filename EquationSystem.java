@@ -720,6 +720,9 @@ public class EquationSystem {
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 
 			Utils.OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
+			//System.out.print("fac: " + fac.debugStringDouble());
+			fac = fac.mergeDivisions().simplifyDivision();
+			//System.out.println(" -> " + fac.debugStringDouble());
 			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
 			//System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
 			if(newSum.nextDivision() != null) continue;
@@ -880,6 +883,30 @@ public class EquationSystem {
 		System.out.println("}");
 	}
 	
+	static void assertEqual(Utils.OperatorTree a, Utils.OperatorTree b) {
+		if(!a.toString().equals(b.toString()))
+			throw new AssertionError("not equal: " + a + " and " + b);
+	}
+	
+	static void assertEqual(Utils.OperatorTree.Entity a, Utils.OperatorTree.Entity b) {
+		if(!a.equals(b))
+			throw new AssertionError("not equal: " + a + " and " + b);
+	}
+
+	static void debugSimplifications() {
+		assertEqual(Utils.OperatorTree.parse("-I1"), Utils.OperatorTree.parse("-I1"));
+		assertEqual(Utils.OperatorTree.parse("-I1").unaryPrefixedContent(), Utils.OperatorTree.parse("-I1").unaryPrefixedContent());
+		assertEqual(Utils.OperatorTree.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.One());
+		assertEqual(Utils.OperatorTree.parse("(-R1 + -R4) / (-R1 + -R4)").mergeDivisions().simplifyDivision(), Utils.OperatorTree.One());
+		assertEqual(Utils.OperatorTree.parse("-1 / -x").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("1 / x"));
+		assertEqual(Utils.OperatorTree.parse("(I1 ∙ U3) / I1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("U3"));
+		assertEqual(Utils.OperatorTree.parse("(I2 ∙ I3) / -I2").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-I3"));
+		assertEqual(Utils.OperatorTree.parse("-R2 ∙ U3 / R2").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-U3"));
+		assertEqual(Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions(), Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
+		assertEqual(Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
+		assertEqual(Utils.OperatorTree.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("U3"));
+	}
+	
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i);		
@@ -890,7 +917,8 @@ public class EquationSystem {
 			//debugEquationParsing("x3 - x4 - x5 = 0");
 			//debugEquationParsing("x1 * x5 = x2 * x5 + x3 * x5");
 			//debugEquationParsing("U3 = I1 * (R1 + R4)");
-			debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
+			//debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
+			debugSimplifications();
 			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
@@ -948,6 +976,7 @@ public class EquationSystem {
 			sys.assertAndAdd("U3 = I1 * (R1 + R4)");
 			sys.assertAndAdd("I2 = U3 / R2");
 			sys.assertAndAdd("I1 = U3 / (R1 + R4)");
+			sys.assertAndAdd("I2 / I1 = (U3 / R2) / (U3 / (R1 + R4))");
 			sys.assertAndAdd("I2 / I1 = (R1 + R4) / R2");
 			sys.add("I1 + I2 = I3");
 			sys.assertAndAdd("U3 = R2 * (I3 - I1)");
