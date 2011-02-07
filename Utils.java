@@ -817,7 +817,7 @@ public class Utils {
     				return content.toString();
     			if(content.canBeInterpretedAsUnaryPrefixed())
     				return content.toString();
-    			final String ops = "∙/+-=";
+    			final String ops = "/∙+-=";
     			int parentOpIdx = ops.indexOf(parentOp);
     			int childOpIdx = ops.indexOf(content.op);
     			if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
