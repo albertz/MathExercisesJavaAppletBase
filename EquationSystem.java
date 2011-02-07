@@ -815,6 +815,10 @@ public class EquationSystem {
 			//debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
 			debugSimplifications();
 			
+			sys.add("U1 / I1 = U1 / (U1 / R2 + U1 / R3)");
+			sys.assertCanConcludeTo("U1 / I1 = 1 / (1 / R2 + 1 / R3)");
+			sys.equations.clear();
+			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
 			sys.add("-x1 + x2 = 0");
