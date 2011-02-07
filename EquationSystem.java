@@ -1028,6 +1028,11 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("I1 = I2");
 			sys.equations.clear();
 			
+			sys.add("U3 / I3 = R2 - R2 / (1 + U3 / (R2 ∙ I1))"); // I1 ∙ R2 ∙ U3 + -I3 ∙ R2 ∙ U3 + U3^2
+			sys.add("I1 = U3 / (R1 + R4)"); // I1 ∙ R1 + I1 ∙ R4 + -U3
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * U3 / (R1 + R4)))"); // -I3 ∙ R1 ∙ R2 ∙ U3 + -I3 ∙ R2 ∙ R4 ∙ U3 + R1 ∙ U3^2 + R2 ∙ U3^2 + R4 ∙ U3^2
+			sys.equations.clear();
+			
 			sys.add("U3 = R2 * I2");
 			sys.add("U3 = R4 * I4 + R1 * I1");
 			sys.add("I4 = I1");
