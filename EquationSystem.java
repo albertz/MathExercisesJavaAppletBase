@@ -617,45 +617,39 @@ public class EquationSystem {
 	}
 	
 	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
-		System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
-		//System.out.println("to? " + eq);
-		//dump();
+		//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
+
 		Set<Equation.Sum> equations = new TreeSet<Equation.Sum>(baseEquations);
 		if(equations.contains(eq)) {
-			System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
+			//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
 			return true;
 		}
 		for(Equation.Sum myEq : baseEquations) {
-			/*if(usedEquationList.contains(myEq)) {
-				System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "already used: " + myEq);				
-				continue;
-			}*/
 			Collection<Equation.Sum> allConclusions = calcAllOneSideConclusions(eq, myEq);
 			if(allConclusions.isEmpty()) {
-				System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
+				//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
 				continue;
 			}
 			
-			usedEquationList.add(myEq);
 			equations.remove(myEq);
-			Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
 			for(Equation.Sum resultingEq : allConclusions) {
+				if(usedEquationList.contains(resultingEq)) continue;
+				usedEquationList.add(resultingEq);
+				
 				if(resultingEq.isTautology()) {
-					System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEq);
+					//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEq);
 					return true;
 				}
-				if(results.contains(resultingEq)) continue;
-				results.add(resultingEq);
 				
-				System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEq);
+				//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEq);
 				if(_canConcludeTo(equations, resultingEq, usedEquationList)) {
-					System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
+					//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
 					return true;
 				}
 			}
 			equations.add(myEq);
 		}
-		System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
+		//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
 		return false;
 	}
 	
@@ -763,8 +757,8 @@ public class EquationSystem {
 		return results;
 	}
 	
-	private static List<Equation.Sum> calcAllOneSideConclusions(Equation.Sum fixedEq, Equation.Sum otherEq) {
-		List<Equation.Sum> results = new LinkedList<Equation.Sum>();
+	private static Set<Equation.Sum> calcAllOneSideConclusions(Equation.Sum fixedEq, Equation.Sum otherEq) {
+		Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
 		
 		if(fixedEq.isTautology()) return results;
 		if(otherEq.isTautology()) return results;
@@ -778,11 +772,11 @@ public class EquationSystem {
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 
 			Utils.OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
-			System.out.print("fac: " + fac.debugStringDouble());
+			//System.out.print("fac: " + fac.debugStringDouble());
 			fac = fac.mergeDivisions().simplifyDivision();
-			System.out.println(" -> " + fac.debugStringDouble());
+			//System.out.println(" -> " + fac.debugStringDouble());
 			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
-			System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
+			//System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
 			if(newSum.nextDivision() != null) continue;
 			
 			Utils.OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
