@@ -1,6 +1,7 @@
 package applets.Termumformungen$in$der$Technik_01_URI;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -838,6 +839,7 @@ public class Utils {
     	OperatorTree(String op) { this.op = op; } 
     	OperatorTree(String op, Entity e) { this.op = op; entities.add(e); } 
     	OperatorTree(String op, List<Entity> entities) { this.op = op; this.entities = entities; }
+    	OperatorTree copy() { return new OperatorTree(op, new LinkedList<Entity>(entities)); }
     	static OperatorTree MergedEquation(OperatorTree left, OperatorTree right) {
 			return new OperatorTree("+", listFromArgs(left.asEntity(), right.minusOne().asEntity()));
     	}    	
@@ -1354,8 +1356,10 @@ public class Utils {
         String debugStringDouble() { return toString(false) + " // " + toString(true); }
         
 		public int compareTo(OperatorTree o) {
-			int c = op.compareTo(o.op);
-			if(c != 0) return c;
+			if(entities.size() != 1) {
+				int c = op.compareTo(o.op);
+				if(c != 0) return c;
+			}
 			Comparator<Collection<Entity>> comp = orderOnCollection();
 			return comp.compare(entities, o.entities);
 		}
@@ -1677,46 +1681,135 @@ public class Utils {
 			}
 		}
 		
+		OperatorTree canRemoveFactor(OperatorTree fac) {
+			if(equals(fac)) return One();
+			if(minusOne().equals(fac)) return Number(-1);
+			if(entities.size() == 1) {
+				if(entities.get(0) instanceof Subtree)
+					return ((Subtree) entities.get(0)).content.canRemoveFactor(fac);
+				return null;
+			}
+			
+			OperatorTree ot = new OperatorTree(op);
+			boolean needOne;
+			if(op.equals("∙")) needOne = true;
+			else if(op.equals("/")) {
+				if(entities.isEmpty()) return null;
+				OperatorTree sub = entities.get(0).asTree().canRemoveFactor(fac);
+				if(sub == null) return null;
+				ot.entities.add(sub.asEntity());
+				for(int i = 1; i < entities.size(); ++i) ot.entities.add(entities.get(i));
+				return ot;
+			}
+			else needOne = false;
+			boolean haveOne = false;
+			int numfac = 1;
+			for(Entity e : entities) {
+				if(needOne && haveOne) {
+					ot.entities.add(e);
+					continue;
+				}
+				OperatorTree sub = e.asTree().canRemoveFactor(fac);
+				if(sub == null) {
+					if(!needOne) return null; // we need all but this one does not have the factor
+					ot.entities.add(e);
+					continue;
+				}
+				haveOne = true;
+				if(op.equals("∙") && sub.asNumber() != null)
+					numfac *= sub.asNumber();
+				else
+					ot.entities.add(sub.asEntity());
+			}
+			if(needOne && !haveOne && !entities.isEmpty()) return null;
+			if(op.equals("∙") && numfac != 1) {
+				if(!ot.entities.isEmpty()) ot.entities.set(0, ot.entities.get(0).asTree().multiply(Number(numfac)).asEntity());
+				else ot = Number(numfac);
+			}
+			return ot;
+		}
+		
+		static Pair<Integer,Integer> simplifyDivisionFactor(List<Entity> nomProd, List<Entity> denomProd) {
+			Pair<Integer,Integer> nomDenomFacs = new Pair<Integer,Integer>(1,1);
+			int fac = 1;
+			for(int i = 0; i < nomProd.size(); ++i) {
+				Entity e = nomProd.get(i);
+				if(e.asTree().isNegative()) {
+					nomProd.set(i, e.asTree().minusOne().asEntity());
+					fac *= -1;
+					nomDenomFacs.first *= -1;
+					e = nomProd.get(i);
+				}
+				nomProd.set(i, e.asTree().simplify().asEntity());
+			}
+			for(int i = 0; i < denomProd.size(); ++i) {
+				Entity e = denomProd.get(i);
+				if(e.asTree().isNegative()) {
+					denomProd.set(i, e.asTree().minusOne().asEntity());
+					fac *= -1;
+					nomDenomFacs.second *= -1;
+					e = denomProd.get(i);
+				}
+				denomProd.set(i, e.asTree().simplify().asEntity());
+			}
+			if(fac == -1) {
+				if(nomProd.isEmpty()) nomProd.add(Number(-1).asEntity());
+				else nomProd.set(0, nomProd.get(0).asTree().minusOne().asEntity());
+				nomDenomFacs.first *= -1;
+			}
+			return nomDenomFacs;
+		}
+		
+		OperatorTree asSum() {
+			if((op.equals("+") || op.equals("-")) && !canBeInterpretedAsUnaryPrefixed()) return this;
+			return Sum(listFromArgs(asEntity()));
+		}
+		
+		OperatorTree asProduct() {
+			if(op.equals("∙")) return this;
+			return Product(listFromArgs(asEntity()));
+		}
+		
+		OperatorTree firstProductInSum() { // expecting that we are a sum
+			if(entities.isEmpty()) return null;
+			if(op.equals("+") || op.equals("-")) return entities.get(0).asTree().asProduct();
+			return null;
+		}
+		
 		OperatorTree simplifyDivision() {
 			if(op.equals("/") && entities.size() == 2) {
-				OperatorTree nom = entities.get(0).asTree(), denom = entities.get(1).asTree();
-				List<Entity> nomProd = nom.entities;
-				if(!nom.op.equals("∙")) nomProd = listFromArgs(nom.asEntity());
-				List<Entity> denomProd = denom.entities;
-				if(!denom.op.equals("∙")) denomProd = listFromArgs(denom.asEntity());
-				int fac = 1;
-				for(int i = 0; i < denomProd.size(); ++i) {
-					Entity e = denomProd.get(i);
-					if(e.asTree().isNegative()) {
-						denomProd.set(i, e.asTree().minusOne().asEntity());
-						fac *= -1;
-						e = denomProd.get(i);
-					}
-					denomProd.set(i, e.asTree().simplify().asEntity());
+				OperatorTree nom = entities.get(0).asTree().asSum().copy(), denom = entities.get(1).asTree().asSum().copy();
+				OperatorTree nomProd = nom.firstProductInSum();
+				if(nomProd == null) return this; // somehow illformed -> cannot simplify
+				OperatorTree denomProd = denom.firstProductInSum();
+				if(denomProd == null) return this; // cannot simplify because it is undefined (division by zero)				
+				Pair<Integer,Integer> nomDenomFac = simplifyDivisionFactor(nomProd.entities, denomProd.entities);
+				nom.entities.set(0, nomProd.asEntity());
+				denom.entities.set(0, denomProd.asEntity());
+				if(nomDenomFac.first != 1) {
+					for(int i = 1; i < nom.entities.size(); ++i)
+						nom.entities.set(i, nom.entities.get(i).asTree().multiply(Number(nomDenomFac.first)).asEntity());
 				}
-				for(int i = 0; i < nomProd.size(); ++i) {
-					Entity e = nomProd.get(i);
-					if(e.asTree().isNegative()) {
-						nomProd.set(i, e.asTree().minusOne().asEntity());
-						fac *= -1;
-						e = nomProd.get(i);
-					}
-					nomProd.set(i, e.asTree().simplify().asEntity());
-					e = nomProd.get(i);					
-					if(denomProd.contains(e)) {
-						denomProd.remove(e);
-						nomProd.remove(i);
-						--i;
-						continue;
+				if(nomDenomFac.second != 1) {
+					for(int i = 1; i < denom.entities.size(); ++i)
+						denom.entities.set(i, denom.entities.get(i).asTree().multiply(Number(nomDenomFac.second)).asEntity());
+				}
+				
+				//System.out.println("div: " + nomProd + " / " + denomProd);
+				for(Entity e : new ArrayList<Entity>(concatCollectionView(denomProd.entities, listFromArgs(denom.asEntity())))) {
+					OperatorTree newNom = nom.canRemoveFactor(e.asTree());
+					OperatorTree newDenom = denom.canRemoveFactor(e.asTree());
+					//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
+					//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
+					
+					if(newNom != null && newDenom != null) {
+						nom = newNom.asSum(); denom = newDenom.asSum();
+						nomProd = nom.firstProductInSum();
+						denomProd = denom.firstProductInSum();
+						if(nomProd == null || denomProd == null) break;
 					}
 				}
-				if(nomProd.size() == 0) nom = Number(fac);
-				else if(nomProd.size() == 1 && fac == 1) nom = nomProd.get(0).asTree();
-				else if(nomProd.size() == 1 && fac == -1) nom = nomProd.get(0).asTree().minusOne();
-				else nom = new OperatorTree("∙", nomProd).multiply(Number(fac));
-				if(denomProd.size() == 0) denom = One();
-				else if(denomProd.size() == 1) denom = denomProd.get(0).asTree();
-				else denom = new OperatorTree("∙", denomProd);
+				
 				return nom.divide(denom);
 			}
 			return this;
