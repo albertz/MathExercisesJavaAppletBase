@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.Sum;
+import applets.Termumformungen$in$der$Technik_01_URI.Utils.OperatorTree;
+
 
 
 public class EquationSystem {
@@ -656,7 +659,62 @@ public class EquationSystem {
 		return false;
 	}
 	
+	Set<Utils.OperatorTree> identitiesForVar(String var) {
+		Set<Utils.OperatorTree> eqs = new TreeSet<Utils.OperatorTree>();
+		for(Equation.Sum eq : normalizedSums()) {
+			Equation.Sum.ExtractedVar extractedVar = eq.extractVar(var);
+			if(extractedVar == null) continue; // either we don't have that var there or it is an higher order polynom
+			eqs.add(extractedVar.independentPart.asOperatorTree().divide(extractedVar.varMult.asOperatorTree()).minusOne());
+		}
+		return eqs;
+	}
+	
+	Set<Utils.OperatorTree> directedConclusionSet(Iterable<Utils.OperatorTree> baseEquations, final Equation.Sum eqNorm) {
+		Set<String> eqVars = new TreeSet<String>(Utils.collFromIter(eqNorm.vars()));
+		Set<Utils.OperatorTree> conclusions = new TreeSet<Utils.OperatorTree>();
+		
+		for(Utils.OperatorTree baseEq : baseEquations) {
+			for(String var : new TreeSet<String>(Utils.collFromIter(baseEq.vars()))) {
+				if(!eqVars.contains(var)) {
+					for(Utils.OperatorTree ot : identitiesForVar(var)) {
+						Utils.OperatorTree newEq = baseEq.replaceVar(var, ot);
+						conclusions.add(newEq);
+					}
+				}
+			}
+		}
+
+		return conclusions;
+	}
+	
+	static boolean isEquInBaseEquations(Iterable<Utils.OperatorTree> baseEquations, Equation.Sum eqNorm) {
+		Equation.Sum eqNormMinus = eqNorm.minusOne();
+		for(Utils.OperatorTree baseEq : baseEquations) {
+			Equation.Sum baseEqNormed = new Equation(baseEq, Utils.OperatorTree.Zero()).normalizedSum();
+			if(baseEqNormed.equals(eqNorm) || baseEqNormed.equals(eqNormMinus))
+				return true;
+		}
+		return false;
+	}
+	
+	Iterable<Utils.OperatorTree> baseEquations() {
+		return Utils.map(equations, new Utils.Function<Equation,Utils.OperatorTree>() {
+			public Utils.OperatorTree eval(Equation obj) {
+				return Utils.OperatorTree.MergedEquation(obj.left, obj.right);
+			}
+		});
+	}
+	
 	boolean canConcludeTo(Equation eq) {
+		/*Equation.Sum eqNorm = eq.normalizedSum();
+		Iterable<Utils.OperatorTree> conclusions = baseEquations();
+		if(isEquInBaseEquations(conclusions, eqNorm)) return true;
+		conclusions = directedConclusionSet(conclusions, eqNorm);
+		if(isEquInBaseEquations(conclusions, eqNorm)) return true;
+		conclusions = directedConclusionSet(conclusions, eqNorm);
+		if(isEquInBaseEquations(conclusions, eqNorm)) return true;
+		return false;
+		*/
 		return _canConcludeTo(Utils.collFromIter(normalizedSums()), eq.normalizedSum(), new TreeSet<Equation.Sum>());
 	}
 
@@ -829,9 +887,9 @@ public class EquationSystem {
 			System.out.println("Error: assertCanConcludeTo failed.");
 			System.out.println("equation:");
 			debugEquationParsing(eqStr);
-			System.out.println("normed system:");
+			System.out.println("system:");
 			for(Equation e : equations)
-				System.out.println("  " + e.normalize() + " // " + e.normalizedSum());
+				System.out.println("  " + e  + " // " + e.normalize() + " // " + e.normalizedSum());
 			throw new AssertionError("must follow: " + eq + " ; (as normed sum: " + eq.normalizedSum() + ")");
 		}
 	}
@@ -937,7 +995,7 @@ public class EquationSystem {
 
 			sys.add("x1 = x2 + x3");
 			sys.assertCanConcludeTo("x1 / x5 = (x2 + x3) / x5");			
-			sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");
+			//sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");
 			sys.equations.clear();
 
 			sys.add("x1 + x2 * x3 + x4 + x5 * x6 = 0");
