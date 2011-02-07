@@ -1392,7 +1392,13 @@ public class Utils {
 			};
 		}
 		
-		OperatorTree removeObsolete() {			
+		OperatorTree removeObsolete() {
+			if(entities.size() == 1) {
+				if(entities.get(0) instanceof Subtree)
+					return ((Subtree) entities.get(0)).content.removeObsolete();
+				return this;
+			}
+				
 			OperatorTree ot = new OperatorTree(op);
 
 			if(op.equals("+") || op.equals("-")) {
@@ -1568,13 +1574,11 @@ public class Utils {
         		return unaryPrefixedContent().asTree();
         	
         	Entity e = transformMinusPushedDown(true);
-        	if(e instanceof Subtree)
-        		return ((Subtree) e).content;
-        	return new OperatorTree("", e);
+        	return e.asTree();
 		}
 
 		Entity asEntity() {
-			if(op.isEmpty() && entities.size() == 1)
+			if(entities.size() == 1)
 				return entities.get(0);
 			return new Subtree(this);
 		}
@@ -1619,7 +1623,7 @@ public class Utils {
 							i++;
 						}
 					}
-					else nom.multiply(ot);
+					else nom = nom.multiply(ot);
 				}
 				return nom.divide(denom);
 			}
@@ -1660,31 +1664,29 @@ public class Utils {
 				List<Entity> denomProd = denom.entities;
 				if(!denom.op.equals("∙")) denomProd = listFromArgs(denom.asEntity());
 				int fac = 1;
-				for(int i = 0; i < nomProd.size(); ++i) {
-					Entity e = nomProd.get(i);
-					if(denomProd.contains(e)) {
-						denomProd.remove(e);
-						nomProd.remove(i);
-						--i;
-						continue;
-					}
-					if(denomProd.contains(e.asTree().minusOne().asEntity())) {
-						denomProd.remove(e);
-						nomProd.remove(i);
-						--i;
-						fac *= -1;
-						continue;
-					}
-					if(e.asTree().isNegative()) {
-						nomProd.set(i, e.asTree().minusOne().asEntity());
-						fac *= -1;
-					}
-				}
 				for(int i = 0; i < denomProd.size(); ++i) {
 					Entity e = denomProd.get(i);
 					if(e.asTree().isNegative()) {
 						denomProd.set(i, e.asTree().minusOne().asEntity());
 						fac *= -1;
+						e = denomProd.get(i);
+					}
+					denomProd.set(i, e.asTree().simplify().asEntity());
+				}
+				for(int i = 0; i < nomProd.size(); ++i) {
+					Entity e = nomProd.get(i);
+					if(e.asTree().isNegative()) {
+						nomProd.set(i, e.asTree().minusOne().asEntity());
+						fac *= -1;
+						e = nomProd.get(i);
+					}
+					nomProd.set(i, e.asTree().simplify().asEntity());
+					e = nomProd.get(i);					
+					if(denomProd.contains(e)) {
+						denomProd.remove(e);
+						nomProd.remove(i);
+						--i;
+						continue;
 					}
 				}
 				if(nomProd.size() == 0) nom = Number(fac);
