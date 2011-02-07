@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.ParseError;
+
 
 public class EquationSystem {
 
@@ -317,8 +319,10 @@ public class EquationSystem {
 				@Override String baseOp() { return "∙"; }
 				@Override Utils.OperatorTree asOperatorTree() {
 					if(fac == 0) return Utils.OperatorTree.Zero();
-					if(fac == 1) return super.asOperatorTree();
-					if(fac == -1) return super.asOperatorTree().minusOne();
+					if(fac == 1 && !facs.isEmpty()) return super.asOperatorTree();
+					if(fac == 1 && facs.isEmpty()) return Utils.OperatorTree.One();
+					if(fac == -1 && !facs.isEmpty()) return super.asOperatorTree().minusOne();
+					if(fac == -1 && facs.isEmpty()) return Utils.OperatorTree.One().minusOne();
 					return Utils.OperatorTree.Product(Utils.listFromArgs(
 							Utils.OperatorTree.Number(fac).asEntity(),
 							super.asOperatorTree().asEntity()
@@ -715,7 +719,24 @@ public class EquationSystem {
 			Equation.Sum.ExtractedVar extract2 = otherEq.extractVar(var);
 			if(extract1 == null) continue; // can happen if we have higher order polynoms
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
-			if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
+
+			Utils.OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
+			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
+			//System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
+			if(newSum.nextDivision() != null) continue;
+			
+			Utils.OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
+			Equation.Sum resultingSum;
+			try {
+				resultingSum = new Equation.Sum(resultingEquation, Utils.OperatorTree.Zero());
+			} catch (ParseError e) {
+				e.printStackTrace(); // should not happen
+				continue;
+			}
+			//System.out.println(".. result: " + resultingEquation + " // " + resultingSum + " // " + resultingSum.normalize());
+			results.add(resultingSum.normalize());
+
+			/*if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
 			if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
 			Equation.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
 			Equation.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
@@ -731,7 +752,7 @@ public class EquationSystem {
 			if(!varMult2.isOne()) continue; // that's what I mean with 'one-side'
 			Equation.Sum newSum2 = otherEq.mult(varMult1.minusOne());
 			Equation.Sum resultingEquation = fixedEq.sum(newSum2).normalize();
-			results.add(resultingEquation);			
+			results.add(resultingEquation);*/
 		}
 		
 		return results;
@@ -822,7 +843,7 @@ public class EquationSystem {
 			System.out.println("normed system:");
 			for(Equation e : equations)
 				System.out.println("  " + e.normalize());
-			throw new AssertionError("must follow: " + eq);
+			throw new AssertionError("must not follow: " + eq);
 		}
 	}
 
