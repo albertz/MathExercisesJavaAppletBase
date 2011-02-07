@@ -1550,6 +1550,8 @@ public class Utils {
 		}
         
 		OperatorTree divide(OperatorTree other) {
+			if(isZero()) return this;
+			if(other.isOne()) return this;
 			if(op.equals("/")) {
 				if(entities.size() == 2)
 					return new OperatorTree("/", listFromArgs(entities.get(0), entities.get(1).asTree().multiply(other).asEntity()));
