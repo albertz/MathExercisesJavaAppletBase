@@ -748,8 +748,10 @@ public class ElectronicCircuit {
 		VoltageSource voltSrc = Utils.randomChoiceFrom(new ArrayList<VoltageSource>(Utils.collFromIter(Utils.filterType(allConns(), VoltageSource.class))), r);
 		q.wantedExpr = voltSrc.varVolt + "/" + voltSrc.varFlow;
 		for(Conn c : allConns()) {
-			if(c == voltSrc) continue;
-			q.allowedVars.addAll(c.vars());
+			if(c instanceof EResistance)
+				q.allowedVars.add(((EResistance)c).varRes);
+			else if(c instanceof VoltageSource)
+				q.allowedVars.add(((VoltageSource)c).varVolt);				
 		}
 		return q;
 	}
