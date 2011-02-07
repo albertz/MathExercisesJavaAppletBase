@@ -1549,6 +1549,18 @@ public class Utils {
 			return new Subtree(this);
 		}
         
+		OperatorTree divide(OperatorTree other) {
+			if(op.equals("/")) {
+				if(entities.size() == 2)
+					return new OperatorTree("/", listFromArgs(entities.get(0), entities.get(1).asTree().multiply(other).asEntity()));
+				OperatorTree ot = new OperatorTree(op);
+				for(Entity e : entities) ot.entities.add(e);
+				ot.entities.add(other.asEntity());
+				return ot;
+			}
+			return new OperatorTree("/", listFromArgs(asEntity(), other.asEntity()));
+		}
+		
 		OperatorTree nextDivision() {
 			if(entities.isEmpty()) return null;
 			if(op.equals("/")) return entities.get(entities.size()-1).asTree();
