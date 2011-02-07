@@ -663,52 +663,7 @@ public class EquationSystem {
 		return eqs;
 	}
 	
-	Set<Utils.OperatorTree> directedConclusionSet(Iterable<Utils.OperatorTree> baseEquations, final Equation.Sum eqNorm) {
-		Set<String> eqVars = new TreeSet<String>(Utils.collFromIter(eqNorm.vars()));
-		Set<Utils.OperatorTree> conclusions = new TreeSet<Utils.OperatorTree>();
-		
-		for(Utils.OperatorTree baseEq : baseEquations) {
-			for(String var : new TreeSet<String>(Utils.collFromIter(baseEq.vars()))) {
-				if(!eqVars.contains(var)) {
-					for(Utils.OperatorTree ot : identitiesForVar(var)) {
-						Utils.OperatorTree newEq = baseEq.replaceVar(var, ot);
-						conclusions.add(newEq);
-					}
-				}
-			}
-		}
-
-		return conclusions;
-	}
-	
-	static boolean isEquInBaseEquations(Iterable<Utils.OperatorTree> baseEquations, Equation.Sum eqNorm) {
-		Equation.Sum eqNormMinus = eqNorm.minusOne();
-		for(Utils.OperatorTree baseEq : baseEquations) {
-			Equation.Sum baseEqNormed = new Equation(baseEq, Utils.OperatorTree.Zero()).normalizedSum();
-			if(baseEqNormed.equals(eqNorm) || baseEqNormed.equals(eqNormMinus))
-				return true;
-		}
-		return false;
-	}
-	
-	Iterable<Utils.OperatorTree> baseEquations() {
-		return Utils.map(equations, new Utils.Function<Equation,Utils.OperatorTree>() {
-			public Utils.OperatorTree eval(Equation obj) {
-				return Utils.OperatorTree.MergedEquation(obj.left, obj.right);
-			}
-		});
-	}
-	
 	boolean canConcludeTo(Equation eq) {
-		/*Equation.Sum eqNorm = eq.normalizedSum();
-		Iterable<Utils.OperatorTree> conclusions = baseEquations();
-		if(isEquInBaseEquations(conclusions, eqNorm)) return true;
-		conclusions = directedConclusionSet(conclusions, eqNorm);
-		if(isEquInBaseEquations(conclusions, eqNorm)) return true;
-		conclusions = directedConclusionSet(conclusions, eqNorm);
-		if(isEquInBaseEquations(conclusions, eqNorm)) return true;
-		return false;
-		*/
 		return _canConcludeTo(Utils.collFromIter(normalizedSums()), eq.normalizedSum(), new TreeSet<Equation.Sum>());
 	}
 
