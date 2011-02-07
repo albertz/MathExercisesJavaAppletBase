@@ -872,7 +872,37 @@ public class Utils {
         	}
         }
     	static OperatorTree Number(int num) { return new RawString("" + num).asTree(); }
-        
+    	Integer asNumber() {
+    		if(isZero()) return 0;
+    		if(isOne()) return 1;
+    		if(entities.size() == 1) {
+    			Entity e = entities.get(0);
+    			if(e instanceof Subtree)
+    				return ((Subtree)e).content.asNumber();
+    			String s = ((RawString)e).content;
+    			try { return Integer.parseInt(s); }
+    			catch(NumberFormatException exc) { return null; }
+    		}
+    		Integer x;
+    		if(op.equals("+") || op.equals("-")) x = 0;
+    		else if(op.equals("∙") || op.equals("/")) x = 1;
+    		else return null;
+    		for(Entity e : entities) {
+    			Integer y = e.asTree().asNumber();
+    			if(y == null) return null;
+    			if(op.equals("+")) x += y;
+    			else if(op.equals("-")) x -= y;
+    			else if(op.equals("∙")) x *= y;
+    			else if(op.equals("/")) x /= y;
+    		}
+    		return x;
+    	}
+        boolean isNumber(int num) {
+        	Integer x = asNumber();
+        	if(x == null) return false;
+        	return x.intValue() == num;
+        }
+    	
     	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
     	
     	static class RawStringIterator implements Iterator<RawString> {
@@ -1552,6 +1582,7 @@ public class Utils {
 		OperatorTree divide(OperatorTree other) {
 			if(isZero()) return this;
 			if(other.isOne()) return this;
+			if(other.isNumber(-1)) return this.minusOne();
 			if(op.equals("/")) {
 				if(entities.size() == 2)
 					return new OperatorTree("/", listFromArgs(entities.get(0), entities.get(1).asTree().multiply(other).asEntity()));
