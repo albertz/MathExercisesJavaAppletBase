@@ -666,10 +666,6 @@ public class EquationSystem {
 	boolean canConcludeTo(Equation eq) {
 		return _canConcludeTo(Utils.collFromIter(normalizedSums()), eq.normalizedSum(), new TreeSet<Equation.Sum>());
 	}
-
-	EquationSystem allConclusions() {
-		return calcAllConclusions(null);
-	}
 	
 	private static Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
 		Set<String> commonVars = new HashSet<String>(Utils.collFromIter(eq1.vars()));
@@ -677,41 +673,6 @@ public class EquationSystem {
 		return commonVars;
 	}
 
-	private static List<Equation.Sum> calcAllConclusions(Equation.Sum eq1, Equation.Sum eq2) {
-		List<Equation.Sum> results = new LinkedList<Equation.Sum>();
-		
-		if(eq1.isTautology()) return results;
-		if(eq2.isTautology()) return results;
-
-		//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
-		//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
-		Set<String> commonVars = commonVars(eq1, eq2);
-		//System.out.println("common vars in " + eq1 + " and " + eq2 + ": " + commonVars);
-		
-		for(String var : commonVars) {					
-			Equation.Sum.ExtractedVar extract1 = eq1.extractVar(var);
-			Equation.Sum.ExtractedVar extract2 = eq2.extractVar(var);
-			//System.out.println("extracting " + var + ": " + extract1 + " and " + extract2);
-			if(extract1 == null) continue; // can happen if we have higher order polynoms
-			if(extract2 == null) continue; // can happen if we have higher order polynoms
-			if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
-			if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
-			Equation.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
-			Equation.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
-			Equation.Sum.Prod commonBase = varMult1.commonBase(varMult2);
-			varMult1 = varMult1.divide(commonBase);
-			varMult2 = varMult2.divide(commonBase);
-			if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
-			if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
-			Equation.Sum newSum1 = eq1.mult(varMult2);
-			Equation.Sum newSum2 = eq2.mult(varMult1.minusOne());
-			Equation.Sum resultingEquation = newSum1.sum(newSum2);
-			results.add(resultingEquation);			
-		}
-		
-		return results;
-	}
-	
 	private static Set<Equation.Sum> calcAllOneSideConclusions(Equation.Sum fixedEq, Equation.Sum otherEq) {
 		Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
 		
@@ -765,62 +726,6 @@ public class EquationSystem {
 		}
 		
 		return results;
-	}
-
-	private EquationSystem calcAllConclusions(Equation breakIfThisEquIsFound) {
-		if(breakIfThisEquIsFound != null) {
-			breakIfThisEquIsFound = breakIfThisEquIsFound.normalize();
-			if(contains(breakIfThisEquIsFound)) return null;
-		}
-		
-		// map values are the set of used based equations
-		Map<Equation.Sum, Set<Equation.Sum>> resultingEquations = new TreeMap<Equation.Sum, Set<Equation.Sum>>();
-		Set<Equation.Sum> normalizedEquations = new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedSums()));
-		Iterable<Equation.Sum> nextEquations = normalizedEquations;
-		
-		int iteration = 0;
-		while(true) {
-			iteration++;
-			List<Equation.Sum> newResults = new LinkedList<Equation.Sum>();
-			for(Utils.Pair<Equation.Sum,Equation.Sum> pair : Utils.allPairs(normalizedEquations, nextEquations) ) {
-				// if we have used the same base equation in this resulted equation already, skip this one
-				if(resultingEquations.containsKey(pair.second) && resultingEquations.get(pair.second).contains(pair.first)) continue;
-
-				for(Equation.Sum resultingEquation : calcAllConclusions(pair.first, pair.second)) {
-					if(!resultingEquation.isTautology() && !resultingEquations.containsKey(resultingEquation)) {
-						//System.out.println("in iteration " + iteration + ": " + pair.first + " and " + pair.second + " -> " + resultingEquation);
-						resultingEquations.put(resultingEquation, new TreeSet<Equation.Sum>(Utils.listFromArgs(pair.first)));
-						if(normalizedEquations.contains(pair.second)) resultingEquations.get(resultingEquation).add(pair.second);
-						else resultingEquations.get(resultingEquation).addAll(resultingEquations.get(pair.second));
-						newResults.add(resultingEquation);
-						if(breakIfThisEquIsFound != null) {
-							if(breakIfThisEquIsFound.equals(resultingEquation)) return null;
-							if(breakIfThisEquIsFound.equals(resultingEquation.minusOne())) return null;
-						}
-					}					
-				}
-			}
-			nextEquations = newResults;
-			if(newResults.isEmpty()) break;
-			if(iteration >= normalizedEquations.size()) break;
-		}
-		
-		/*
-		System.out.println("{");
-		for(Equation e : normalizedEquations)
-			System.out.println("   " + e);
-		for(Equation e : resultingEquations)
-			System.out.println("-> " + e);
-		System.out.println("}");
-		*/
-		
-		Iterable<Equation.Sum> concludedEquSums = Utils.concatCollectionView(normalizedEquations, resultingEquations.keySet());
-		Iterable<Equation> concludedNormedEqu = Utils.map(concludedEquSums, new Utils.Function<Equation.Sum,Equation>() {
-			public Equation eval(Equation.Sum obj) {
-				return obj.asEquation();
-			}
-		});
-		return new EquationSystem(new LinkedList<Equation>(Utils.collFromIter(concludedNormedEqu)), variableSymbols);
 	}
 		
 	void dump() {
