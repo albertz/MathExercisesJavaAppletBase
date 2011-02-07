@@ -13,9 +13,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import applets.Termumformungen$in$der$Technik_01_URI.Utils.OperatorTree;
-
-
 
 public class EquationSystem {
 
@@ -318,7 +315,7 @@ public class EquationSystem {
 						throw new ParseError("'" + ot + "' must contain at least one variable.", "'" + ot + "' muss mindestens eine Variable enthalten.");
 				}
 				@Override String baseOp() { return "∙"; }
-				@Override OperatorTree asOperatorTree() {
+				@Override Utils.OperatorTree asOperatorTree() {
 					if(fac == 0) return Utils.OperatorTree.Zero();
 					if(fac == 1) return super.asOperatorTree();
 					if(fac == -1) return super.asOperatorTree().minusOne();
@@ -403,6 +400,9 @@ public class EquationSystem {
 				String var;
 				Sum varMult = new Sum();
 				Sum independentPart = new Sum();
+				@Override public String toString() {
+					return "{var=" + var + ", varMult=" + varMult + ", independentPart=" + independentPart + "}"; 
+				}
 			}
 			ExtractedVar extractVar(String var) {
 				ExtractedVar extracted = new ExtractedVar();
@@ -464,7 +464,7 @@ public class EquationSystem {
 				}
 				else
 					// all necessary transformation should have been done already (e.g. in Sum(left,right))
-					throw new ParseError("'" + ot.op + "' not supported.", "'" + ot.op + "' nicht unterstützt.");
+					throw new ParseError("'" + ot.op + "' not supported in " + ot, "'" + ot.op + "' nicht unterstützt in " + ot);
 			}
 			@Override String baseOp() { return "+"; }
 			boolean isTautology() { return normalize().isZero(); }
@@ -611,31 +611,46 @@ public class EquationSystem {
 	}
 	
 	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
+		System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
 		//System.out.println("to? " + eq);
 		//dump();
 		Set<Equation.Sum> equations = new TreeSet<Equation.Sum>(baseEquations);
-		if(equations.contains(eq))
+		if(equations.contains(eq)) {
+			System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
 			return true;
+		}
 		for(Equation.Sum myEq : baseEquations) {
-			if(usedEquationList.contains(myEq)) continue;
-			Collection<Equation.Sum> allConclusions = calcAllConclusions(eq, myEq);
-			if(allConclusions.isEmpty()) continue;
+			/*if(usedEquationList.contains(myEq)) {
+				System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "already used: " + myEq);				
+				continue;
+			}*/
+			Collection<Equation.Sum> allConclusions = calcAllOneSideConclusions(eq, myEq);
+			if(allConclusions.isEmpty()) {
+				System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
+				continue;
+			}
 			
 			usedEquationList.add(myEq);
 			equations.remove(myEq);
 			Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
 			for(Equation.Sum resultingEq : allConclusions) {
-				if(resultingEq.isTautology())
+				if(resultingEq.isTautology()) {
+					System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEq);
 					return true;
+				}
 				if(results.contains(resultingEq)) continue;
 				results.add(resultingEq);
 				
-				if(_canConcludeTo(equations, resultingEq, usedEquationList))
+				System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEq);
+				if(_canConcludeTo(equations, resultingEq, usedEquationList)) {
+					System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
 					return true;
+				}
 			}
 			equations.add(myEq);
 		}
-		return false;		
+		System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
+		return false;
 	}
 	
 	boolean canConcludeTo(Equation eq) {
@@ -661,11 +676,12 @@ public class EquationSystem {
 		//System.out.println("vars in first equ " + pair.first + ": " + Utils.collFromIter(pair.first.vars()));
 		//System.out.println("vars in second equ " + pair.second + ": " + Utils.collFromIter(pair.second.vars()));
 		Set<String> commonVars = commonVars(eq1, eq2);
-		//System.out.println("common vars in " + pair.first + " and " + pair.second + ": " + commonVars);
+		//System.out.println("common vars in " + eq1 + " and " + eq2 + ": " + commonVars);
 		
 		for(String var : commonVars) {					
 			Equation.Sum.ExtractedVar extract1 = eq1.extractVar(var);
 			Equation.Sum.ExtractedVar extract2 = eq2.extractVar(var);
+			//System.out.println("extracting " + var + ": " + extract1 + " and " + extract2);
 			if(extract1 == null) continue; // can happen if we have higher order polynoms
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 			if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
@@ -686,6 +702,41 @@ public class EquationSystem {
 		return results;
 	}
 	
+	private static List<Equation.Sum> calcAllOneSideConclusions(Equation.Sum fixedEq, Equation.Sum otherEq) {
+		List<Equation.Sum> results = new LinkedList<Equation.Sum>();
+		
+		if(fixedEq.isTautology()) return results;
+		if(otherEq.isTautology()) return results;
+
+		Set<String> commonVars = commonVars(fixedEq, otherEq);
+		
+		for(String var : commonVars) {					
+			Equation.Sum.ExtractedVar extract1 = fixedEq.extractVar(var);
+			Equation.Sum.ExtractedVar extract2 = otherEq.extractVar(var);
+			if(extract1 == null) continue; // can happen if we have higher order polynoms
+			if(extract2 == null) continue; // can happen if we have higher order polynoms
+			if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
+			if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
+			Equation.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
+			Equation.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
+			Equation.Sum.Prod commonBase = varMult1.commonBase(varMult2);
+			varMult1 = varMult1.divide(commonBase);
+			varMult2 = varMult2.divide(commonBase);
+			if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
+			if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
+			if(varMult2.equalsToNum(-1)) {
+				varMult1 = varMult1.minusOne();
+				varMult2 = varMult2.minusOne();
+			}
+			if(!varMult2.isOne()) continue; // that's what I mean with 'one-side'
+			Equation.Sum newSum2 = otherEq.mult(varMult1.minusOne());
+			Equation.Sum resultingEquation = fixedEq.sum(newSum2).normalize();
+			results.add(resultingEquation);			
+		}
+		
+		return results;
+	}
+
 	private EquationSystem calcAllConclusions(Equation breakIfThisEquIsFound) {
 		if(breakIfThisEquIsFound != null) {
 			breakIfThisEquIsFound = breakIfThisEquIsFound.normalize();
@@ -758,10 +809,23 @@ public class EquationSystem {
 			System.out.println("normed system:");
 			for(Equation e : equations)
 				System.out.println("  " + e.normalize());
+			throw new AssertionError("must follow: " + eq + " ; (as normed sum: " + eq.normalizedSum() + ")");
+		}
+	}
+
+	void assertCanNotConcludeTo(String eqStr) throws Equation.ParseError {
+		Equation eq = new Equation(eqStr, variableSymbols);
+		if(canConcludeTo(eq)) {
+			System.out.println("Error: assertCanNotConcludeTo failed.");
+			System.out.println("equation:");
+			debugEquationParsing(eqStr);
+			System.out.println("normed system:");
+			for(Equation e : equations)
+				System.out.println("  " + e.normalize());
 			throw new AssertionError("must follow: " + eq);
 		}
 	}
-	
+
 	void assertAndAdd(String eqStr) throws Equation.ParseError {
 		assertCanConcludeTo(eqStr);
 		add(eqStr);
@@ -805,16 +869,22 @@ public class EquationSystem {
 		try {
 			//debugEquationParsing("x3 - x4 - x5 = 0");
 			//debugEquationParsing("x1 * x5 = x2 * x5 + x3 * x5");
+			//debugEquationParsing("U3 = I1 * (R1 + R4)");
+			debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
 			
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
 			sys.add("-x1 + x2 = 0");
-			sys.assertCanConcludeTo("x1 - x3 + x4 = 0");			
+			sys.assertCanConcludeTo("x1 - x3 + x4 = 0");
+			sys.assertCanNotConcludeTo("x1 = 0");
 			sys.equations.clear();
 			
 			sys.add("x1 * x2 = 0");
 			sys.add("x1 = x3");
 			sys.assertCanConcludeTo("x2 * x3 = 0");			
+			sys.assertCanNotConcludeTo("x2 * x4 = 0");			
+			sys.assertCanNotConcludeTo("x1 = x2");			
+			sys.assertCanNotConcludeTo("x1 = 0");			
 			sys.equations.clear();
 
 			sys.add("x1 = x2 + x3");
@@ -852,6 +922,34 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("I1 = I2");
 			sys.equations.clear();
 			
+			sys.add("U3 = R2 * I2");
+			sys.add("U3 = R4 * I4 + R1 * I1");
+			sys.add("I4 = I1");
+			sys.assertAndAdd("U3 = I1 * (R1 + R4)");
+			sys.assertAndAdd("I2 = U3 / R2");
+			sys.assertAndAdd("I1 = U3 / (R1 + R4)");
+			sys.assertAndAdd("I2 / I1 = (R1 + R4) / R2");
+			sys.add("I1 + I2 = I3");
+			sys.assertAndAdd("U3 = R2 * (I3 - I1)");
+			sys.assertAndAdd("U3/I3 = R2 - R2 * I1 / I3");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + I2 / I1)");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + (R1 + R4) / R2)");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 * R2 / (R2 + R1 + R4)");
+			sys.assertAndAdd("U3 / I3 = (R2*R2 + R2*R1 + R2*R4 - R2*R2) / (R2 + R1 + R4)");
+			sys.assertAndAdd("U3 / I3 = (R2 * (R1 + R4)) / (R2 + (R1 + R4))");
+			sys.equations.clear();
+			
+			sys.add("x1 = x2");
+			sys.add("x2 * x3 = x4");
+			sys.assertCanConcludeTo("x1 = x4 / x3");
+			sys.equations.clear();
+
+			sys.add("x1 = x4 / x3"); // -> x1 * x3 = x4
+			sys.add("x2 * x3 = x4");
+			sys.assertCanNotConcludeTo("x1 = x2"); // not because we also need x3 != 0
+			sys.equations.clear();
+
 		} catch (Equation.ParseError e) {
 			System.out.println("Error: " + e.english);
 			Utils.OperatorTree.debugOperatorTreeDump = true;
