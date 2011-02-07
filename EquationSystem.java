@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.ParseError;
 
 
 public class EquationSystem {
@@ -729,7 +728,7 @@ public class EquationSystem {
 			Equation.Sum resultingSum;
 			try {
 				resultingSum = new Equation.Sum(resultingEquation, Utils.OperatorTree.Zero());
-			} catch (ParseError e) {
+			} catch (Equation.ParseError e) {
 				e.printStackTrace(); // should not happen
 				continue;
 			}
