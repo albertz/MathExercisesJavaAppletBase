@@ -1290,6 +1290,23 @@ public class Utils {
     		return new OperatorTree(prefixOp, listFromArgs(new Subtree(new OperatorTree()), asEntity()));
     	}
     	
+    	OperatorTree replaceVar(String var, OperatorTree replacement) {
+    		OperatorTree ot = new OperatorTree(op);
+    		for(Entity e : entities) {
+    			if(e instanceof RawString) {
+    				if(((RawString)e).content.equals(var))
+    					ot.entities.add(replacement.asEntity());
+    				else
+    					ot.entities.add(e);
+    			}
+    			else {
+    				Subtree subtree = (Subtree) e;
+    				ot.entities.add(new Subtree(subtree.content.replaceVar(var, replacement), subtree.explicitEnclosing));
+    			}
+    		}
+    		return ot;
+    	}
+    	
     	boolean isNegative() {
     		if(entities.size() == 1) {
     			Entity e = entities.get(0);
