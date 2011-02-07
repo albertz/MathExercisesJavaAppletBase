@@ -1252,6 +1252,10 @@ public class Utils {
     		return entities.get(1);
     	}
     	
+    	OperatorTree prefixed(String prefixOp) {
+    		return new OperatorTree(prefixOp, listFromArgs(new Subtree(new OperatorTree()), asEntity()));
+    	}
+    	
     	boolean isNegative() {
     		if(entities.size() == 1) {
     			Entity e = entities.get(0);
@@ -1602,6 +1606,16 @@ public class Utils {
         			ot.entities.addAll(other.entities);
         		else
         			ot.entities.add(other.asEntity());
+        		return ot;
+        	}
+        	
+        	if(canBeInterpretedAsUnaryPrefixed()) {
+        		Entity e = unaryPrefixedContent();
+        		if(e instanceof Subtree)
+        			return ((Subtree) e).content.multiply(other).prefixed(op);
+        		ot.op = "∙";
+        		ot.entities.add(asEntity());
+        		ot.entities.add(other.asEntity());
         		return ot;
         	}
         	
