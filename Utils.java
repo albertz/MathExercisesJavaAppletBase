@@ -1437,11 +1437,13 @@ public class Utils {
 				}
 			}
 			else if(op.equals("∙") || op.equals("/")) {
+				boolean first = true;
 				for(Entity e : entities) {
 					if(e instanceof Subtree)
 						e = ((Subtree) e).content.removeObsolete().asEntity();
-					if(!e.asTree().isOne())
+					if(!e.asTree().isOne() || (op.equals("/") && first))
 						ot.entities.add(e);
+					first = false;
 				}
 			}
 			else {
