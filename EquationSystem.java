@@ -13,9 +13,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import applets.Termumformungen$in$der$Technik_01_URI.EquationSystem.Equation.Sum;
-import applets.Termumformungen$in$der$Technik_01_URI.Utils.OperatorTree;
-
 
 
 public class EquationSystem {
@@ -247,6 +244,24 @@ public class EquationSystem {
 					}
 					return null; // var not included or not pot=1
 				}
+				Prod divideIfReducing(String var) {
+					Prod prod = normalize();
+					for(Iterator<Pot> pit = prod.facs.iterator(); pit.hasNext(); ) {
+						Pot p = pit.next();
+						if(p.sym.equals(var)) {
+							if(p.pot > 1) {
+								p.pot--;
+								return prod;
+							}
+							if(p.pot == 1) {
+								pit.remove();
+								return prod;
+							}
+							break;
+						}
+					}
+					return null; // var not included or not pot=1
+				}
 				Prod mult(Prod other) {
 					Prod res = new Prod();
 					res.fac = fac * other.fac;
@@ -364,6 +379,20 @@ public class EquationSystem {
 				
 				return sum;
 			}
+			Sum reduce() {
+				// IMPORTANT: assumes that we can simply divide by all variables
+				if(entries.size() <= 1) return this;
+				List<Prod.Pot> firstProd = new LinkedList<Prod.Pot>(entries.get(0).facs);
+				Sum sum = this;
+				for(Prod.Pot p : firstProd) {
+					for(int i = 0; i < p.pot; ++i) {
+						Sum newSum = sum.divideIfReducing(p.sym);
+						if(newSum == null) break;
+						sum = newSum;
+					}
+				}
+				return sum;
+			}
 			Sum minusOne() {
 				Sum sum = new Sum();
 				for(Prod prod : entries) sum.entries.add(prod.minusOne());
@@ -388,12 +417,24 @@ public class EquationSystem {
 					sum.entries.addAll( mult(p).entries );
 				return sum;
 			}
+			Sum divide(Prod other) {
+				Sum sum = new Sum();
+				for(Prod p : entries)
+					sum.entries.add(p.divide(other));
+				return sum;
+			}
 			Sum divide(Sum other) {
 				if(other.isZero()) throw new AssertionError("division by 0");
 				if(other.entries.size() > 1) throw new AssertionError("not supported right now");
+				return divide(other.entries.get(0));
+			}
+			Sum divideIfReducing(String var) {
 				Sum sum = new Sum();
-				for(Prod p : entries)
-					sum.entries.add(p.divide(other.entries.get(0)));
+				for(Prod p : entries) {
+					p = p.divideIfReducing(var);
+					if(p == null) return null;
+					sum.entries.add(p);
+				}
 				return sum;
 			}
 			Sum commomBase(Sum other) {
@@ -584,6 +625,11 @@ public class EquationSystem {
 			public Equation.Sum eval(Equation obj) { return obj.normalizedSum(); }
 		});
 	}
+	Iterable<Equation.Sum> normalizedAndReducedSums() {
+		return Utils.map(normalizedSums(), new Utils.Function<Equation.Sum,Equation.Sum>() {
+			public Equation.Sum eval(Equation.Sum obj) { return obj.reduce(); }
+		});
+	}
 	
 	EquationSystem linearIndependent() {
 		EquationSystem eqSys = new EquationSystem(variableSymbols);
@@ -664,7 +710,7 @@ public class EquationSystem {
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		return _canConcludeTo(Utils.collFromIter(normalizedSums()), eq.normalizedSum(), new TreeSet<Equation.Sum>());
+		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>());
 	}
 	
 	private static Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
@@ -787,7 +833,13 @@ public class EquationSystem {
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}
 
-	static void debugSimplifications() {
+	static void assertEqual(Equation.Sum a, String b) {
+		if(!a.toString().equals(b))
+			throw new AssertionError("not equal: " + a + " and " + b);
+	}
+
+	static void debugSimplifications() throws Equation.ParseError {
+		assertEqual(new Equation("U1 / I1 = 1 / (1 / R2 + 1 / R3)").normalizedSum(), "-I1 ∙ R2 ∙ R3 + R2 ∙ U1 + R3 ∙ U1");		
 		assertEqual(Utils.OperatorTree.parse("-I1"), Utils.OperatorTree.parse("-I1"));
 		assertEqual(Utils.OperatorTree.parse("-I1").unaryPrefixedContent(), Utils.OperatorTree.parse("-I1").unaryPrefixedContent());
 		assertEqual(Utils.OperatorTree.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.One());
@@ -813,6 +865,7 @@ public class EquationSystem {
 			//debugEquationParsing("x1 * x5 = x2 * x5 + x3 * x5");
 			//debugEquationParsing("U3 = I1 * (R1 + R4)");
 			//debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
+			//debugEquationParsing("U1 / I1 = 1 / (1 / R2 + 1 / R3)");
 			debugSimplifications();
 			
 			sys.add("U1 / I1 = U1 / (U1 / R2 + U1 / R3)");
@@ -836,7 +889,7 @@ public class EquationSystem {
 
 			sys.add("x1 = x2 + x3");
 			sys.assertCanConcludeTo("x1 / x5 = (x2 + x3) / x5");			
-			//sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");
+			sys.assertCanConcludeTo("x1 * x5 = x2 * x5 + x3 * x5");
 			sys.equations.clear();
 
 			sys.add("x1 + x2 * x3 + x4 + x5 * x6 = 0");
