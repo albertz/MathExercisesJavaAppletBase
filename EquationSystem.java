@@ -808,7 +808,7 @@ public class EquationSystem {
 			debugEquationParsing(eqStr);
 			System.out.println("normed system:");
 			for(Equation e : equations)
-				System.out.println("  " + e.normalize());
+				System.out.println("  " + e.normalize() + " // " + e.normalizedSum());
 			throw new AssertionError("must follow: " + eq + " ; (as normed sum: " + eq.normalizedSum() + ")");
 		}
 	}
@@ -934,9 +934,13 @@ public class EquationSystem {
 			sys.assertAndAdd("U3/I3 = R2 - R2 * I1 / I3");
 			sys.assertAndAdd("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
 			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + I2 / I1)");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + (U3 / R2) / I1)");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * I1))");
+			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * U3 / (R1 + R4)))");
 			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + (R1 + R4) / R2)");
 			sys.assertAndAdd("U3 / I3 = R2 - R2 * R2 / (R2 + R1 + R4)");
 			sys.assertAndAdd("U3 / I3 = (R2*R2 + R2*R1 + R2*R4 - R2*R2) / (R2 + R1 + R4)");
+			sys.assertAndAdd("U3 / I3 = (R2*R1 + R2*R4) / (R2 + R1 + R4)");
 			sys.assertAndAdd("U3 / I3 = (R2 * (R1 + R4)) / (R2 + (R1 + R4))");
 			sys.equations.clear();
 			
@@ -952,9 +956,10 @@ public class EquationSystem {
 
 		} catch (Equation.ParseError e) {
 			System.out.println("Error: " + e.english);
-			Utils.OperatorTree.debugOperatorTreeDump = true;
-			System.out.println(" in " + e.ot);
-			Utils.OperatorTree.debugOperatorTreeDump = false;
+			System.out.println(" in " + e.ot.debugStringDouble());
+			try {
+				debugEquationParsing(e.ot.toString());
+			} catch (Equation.ParseError e1) {}
 			e.printStackTrace(System.out);
 			
 		} catch (Throwable e) {
