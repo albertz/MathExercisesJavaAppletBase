@@ -1700,7 +1700,7 @@ public class Utils {
         	if(op.equals("∙")) {
         		OperatorTree ot = One();
         		for(Entity e : entities)
-        			ot = ot.pushdownMultiplication(e.asTree());
+        			ot = ot.pushdownMultiplication(e.asTree().pushdownAllMultiplications());
         		return ot;
         	}
         	else {
