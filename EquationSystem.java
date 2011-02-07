@@ -705,24 +705,6 @@ public class EquationSystem {
 			}
 			//System.out.println(".. result: " + resultingEquation + " // " + resultingSum + " // " + resultingSum.normalize());
 			results.add(resultingSum.normalize());
-
-			/*if(extract1.varMult.entries.size() != 1) continue; // otherwise not supported yet
-			if(extract2.varMult.entries.size() != 1) continue; // otherwise not supported yet
-			Equation.Sum.Prod varMult1 = extract1.varMult.entries.get(0);
-			Equation.Sum.Prod varMult2 = extract2.varMult.entries.get(0);
-			Equation.Sum.Prod commonBase = varMult1.commonBase(varMult2);
-			varMult1 = varMult1.divide(commonBase);
-			varMult2 = varMult2.divide(commonBase);
-			if(!(!varMult1.varMap().containsKey(var))) throw new AssertionError("!varMult1.varMap().containsKey(var) failed"); // we tried to remove that
-			if(!(!varMult2.varMap().containsKey(var))) throw new AssertionError("!varMult2.varMap().containsKey(var) failed"); // we tried to remove that
-			if(varMult2.equalsToNum(-1)) {
-				varMult1 = varMult1.minusOne();
-				varMult2 = varMult2.minusOne();
-			}
-			if(!varMult2.isOne()) continue; // that's what I mean with 'one-side'
-			Equation.Sum newSum2 = otherEq.mult(varMult1.minusOne());
-			Equation.Sum resultingEquation = fixedEq.sum(newSum2).normalize();
-			results.add(resultingEquation);*/
 		}
 		
 		return results;
