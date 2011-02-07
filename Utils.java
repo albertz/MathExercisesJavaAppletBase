@@ -1583,6 +1583,11 @@ public class Utils {
 			if(isZero()) return this;
 			if(other.isOne()) return this;
 			if(other.isNumber(-1)) return this.minusOne();
+			{
+				Integer thisNum = this.asNumber(), otherNum = other.asNumber();
+				if(thisNum != null && otherNum != null && thisNum % otherNum != 0)
+					return Number(thisNum / otherNum);
+			}
 			if(op.equals("/")) {
 				if(entities.size() == 2)
 					return new OperatorTree("/", listFromArgs(entities.get(0), entities.get(1).asTree().multiply(other).asEntity()));
@@ -1660,6 +1665,15 @@ public class Utils {
 						denomProd.remove(e);
 						nomProd.remove(i);
 						--i;
+					}
+					else if(denomProd.contains(e.asTree().minusOne().asEntity())) {
+						denomProd.remove(e);
+						nomProd.remove(i);
+						--i;
+
+						nom = nom.minusOne();
+						nomProd = nom.entities;
+						if(!nom.op.equals("∙")) nomProd = listFromArgs(nom.asEntity());						
 					}
 				}
 				return nom.divide(denom);
