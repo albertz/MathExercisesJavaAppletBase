@@ -778,11 +778,11 @@ public class EquationSystem {
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 
 			Utils.OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
-			//System.out.print("fac: " + fac.debugStringDouble());
+			System.out.print("fac: " + fac.debugStringDouble());
 			fac = fac.mergeDivisions().simplifyDivision();
-			//System.out.println(" -> " + fac.debugStringDouble());
+			System.out.println(" -> " + fac.debugStringDouble());
 			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
-			//System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
+			System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
 			if(newSum.nextDivision() != null) continue;
 			
 			Utils.OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
@@ -962,7 +962,8 @@ public class EquationSystem {
 		assertEqual(Utils.OperatorTree.parse("-R2 ∙ U3 / R2").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-U3"));
 		assertEqual(Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions(), Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
 		assertEqual(Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
-		assertEqual(Utils.OperatorTree.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("U3"));
+		assertEqual(Utils.OperatorTree.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("U3"));		
+		assertEqual(Utils.OperatorTree.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), Utils.OperatorTree.parse("-R1 + -R4"));
 	}
 	
 	static void debug() {
