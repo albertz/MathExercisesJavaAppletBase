@@ -1659,23 +1659,41 @@ public class Utils {
 				if(!nom.op.equals("∙")) nomProd = listFromArgs(nom.asEntity());
 				List<Entity> denomProd = denom.entities;
 				if(!denom.op.equals("∙")) denomProd = listFromArgs(denom.asEntity());
+				int fac = 1;
 				for(int i = 0; i < nomProd.size(); ++i) {
 					Entity e = nomProd.get(i);
 					if(denomProd.contains(e)) {
 						denomProd.remove(e);
 						nomProd.remove(i);
 						--i;
+						continue;
 					}
-					else if(denomProd.contains(e.asTree().minusOne().asEntity())) {
+					if(denomProd.contains(e.asTree().minusOne().asEntity())) {
 						denomProd.remove(e);
 						nomProd.remove(i);
 						--i;
-
-						nom = nom.minusOne();
-						nomProd = nom.entities;
-						if(!nom.op.equals("∙")) nomProd = listFromArgs(nom.asEntity());						
+						fac *= -1;
+						continue;
+					}
+					if(e.asTree().isNegative()) {
+						nomProd.set(i, e.asTree().minusOne().asEntity());
+						fac *= -1;
 					}
 				}
+				for(int i = 0; i < denomProd.size(); ++i) {
+					Entity e = denomProd.get(i);
+					if(e.asTree().isNegative()) {
+						denomProd.set(i, e.asTree().minusOne().asEntity());
+						fac *= -1;
+					}
+				}
+				if(nomProd.size() == 0) nom = Number(fac);
+				else if(nomProd.size() == 1 && fac == 1) nom = nomProd.get(0).asTree();
+				else if(nomProd.size() == 1 && fac == -1) nom = nomProd.get(0).asTree().minusOne();
+				else nom = new OperatorTree("∙", nomProd).multiply(Number(fac));
+				if(denomProd.size() == 0) denom = One();
+				else if(denomProd.size() == 1) denom = denomProd.get(0).asTree();
+				else denom = new OperatorTree("∙", denomProd);
 				return nom.divide(denom);
 			}
 			return this;
@@ -1717,8 +1735,10 @@ public class Utils {
         OperatorTree multiply(OperatorTree other) {
         	if(isZero()) return this;
         	if(isOne()) return other;
+        	if(isNumber(-1)) return other.minusOne();
         	if(other.isOne()) return this;
-        	        	
+        	if(other.isNumber(-1)) return this.minusOne();
+        	
         	OperatorTree ot = new OperatorTree(op);
 
         	if(op.equals("∙")) {
