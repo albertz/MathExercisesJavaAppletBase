@@ -38,8 +38,8 @@ public class Content {
 	}
 	
 	void initNewCircuit() {
-		int w = new Random().nextInt(3) + 2;
-		int h = new Random().nextInt(3) + 2;
+		int w = 5;
+		int h = 3;
 		graph.setSize(w * 100 + 20, h * 100);
 		graph.clear();
 		circuit.registerOnPGraph(graph, circuit.randomSetup(w, h));
