@@ -1,4 +1,4 @@
-package applets.Termumformungen$in$der$Technik_01_URI;
+package applets.Termumformungen$in$der$Technik_02_Kondensatoren;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;

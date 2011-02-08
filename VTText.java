@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Termumformungen$in$der$Technik_01_URI;
+package applets.Termumformungen$in$der$Technik_02_Kondensatoren;
 
 import java.awt.Component;
 import javax.swing.JTextField;
