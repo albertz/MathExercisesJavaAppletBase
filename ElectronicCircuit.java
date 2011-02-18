@@ -158,6 +158,13 @@ public class ElectronicCircuit {
 		}
 	}
 	
+	static class ECapacitor extends Conn {
+		String varCap = "_C" + this.hashCode();
+		@Override void initVarNames(int index) { varCap = "C" + index; }
+		@Override String userString() { return varCap; }
+		@Override List<String> vars() { return Utils.listFromArgs(varCap); }
+	}
+	
 	static class Node {
 		Set<Conn> in = new HashSet<Conn>();
 		Set<Conn> out = new HashSet<Conn>();
