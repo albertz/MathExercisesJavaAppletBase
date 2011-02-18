@@ -25,11 +25,18 @@ public class Content {
 	boolean isCorrect(int i, String sel) { return false; }
 	
 	void initNewCircuit() {
-		int w = 5;
-		int h = 3;
-		graph.setSize(w * 100 + 20, h * 100);
+		graph.setSize(520, 300);
 		graph.clear();
-		circuit.registerOnPGraph(graph, circuit.randomSetup(w, h));
+		
+		circuit.constructOnPGraph_Start(graph, 100, 100);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 200, 100);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 300, 100);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 400, 100);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 400, 300);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.VoltageSource.class, 100, 300);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 100, 100);
+		circuit.constructOnPGraph_Final(graph);
+		
 		ElectronicCircuit.EquationQuestion question = circuit.randomEquationQuestion();
 		equationInput.setEquationSystem(circuit.getEquationSystem(), question.wantedExpr, question.allowedVars);
 		equationInput.clear();
