@@ -544,7 +544,7 @@ public class ElectronicCircuit {
 		for(PGraph.GraphPoint p : graph.dragablePoints) {
 			if(!(p instanceof NodePoint)) continue;
 			NodePoint np = (NodePoint) p;
-			if(np.point.distance(target) < 0.1)
+			if(np.point.distance(target) <= 1)
 				return np;
 		}
 		return null;
