@@ -533,6 +533,56 @@ public class ElectronicCircuit {
 		graph.showAxes = false;
 	}
 	
+	NodePoint findNodePointOnPGraph(PGraph graph, Point target) {
+		for(PGraph.GraphPoint p : graph.dragablePoints) {
+			if(!(p instanceof NodePoint)) continue;
+			NodePoint np = (NodePoint) p;
+			if(np.point.distance(target) < 0.1)
+				return np;
+		}
+		return null;
+	}
+	
+	NodePoint getNodePointOnPGraph(PGraph graph, Point target) {
+		NodePoint np = findNodePointOnPGraph(graph, target);
+		if(np != null) return np;
+
+		// create new node
+		Node n = new Node();
+		if(rootNode == null) rootNode = n;
+		np = new NodePoint(n, new PGraph.Point(target));
+		graph.dragablePoints.add(np);
+		return np;
+	}
+	
+	<T extends Conn> T constructOnPGraph(PGraph graph, Class<T> clazz, Point startPt, Point endPt) {
+		T c;
+		try {
+			c = clazz.newInstance();
+		} catch (Exception e) {
+			// should not happen
+			e.printStackTrace();
+			return null;
+		}
+		
+		NodePoint startNodePt = getNodePointOnPGraph(graph, startPt);
+		NodePoint endNodePt = getNodePointOnPGraph(graph, endPt);
+		startNodePt.node.addOut(c);
+		endNodePt.node.addIn(c);
+		return c;
+	}
+
+	Point constructOnPGraph_AutoPt = null;
+	void constructOnPGraph_Start(PGraph graph, int x, int y) {
+		constructOnPGraph_AutoPt = new Point(x, y);
+	}
+	
+	<T extends Conn> T constructOnPGraph_Next(PGraph graph, Class<T> clazz, int x, int y) {
+		Point oldPt = constructOnPGraph_AutoPt;
+		constructOnPGraph_AutoPt = new Point(x, y);
+		return constructOnPGraph(graph, clazz, oldPt, constructOnPGraph_AutoPt);
+	}
+
 	void clear() {
 		if(rootNode != null) rootNode.clear();
 		rootNode = null;
