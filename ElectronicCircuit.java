@@ -579,15 +579,15 @@ public class ElectronicCircuit {
 		return c;
 	}
 
-	Point constructOnPGraph_AutoPt = null;
+	Point constructOnPGraph_LastPt = null;
 	void constructOnPGraph_Start(PGraph graph, int x, int y) {
-		constructOnPGraph_AutoPt = new Point(x, y);
+		constructOnPGraph_LastPt = new Point(x, y);
 	}
 	
 	<T extends Conn> T constructOnPGraph_Next(PGraph graph, Class<T> clazz, int x, int y) {
-		Point oldPt = constructOnPGraph_AutoPt;
-		constructOnPGraph_AutoPt = new Point(x, y);
-		return constructOnPGraph(graph, clazz, oldPt, constructOnPGraph_AutoPt);
+		Point oldPt = constructOnPGraph_LastPt;
+		constructOnPGraph_LastPt = new Point(x, y);
+		return constructOnPGraph(graph, clazz, oldPt, constructOnPGraph_LastPt);
 	}
 
 	void clear() {
