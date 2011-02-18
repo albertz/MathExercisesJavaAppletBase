@@ -56,13 +56,16 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		double x, y;
 		Point() {}
 		Point(double _x, double _y) { x = _x; y = _y; }
+		Point(java.awt.Point p) { x = p.x; y = p.y; }
 		
 		Point sum(Point p) { return new Point(x + p.x, y + p.y); }
 		Point diff(Point p) { return new Point(x - p.x, y - p.y); }
+		Point diff(java.awt.Point p) { return new Point(x - p.x, y - p.y); }
 		Point mult(double f) { return new Point(x * f, y * f); }
 		Point rot90() { return new Point(y, -x); }
 		double abs() { return Math.sqrt(x*x + y*y); }
 		double distance(Point p) { return diff(p).abs(); }
+		double distance(java.awt.Point p) { return diff(p).abs(); }
 		
 		Point transform(PGraph g) { return new Point(g.transformX(x), g.transformY(y)); }
 		Point retransform(PGraph g) { return new Point(g.retransformX(Math.round(x)), g.retransformY(Math.round(y))); }
