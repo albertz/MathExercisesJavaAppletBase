@@ -28,19 +28,19 @@ public class Content {
 		graph.setSize(520, 300);
 		graph.clear();
 		
-		circuit.constructOnPGraph_Start(graph, 100, 100);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 200, 100);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 300, 100);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 400, 100);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 400, 300);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.VoltageSource.class, 100, 300);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 100, 100);
+		circuit.constructOnPGraph_Start(graph, 1, 1);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 2, 1);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 3, 1);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 4, 1);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 4, 3);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.VoltageSource.class, 1, 3);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 1, 1);
 		circuit.constructOnPGraph_Final(graph);
 		
-		ElectronicCircuit.EquationQuestion question = circuit.randomEquationQuestion();
-		equationInput.setEquationSystem(circuit.getEquationSystem(), question.wantedExpr, question.allowedVars);
+		//ElectronicCircuit.EquationQuestion question = circuit.randomEquationQuestion();
+		//equationInput.setEquationSystem(circuit.getEquationSystem(), question.wantedExpr, question.allowedVars);
 		equationInput.clear();
-		questionLabel.setText(equationInput.wantedResult.toString());
+		//questionLabel.setText(equationInput.wantedResult.toString());
 	}
 	
 	public void run() {
