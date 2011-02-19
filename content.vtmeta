@@ -1,8 +1,15 @@
-\object[graph]
-Wir wollen \m{C1,C2,C3} durch einen einzelnen Kondensator \m{C} ersetzen.
-Für die Ladung \m{Q} gilt:
-  \m{Q = C1∙U1 = C2∙U2 = C3∙U3 = C∙U}
-Außerdem gilt:
-  \m{U = U1 + U2 + U3}
-Leiten Sie daraus \m{C} in Abhängigkeit von \m{C1,C2,C3} her.
+In dieser Aufgabe sehen Sie eine schöne Eigenschaft der Lösungen der logistischen Gleichung.
+
+Es sei \m{f} eine Lösung der logistischen Gleichung \m{x' = -r∙x∙(1 - x/k)}.
+
+Zeigen Sie, dass die Funktion \m{1/f} die Differentialgleichung
+
+  \m{x' = −r∙x + r/k}
+
+löst.
+
+\hint{Sie können also annehmen, dass \m{x' = -r∙f∙(1 - f/k)} gilt.}
+\hint{Zeigen Sie nun, dass \m{(1/f)' = −r/f + r/k} gilt.}
+\hint{Benutzen Sie \m{(1/f)' = -f'/f^2}.}
+
 \object[equ]
