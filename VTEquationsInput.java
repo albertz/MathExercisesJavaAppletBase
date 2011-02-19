@@ -118,7 +118,6 @@ public class VTEquationsInput extends VisualThing {
 	
 	abstract class EquationsPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
-		SimpleLabel descriptionLabel = new SimpleLabel();
 		List<EquationPanel> equations = new LinkedList<EquationPanel>();
 		JButton addNewEquationButton = new JButton();
 		
@@ -134,7 +133,6 @@ public class VTEquationsInput extends VisualThing {
 					p.textField.requestFocus();
 				}
 			});
-			this.add(descriptionLabel);
 			this.add(addNewEquationButton);
 			for(int i = 0; i < startSize; ++i)
 				addEquation();
@@ -212,9 +210,7 @@ public class VTEquationsInput extends VisualThing {
 		
 		@Override public void doLayout() {
 			int height = 0;
-			descriptionLabel.fixedWidth = this.getWidth() - 2 - 10;
-			int y = descriptionLabel.getPreferredSize().height + 5;
-			descriptionLabel.setBounds(1 + 5, 2, descriptionLabel.fixedWidth, y);
+			int y = 5;
 			for(EquationPanel eqp : equations) {
 				eqp.setBounds(1, y, this.getWidth() - 2, eqp.getPreferredSize().height);
 				eqp.doLayout();
@@ -236,79 +232,54 @@ public class VTEquationsInput extends VisualThing {
 		}
 	}
 	
-	class MainPanel extends JPanel {
+	class MainPanel extends EquationsPanel {
 		private static final long serialVersionUID = 1L;
-		
-		class FollowingEquationsPanel extends EquationsPanel {
-			private static final long serialVersionUID = 1L;
-			{
-				super.descriptionLabel.text =
-					"Leiten Sie Schritt für Schritt eine neue Gleichung her, die " +
-					"sich logisch aus den bisherigen Gleichungen folgern lässt.\n" +
-					"Am Ende soll der gefragte Ausdruck hergeleitet sein.";
-			}
-			
-			EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
-				Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
-						new Utils.Predicate<EquationPanel>() {
-							public boolean apply(EquationPanel obj) {
-								return eqp == obj;
-							}
-						});
-				Iterable<EquationSystem.Equation> restEquations = Utils.map(
-						restEquPanels,
-						new Utils.Function<EquationPanel,EquationSystem.Equation>() {
-							public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
-						});
-				return new EquationSystem(
-						Utils.concatCollectionView(eqSys.equations, restEquations),
-						eqSys.variableSymbols
-						);
-			}
-			
-			@Override boolean recheck(EquationPanel eqp) {
-				if(!eqp.correctInput) return false;
-				//System.out.print("base eq ");
-				//eqp.baseEqSystem.dump();
-				EquationSystem eqSys = eqSysForNewEquation(eqp);
-				if(eqSys.canConcludeTo(eqp.eq)) {
-					if(wantedResult.isWanted(eqp.eq))
-						eqp.setInputRight("fertig :)");
-					else if(eqSys.contains(eqp.eq))
-						eqp.setInputWrong("doppelt");
-					else
-						eqp.setInputRight("");
-				}
-				else {
-					eqp.setInputWrong("kann nicht hergeleitet werden");
-					//System.out.println("eq: " + eqp.eq);
-					//System.out.println("sys: ");
-					//eqSys.dump();
-					return false;
-				}
-				return true;
-			}
-		}
 
-		FollowingEquationsPanel followingEquationsPanel = new FollowingEquationsPanel();
-		
-		@Override public void doLayout() {
-			followingEquationsPanel.setSize(getWidth(), 0);
-			followingEquationsPanel.doLayout();
-			followingEquationsPanel.setBounds(0, 0, width, followingEquationsPanel.getPreferredSize().height);
-			setPreferredSize(new Dimension(getWidth(), followingEquationsPanel.getY() + followingEquationsPanel.getHeight()));			
-		}
-		
-		MainPanel() {
-			super();
-			this.setLayout(null);
-			this.add(followingEquationsPanel);
-			doLayout();
-		}
-
+		public MainPanel() { clear(); }		
 		void clear() {
-			followingEquationsPanel.clear();
-			followingEquationsPanel.addEquation();
+			super.clear();
+			addEquation();
+		}
+		
+		EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
+			Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
+					new Utils.Predicate<EquationPanel>() {
+						public boolean apply(EquationPanel obj) {
+							return eqp == obj;
+						}
+					});
+			Iterable<EquationSystem.Equation> restEquations = Utils.map(
+					restEquPanels,
+					new Utils.Function<EquationPanel,EquationSystem.Equation>() {
+						public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
+					});
+			return new EquationSystem(
+					Utils.concatCollectionView(eqSys.equations, restEquations),
+					eqSys.variableSymbols
+					);
+		}
+		
+		@Override boolean recheck(EquationPanel eqp) {
+			if(!eqp.correctInput) return false;
+			//System.out.print("base eq ");
+			//eqp.baseEqSystem.dump();
+			EquationSystem eqSys = eqSysForNewEquation(eqp);
+			if(eqSys.canConcludeTo(eqp.eq)) {
+				if(wantedResult.isWanted(eqp.eq))
+					eqp.setInputRight("fertig :)");
+				else if(eqSys.contains(eqp.eq))
+					eqp.setInputWrong("doppelt");
+				else
+					eqp.setInputRight("");
+			}
+			else {
+				eqp.setInputWrong("kann nicht hergeleitet werden");
+				//System.out.println("eq: " + eqp.eq);
+				//System.out.println("sys: ");
+				//eqSys.dump();
+				return false;
+			}
+			return true;
 		}
 	}
 	
