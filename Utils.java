@@ -227,6 +227,14 @@ public class Utils {
 		list.add(arg2);
 		return list;
 	}
+
+	static <E> List<E> listFromArgs(E arg1, E arg2, E arg3) {
+		List<E> list = new LinkedList<E>();
+		list.add(arg1);
+		list.add(arg2);
+		list.add(arg3);
+		return list;
+	}
 	
 	static <E> Collection<E> concatCollectionView(Iterable<E> c1, Iterable<E> c2) {		
 		return concatCollectionView(listFromArgs(c1, c2));
