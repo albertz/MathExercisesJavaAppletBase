@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -500,44 +501,30 @@ public class ElectronicCircuit {
 		registerOnPGraph(graph, visuallyOrderPoints());
 	}
 	
+	static class ConnObj extends PGraph.GraphObject {
+		Conn conn;
+		NodePoint start, end;
+		ConnObj(Conn c, NodePoint s, NodePoint e) { conn = c; start = s; end = e; }
+		void draw(PGraph p, java.awt.Graphics g) {
+			g.setColor(Color.blue);
+			conn.draw(g, start.point.transform(p), end.point.transform(p));
+		}
+	}
+
 	void registerOnPGraph(PGraph graph, Map<Point,Node> visuallyOrderedPoints) {
 		Map<Node, NodePoint> nodes = new HashMap<Node, NodePoint>();
 		for(Point p : visuallyOrderedPoints.keySet()) {
 			Node n = visuallyOrderedPoints.get(p);
 			nodes.put(n, new NodePoint(n, new PGraph.Point(p.x, p.y)));
 		}
-		
-		class ConnObj extends PGraph.GraphObject {
-			Conn conn;
-			NodePoint start, end;
-			ConnObj(Conn c, NodePoint s, NodePoint e) { conn = c; start = s; end = e; }
-			void draw(PGraph p, java.awt.Graphics g) {
-				g.setColor(Color.blue);
-				conn.draw(g, start.point.transform(p), end.point.transform(p));
-			}
-		}
-		
+				
 		List<ConnObj> conns = new LinkedList<ConnObj>();		
 		for(Conn c : allConns()) conns.add(new ConnObj(c, nodes.get(c.start), nodes.get(c.end)));
 		
 		graph.dragablePoints.addAll(nodes.values());
 		graph.graphObjects.addAll(conns);
 		
-		double borderSize = 0.1;
-		graph.x_l = Collections.min(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
-			public Double eval(NodePoint obj) { return obj.point.x; }
-		})) - borderSize;
-		graph.x_r = Collections.max(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
-			public Double eval(NodePoint obj) { return obj.point.x; }
-		})) + borderSize + 0.2;
-		graph.y_o = Collections.min(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
-			public Double eval(NodePoint obj) { return obj.point.y; }
-		})) - borderSize;
-		graph.y_u = Collections.max(Utils.map(nodes.values(), new Utils.Function<NodePoint,Double>() {
-			public Double eval(NodePoint obj) { return obj.point.y; }
-		})) + borderSize;
-		
-		graph.showAxes = false;
+		constructOnPGraph_Final(graph);
 	}
 	
 	NodePoint findNodePointOnPGraph(PGraph graph, Point target) {
@@ -576,6 +563,7 @@ public class ElectronicCircuit {
 		NodePoint endNodePt = getNodePointOnPGraph(graph, endPt);
 		startNodePt.node.addOut(c);
 		endNodePt.node.addIn(c);
+		graph.graphObjects.add(new ConnObj(c, startNodePt, endNodePt));
 		return c;
 	}
 
@@ -583,13 +571,31 @@ public class ElectronicCircuit {
 	void constructOnPGraph_Start(PGraph graph, int x, int y) {
 		constructOnPGraph_LastPt = new Point(x, y);
 	}
-	
 	<T extends Conn> T constructOnPGraph_Next(PGraph graph, Class<T> clazz, int x, int y) {
 		Point oldPt = constructOnPGraph_LastPt;
 		constructOnPGraph_LastPt = new Point(x, y);
 		return constructOnPGraph(graph, clazz, oldPt, constructOnPGraph_LastPt);
 	}
-
+	void constructOnPGraph_Final(PGraph graph) {
+		Collection<NodePoint> nodes = Utils.collFromIter(Utils.filterType(graph.dragablePoints, NodePoint.class));
+		
+		double borderSize = 0.1;
+		graph.x_l = Collections.min(Utils.map(nodes, new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.x; }
+		})) - borderSize;
+		graph.x_r = Collections.max(Utils.map(nodes, new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.x; }
+		})) + borderSize + 0.2;
+		graph.y_o = Collections.min(Utils.map(nodes, new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.y; }
+		})) - borderSize;
+		graph.y_u = Collections.max(Utils.map(nodes, new Utils.Function<NodePoint,Double>() {
+			public Double eval(NodePoint obj) { return obj.point.y; }
+		})) + borderSize;
+		
+		graph.showAxes = false;
+	}
+	
 	void clear() {
 		if(rootNode != null) rootNode.clear();
 		rootNode = null;
