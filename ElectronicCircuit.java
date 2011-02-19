@@ -3,7 +3,6 @@ package applets.Termumformungen$in$der$Technik_02_Kondensatoren;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
-import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
