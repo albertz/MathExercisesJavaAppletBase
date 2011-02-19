@@ -281,17 +281,10 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 					"Am Ende soll der gefragte Ausdruck hergeleitet sein.";
 			}
 			
-			EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
+			EquationSystem eqSys() {
 				Iterable<EquationPanel> basicEquPanels = basicEquationsPanel.equations;
-				Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
-						new Utils.Predicate<EquationPanel>() {
-							public boolean apply(EquationPanel obj) {
-								return eqp == obj;
-							}
-						});
-				Iterable<EquationPanel> allEquPanels = Utils.concatCollectionView(basicEquPanels, restEquPanels);
 				Iterable<EquationSystem.Equation> allEquations = Utils.map(
-						allEquPanels,
+						basicEquPanels,
 						new Utils.Function<EquationPanel,EquationSystem.Equation>() {
 							public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
 						});
@@ -305,7 +298,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 				if(!eqp.correctInput) return false;
 				//System.out.print("base eq ");
 				//eqp.baseEqSystem.dump();
-				EquationSystem eqSys = eqSysForNewEquation(eqp);
+				EquationSystem eqSys = eqSys();
 				if(eqSys.canConcludeTo(eqp.eq)) {
 					if(wantedResult.isWanted(eqp.eq))
 						eqp.setInputRight("fertig :)");
