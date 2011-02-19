@@ -676,18 +676,20 @@ public class EquationSystem {
 		return false;		
 	}
 	
+	private static int debugVerbose = 0;
+	
 	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList) {
-		//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
+		if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
 
 		Set<Equation.Sum> equations = new TreeSet<Equation.Sum>(baseEquations);
 		if(equations.contains(eq)) {
-			//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
+			if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
 			return true;
 		}
 		for(Equation.Sum myEq : baseEquations) {
 			Collection<Equation.Sum> allConclusions = calcAllOneSideConclusions(eq, myEq);
 			if(allConclusions.isEmpty()) {
-				//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
+				if(debugVerbose >= 3) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
 				continue;
 			}
 			
@@ -697,19 +699,19 @@ public class EquationSystem {
 				usedEquationList.add(resultingEq);
 				
 				if(resultingEq.isTautology()) {
-					//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEq);
+					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEq);
 					return true;
 				}
 				
-				//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEq);
+				if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEq);
 				if(_canConcludeTo(equations, resultingEq, usedEquationList)) {
-					//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
+					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
 					return true;
 				}
 			}
 			equations.add(myEq);
 		}
-		//System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
+		if(debugVerbose >= 2) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
 		return false;
 	}
 	
@@ -748,11 +750,11 @@ public class EquationSystem {
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 
 			Utils.OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
-			//System.out.print("fac: " + fac.debugStringDouble());
+			if(debugVerbose >= 2) System.out.print("fac: " + fac.debugStringDouble());
 			fac = fac.mergeDivisions().simplifyDivision();
-			//System.out.println(" -> " + fac.debugStringDouble());
+			if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
 			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
-			//System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
+			if(debugVerbose >= 2) System.out.println("in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2 + " -> " + fac + " -> " + newSum);
 			if(newSum.nextDivision() != null) continue;
 			
 			Utils.OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
@@ -763,7 +765,7 @@ public class EquationSystem {
 				e.printStackTrace(); // should not happen
 				continue;
 			}
-			//System.out.println(".. result: " + resultingEquation + " // " + resultingSum + " // " + resultingSum.normalize());
+			if(debugVerbose >= 4) System.out.println(".. result: " + resultingEquation + " // " + resultingSum + " // " + resultingSum.normalize());
 			results.add(resultingSum.normalize());
 		}
 		
@@ -781,11 +783,16 @@ public class EquationSystem {
 		Equation eq = new Equation(eqStr, variableSymbols);
 		if(!canConcludeTo(eq)) {
 			System.out.println("Error: assertCanConcludeTo failed.");
-			System.out.println("equation:");
-			debugEquationParsing(eqStr);
 			System.out.println("system:");
 			for(Equation e : equations)
 				System.out.println("  " + e  + " // " + e.normalize() + " // " + e.normalizedSum());
+
+			System.out.println("equation:");
+			debugEquationParsing(eqStr);
+			debugVerbose = 2;
+			canConcludeTo(eq);			
+			debugVerbose = 0;
+
 			throw new AssertionError("must follow: " + eq + " ; (as normed sum: " + eq.normalizedSum() + ")");
 		}
 	}
@@ -794,11 +801,16 @@ public class EquationSystem {
 		Equation eq = new Equation(eqStr, variableSymbols);
 		if(canConcludeTo(eq)) {
 			System.out.println("Error: assertCanNotConcludeTo failed.");
-			System.out.println("equation:");
-			debugEquationParsing(eqStr);
 			System.out.println("normed system:");
 			for(Equation e : equations)
 				System.out.println("  " + e.normalize());
+			
+			System.out.println("equation:");
+			debugEquationParsing(eqStr);
+			debugVerbose = 2;
+			canConcludeTo(eq);			
+			debugVerbose = 0;
+
 			throw new AssertionError("must not follow: " + eq);
 		}
 	}
@@ -874,6 +886,8 @@ public class EquationSystem {
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("U" + i);		
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("R" + i);		
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("I" + i);		
+		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("C" + i);
+		for(Character c : Utils.iterableString("QUC")) sys.registerVariableSymbol("" + c);
 		try {
 			//debugEquationParsing("x3 - x4 - x5 = 0");
 			//debugEquationParsing("x1 * x5 = x2 * x5 + x3 * x5");
@@ -882,6 +896,19 @@ public class EquationSystem {
 			//debugEquationParsing("U1 / I1 = 1 / (1 / R2 + 1 / R3)");
 			debugSimplifications();
 			
+			sys.add("Q = C1 * U1");
+			sys.add("Q = C2 * U2");
+			sys.add("Q = C3 * U3");
+			sys.add("Q = C * U");
+			sys.add("U = U1 + U2 + U3");
+			sys.assertAndAdd("U1 = Q / C1");
+			sys.assertAndAdd("U2 = Q / C2");
+			sys.assertAndAdd("U3 = Q / C3");
+			sys.assertAndAdd("U = Q / C");
+			sys.assertAndAdd("Q / C = Q / C1 + Q / C2 + Q / C3");
+			sys.assertCanConcludeTo("1 / C = 1 / C1 + 1 / C2 + 1 / C3");
+			sys.equations.clear();
+
 			sys.add("U1 / I1 = U1 / (U1 / R2 + U1 / R3)");
 			sys.assertCanConcludeTo("U1 / I1 = 1 / (1 / R2 + 1 / R3)");
 			sys.equations.clear();
