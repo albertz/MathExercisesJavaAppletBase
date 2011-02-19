@@ -20,7 +20,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class VTTwoStepEquationInput extends VisualThing {
+public class VTEquationsInput extends VisualThing {
 	
 	abstract class EquationPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
@@ -372,7 +372,7 @@ public class VTTwoStepEquationInput extends VisualThing {
 		//System.out.print("linear independent "); this.eqSys_linearIndependent.dump();
 	}
 	
-	VTTwoStepEquationInput(String name, int stepX, int stepY, int width) {
+	VTEquationsInput(String name, int stepX, int stepY, int width) {
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;

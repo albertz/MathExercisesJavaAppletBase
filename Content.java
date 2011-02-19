@@ -8,7 +8,7 @@ public class Content {
 	Applet applet;
 	PGraph graph;
 	ElectronicCircuit circuit;
-	VTTwoStepEquationInput equationInput;
+	VTEquationsInput equationInput;
 	VTLabel questionLabel;
 	
 	public Content(Applet applet) {
@@ -55,7 +55,7 @@ public class Content {
 		
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
-		equationInput = new VTTwoStepEquationInput("equ", 10, 10, applet.getWidth() - 60);
+		equationInput = new VTEquationsInput("equ", 10, 10, applet.getWidth() - 60);
 		questionLabel = new VTLabel("question", "", 10, 10, applet.getWidth() - 60);
 		initNewCircuit();
 				
