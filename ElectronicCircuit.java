@@ -3,6 +3,7 @@ package applets.Termumformungen$in$der$Technik_02_Kondensatoren;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Point;
+import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -76,9 +77,13 @@ public class ElectronicCircuit {
 			throw new AssertionError("node must be either start or end");
 		}
 		
-		void initVarNames(int index) {}
+		void initVarNames(String postfix) {}
 		String userString() { return ""; } // usually varname(s)
-		List<String> vars() { return Utils.listFromArgs(); }		
+		List<String> vars() { return Utils.listFromArgs(); }
+		boolean haveVarsInitialised() {
+			for(String v : vars()) if(v.startsWith("_") || v.isEmpty()) return false;
+			return true;
+		}
 	}
 			
 	static class EResistance extends Conn {
@@ -87,9 +92,9 @@ public class ElectronicCircuit {
 		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
 		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
 		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Product(Utils.listFromArgs(Utils.OperatorTree.Variable(varRes).asEntity(), Utils.OperatorTree.Variable(varFlow).asEntity())); }
-		@Override void initVarNames(int index) {
-			varRes = "R" + index;
-			varFlow = "I" + index;
+		@Override void initVarNames(String postfix) {
+			varRes = "R" + postfix;
+			varFlow = "I" + postfix;
 		}
 		@Override String userString() { return varRes + ", " + varFlow; }
 		@Override List<String> vars() { return Utils.listFromArgs(varRes, varFlow); }
@@ -131,9 +136,9 @@ public class ElectronicCircuit {
 	static class VoltageSource extends Conn {
 		String varVolt = "_U" + this.hashCode();
 		String varFlow = "_I" + this.hashCode();
-		@Override void initVarNames(int index) {
-			varVolt = "U" + index;
-			varFlow = "I" + index;
+		@Override void initVarNames(String postfix) {
+			varVolt = "U" + postfix;
+			varFlow = "I" + postfix;
 		}
 		@Override String userString() { return varVolt + ", " + varFlow; }
 		@Override List<String> vars() { return Utils.listFromArgs(varVolt, varFlow); }
@@ -162,9 +167,35 @@ public class ElectronicCircuit {
 	
 	static class ECapacitor extends Conn {
 		String varCap = "_C" + this.hashCode();
-		@Override void initVarNames(int index) { varCap = "C" + index; }
+		@Override void initVarNames(String postfix) { varCap = "C" + postfix; }
 		@Override String userString() { return varCap; }
 		@Override List<String> vars() { return Utils.listFromArgs(varCap); }
+		private void drawThickLine(Graphics g, PGraph.Point p1, PGraph.Point p2) {
+			final double thickness = 2.0;
+			PGraph.Point diff = p1.diff(p2).rot90().normal().mult(thickness * 0.5);
+			g.fillPolygon(
+					new int[] {(int) (p1.x - diff.x), (int) (p1.x + diff.x), (int) (p2.x + diff.x), (int) (p2.x - diff.x)},
+					new int[] {(int) (p1.y - diff.y), (int) (p1.y + diff.y), (int) (p2.y + diff.y), (int) (p2.y - diff.y)},
+					4);
+		}
+		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
+			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
+			PGraph.Point diff2 = diff.mult(1.0/24.0);
+			PGraph.Point p1 = start.sum(diff).sum(diff2);
+			PGraph.Point p2 = start.sum(diff).diff(diff2);
+			g.drawLine((int)end.x, (int)end.y, (int)p1.x, (int)p1.y);
+			g.drawLine((int)p2.x, (int)p2.y, (int)start.x, (int)start.y);
+			
+			PGraph.Point diff3 = diff.mult(1.0/12.0).rot90();
+			PGraph.Point p3 = p1.diff(diff3.mult(2.5));
+			PGraph.Point p4 = p1.sum(diff3.mult(2.5));
+			PGraph.Point p5 = p2.diff(diff3.mult(2.5));
+			PGraph.Point p6 = p2.sum(diff3.mult(2.5));
+			drawThickLine(g, p3, p4);
+			drawThickLine(g, p5, p6);
+
+			drawUserString(g, start, end);
+		}
 	}
 	
 	static class Node {
@@ -726,8 +757,8 @@ public class ElectronicCircuit {
 	void initVarNames() {
 		int index = 1;
 		for(Conn c : allConns()) {
-			if(!c.vars().isEmpty()) {
-				c.initVarNames(index);
+			if(!c.vars().isEmpty() && !c.haveVarsInitialised()) {
+				c.initVarNames("" + index);
 				index++;
 			}
 		}
