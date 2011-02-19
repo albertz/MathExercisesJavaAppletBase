@@ -379,6 +379,8 @@ public class EquationSystem {
 				}
 				Collections.sort(sum.entries);
 				
+				if(!sum.entries.isEmpty() && sum.entries.get(0).fac < 0)
+					return sum.minusOne();
 				return sum;
 			}
 			Sum reduce() {
@@ -866,7 +868,7 @@ public class EquationSystem {
 	}
 
 	static void debugSimplifications() throws Equation.ParseError {
-		assertEqual(new Equation("U1 / I1 = 1 / (1 / R2 + 1 / R3)").normalizedSum(), "-I1 ∙ R2 ∙ R3 + R2 ∙ U1 + R3 ∙ U1");		
+		assertEqual(new Equation("U1 / I1 = 1 / (1 / R2 + 1 / R3)").normalizedSum(), "I1 ∙ R2 ∙ R3 + -R2 ∙ U1 + -R3 ∙ U1");
 		assertEqual(Utils.OperatorTree.parse("-I1"), Utils.OperatorTree.parse("-I1"));
 		assertEqual(Utils.OperatorTree.parse("-I1").unaryPrefixedContent(), Utils.OperatorTree.parse("-I1").unaryPrefixedContent());
 		assertEqual(Utils.OperatorTree.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.One());
