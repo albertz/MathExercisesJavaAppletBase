@@ -317,7 +317,7 @@ public class VTEquationsInput extends VisualThing {
 		}
 		
 		boolean hasOnlyAllowedVars(Utils.OperatorTree expr) {
-			for(String varName : expr.leafsAsString()) {
+			for(String varName : expr.vars()) {
 				if(!allowedVars.contains(varName)) {
 					//System.out.println("not allowed var: " + varName + " in " + expr);
 					return false;					
@@ -327,6 +327,10 @@ public class VTEquationsInput extends VisualThing {
 		}
 		
 		boolean isWanted(EquationSystem.Equation eq) {
+			/*System.out.println("wanted: " + wantedExpr);
+			System.out.println("allowed vars: " + Utils.concat(allowedVars, ","));
+			System.out.println("isWanted left " + eq.left + ": " + isWantedExpr(eq.left));
+			System.out.println("hasonlyallowed right " + eq.right + ": " + hasOnlyAllowedVars(eq.right));*/
 			if(isWantedExpr(eq.left) && hasOnlyAllowedVars(eq.right)) return true;
 			if(isWantedExpr(eq.right) && hasOnlyAllowedVars(eq.left)) return true;
 			return false;

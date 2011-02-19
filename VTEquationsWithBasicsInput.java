@@ -378,7 +378,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 		}
 		
 		boolean hasOnlyAllowedVars(Utils.OperatorTree expr) {
-			for(String varName : expr.leafsAsString()) {
+			for(String varName : expr.vars()) {
 				if(!allowedVars.contains(varName)) {
 					//System.out.println("not allowed var: " + varName + " in " + expr);
 					return false;					
