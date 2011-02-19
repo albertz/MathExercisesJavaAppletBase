@@ -684,7 +684,6 @@ public class EquationSystem {
 	private final static int DEPTH_LIMIT = 4;
 	
 	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList, int depth) {
-		if(depth > DEPTH_LIMIT) return false;		
 		if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
 
 		Set<Equation.Sum> equations = new TreeSet<Equation.Sum>(baseEquations);
@@ -692,6 +691,9 @@ public class EquationSystem {
 			if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
 			return true;
 		}
+
+		if(depth > DEPTH_LIMIT) return false;		
+
 		for(Equation.Sum myEq : baseEquations) {
 			Collection<Equation.Sum> allConclusions = calcAllOneSideConclusions(eq, myEq);
 			if(allConclusions.isEmpty()) {
@@ -914,6 +916,9 @@ public class EquationSystem {
 			sys.assertAndAdd("U2 = Q / C2");
 			sys.assertAndAdd("U3 = Q / C3");
 			sys.assertAndAdd("U = Q / C");
+			sys.assertAndAdd("Q / C = U1 + U2 + U3");
+			sys.assertAndAdd("Q / C = Q / C1 + U2 + U3");
+			sys.assertAndAdd("Q / C = Q / C1 + Q / C2 + U3");
 			sys.assertAndAdd("Q / C = Q / C1 + Q / C2 + Q / C3");
 			sys.assertCanConcludeTo("1 / C = 1 / C1 + 1 / C2 + 1 / C3");
 			sys.equations.clear();
@@ -925,6 +930,7 @@ public class EquationSystem {
 			sys.add("x3 - x4 - x5 = 0");
 			sys.add("-x2 + x5 = 0");
 			sys.add("-x1 + x2 = 0");
+			sys.assertAndAdd("-x1 + x2 + x3 - x4 - x5 = 0"); // this step is needed if we have DEPTH_LIMIT=1
 			sys.assertCanConcludeTo("x1 - x3 + x4 = 0");
 			sys.assertCanNotConcludeTo("x1 = 0");
 			sys.equations.clear();
@@ -999,7 +1005,15 @@ public class EquationSystem {
 			sys.assertAndAdd("U3 / I3 = (R2*R1 + R2*R4) / (R2 + R1 + R4)");
 			sys.assertAndAdd("U3 / I3 = (R2 * (R1 + R4)) / (R2 + (R1 + R4))");
 			sys.equations.clear();
-			
+
+			// same thing as above. just a test if we can conclude it directly. 
+			sys.add("U3 = R2 * I2");
+			sys.add("U3 = R4 * I4 + R1 * I1");
+			sys.add("I4 = I1");
+			sys.add("I1 + I2 = I3");
+			sys.assertCanConcludeTo("U3 / I3 = (R2 * (R1 + R4)) / (R2 + (R1 + R4))");
+			sys.equations.clear();
+
 			sys.add("x1 = x2");
 			sys.add("x2 * x3 = x4");
 			sys.assertCanConcludeTo("x1 = x4 / x3");
