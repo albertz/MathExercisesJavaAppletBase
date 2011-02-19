@@ -904,10 +904,14 @@ public class Utils {
     		for(Entity e : entities) {
     			Integer y = e.asTree().asNumber();
     			if(y == null) return null;
-    			if(op.equals("+")) x += y;
-    			else if(op.equals("-")) x -= y;
-    			else if(op.equals("∙")) x *= y;
-    			else if(op.equals("/")) x /= y;
+    			try {
+	    			if(op.equals("+")) x += y;
+	    			else if(op.equals("-")) x -= y;
+	    			else if(op.equals("∙")) x *= y;
+	    			else if(op.equals("/")) x /= y;
+    			} catch(ArithmeticException exc) { // e.g. div by zero 
+    				return null;
+    			}
     		}
     		return x;
     	}
