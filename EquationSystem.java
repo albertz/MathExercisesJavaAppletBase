@@ -13,6 +13,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import applets.Termumformungen$in$der$Technik_02_Kondensatoren.EquationSystem.Equation.ParseError;
+
 
 
 public class EquationSystem {
@@ -644,7 +646,19 @@ public class EquationSystem {
 		equations.add(eq);
 		return eq;
 	}
-	
+
+	Equation addAuto(String equStr) {
+		try {
+			Equation eq = new Equation(equStr);
+			variableSymbols.addAll(Utils.collFromIter(eq.vars()));
+			equations.add(eq);
+			return eq;
+		} catch (ParseError e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	boolean contains(Equation eq) {
 		for(Equation e : equations) {
 			if(eq.equals(e))

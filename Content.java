@@ -8,7 +8,7 @@ public class Content {
 	Applet applet;
 	PGraph graph;
 	ElectronicCircuit circuit;
-	VTEquationInput equationInput;
+	VTTwoStepEquationInput equationInput;
 	VTLabel questionLabel;
 	
 	public Content(Applet applet) {
@@ -28,6 +28,7 @@ public class Content {
 		graph.setSize(520, 200);
 		graph.clear();
 		
+		circuit.clear();
 		circuit.constructOnPGraph_Start(graph, 1, 1);
 		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 2, 1).initVarNames("1");
 		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 3, 1).initVarNames("2");
@@ -39,10 +40,13 @@ public class Content {
 		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.EResistance.class, 1, 1).initVarNames("");
 		circuit.constructOnPGraph_Final(graph);
 		
-		//ElectronicCircuit.EquationQuestion question = circuit.randomEquationQuestion();
-		//equationInput.setEquationSystem(circuit.getEquationSystem(), question.wantedExpr, question.allowedVars);
+		EquationSystem eqSys = new EquationSystem();
+		eqSys.addAuto("Q = C1 * U1");
+		eqSys.addAuto("Q = C2 * U2");
+		eqSys.addAuto("Q = C3 * U3");
+		eqSys.addAuto("Q = C * U");
+		equationInput.setEquationSystem(eqSys, "C", Utils.listFromArgs("C1", "C2", "C3"));
 		equationInput.clear();
-		//questionLabel.setText(equationInput.wantedResult.toString());
 	}
 	
 	public void run() {
@@ -51,7 +55,7 @@ public class Content {
 		
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
-		equationInput = new VTEquationInput("equ", 10, 10, applet.getWidth() - 60);
+		equationInput = new VTTwoStepEquationInput("equ", 10, 10, applet.getWidth() - 60);
 		questionLabel = new VTLabel("question", "", 10, 10, applet.getWidth() - 60);
 		initNewCircuit();
 				

@@ -1,3 +1,6 @@
 \object[graph]
+Wir wollen \m{C1,C2,C3} durch einen einzelnen Kondensator \m{C} ersetzen.
+Für die Ladung \m{Q} gilt:
+\m{Q = C1∙U1 = C2∙U2 = C3∙U3 = C∙U}
 \object[question]
 \object[equ]
