@@ -78,7 +78,7 @@ public class ElectronicCircuit {
 		}
 		
 		void initVarNames(String postfix) {}
-		String userString() { return ""; } // usually varname(s)
+		String userString() { return Utils.concat(vars(), ", "); }
 		List<String> vars() { return Utils.listFromArgs(); }
 		boolean haveVarsInitialised() {
 			for(String v : vars()) if(v.startsWith("_") || v.isEmpty()) return false;
@@ -96,7 +96,6 @@ public class ElectronicCircuit {
 			varRes = "R" + postfix;
 			varFlow = "I" + postfix;
 		}
-		@Override String userString() { return varRes + ", " + varFlow; }
 		@Override List<String> vars() { return Utils.listFromArgs(varRes, varFlow); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			// resistance in/out connection
@@ -140,7 +139,6 @@ public class ElectronicCircuit {
 			varVolt = "U" + postfix;
 			varFlow = "I" + postfix;
 		}
-		@Override String userString() { return varVolt + ", " + varFlow; }
 		@Override List<String> vars() { return Utils.listFromArgs(varVolt, varFlow); }
 		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
 		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
@@ -167,9 +165,9 @@ public class ElectronicCircuit {
 	
 	static class ECapacitor extends Conn {
 		String varCap = "_C" + this.hashCode();
-		@Override void initVarNames(String postfix) { varCap = "C" + postfix; }
-		@Override String userString() { return varCap; }
-		@Override List<String> vars() { return Utils.listFromArgs(varCap); }
+		String varVolt = "_U" + this.hashCode();
+		@Override void initVarNames(String postfix) { varCap = "C" + postfix; varVolt = "U" + postfix; }
+		@Override List<String> vars() { return Utils.listFromArgs(varCap, varVolt); }
 		private void drawThickLine(Graphics g, PGraph.Point p1, PGraph.Point p2) {
 			final double thickness = 2.0;
 			PGraph.Point diff = p1.diff(p2).rot90().normal().mult(thickness * 0.5);
