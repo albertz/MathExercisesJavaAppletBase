@@ -242,6 +242,7 @@ public class VTEquationsInput extends VisualThing {
 		}
 		
 		EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
+			/*			
 			Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
 					new Utils.Predicate<EquationPanel>() {
 						public boolean apply(EquationPanel obj) {
@@ -252,9 +253,10 @@ public class VTEquationsInput extends VisualThing {
 					restEquPanels,
 					new Utils.Function<EquationPanel,EquationSystem.Equation>() {
 						public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
-					});
+					}); */
 			return new EquationSystem(
-					Utils.concatCollectionView(eqSys.equations, restEquations),
+					eqSys.equations,
+					//Utils.concatCollectionView(eqSys.equations, restEquations),
 					eqSys.variableSymbols
 					);
 		}
