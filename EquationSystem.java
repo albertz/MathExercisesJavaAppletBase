@@ -13,9 +13,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import applets.Termumformungen$in$der$Technik_02_Kondensatoren.EquationSystem.Equation.ParseError;
-
-
 
 public class EquationSystem {
 
@@ -655,7 +652,7 @@ public class EquationSystem {
 			variableSymbols.addAll(Utils.collFromIter(eq.vars()));
 			equations.add(eq);
 			return eq;
-		} catch (ParseError e) {
+		} catch (Equation.ParseError e) {
 			e.printStackTrace();
 			return null;
 		}
@@ -677,6 +674,11 @@ public class EquationSystem {
 		}
 		return false;		
 	}
+	
+	// IMPORTANT:
+	// This resolution algorithm currently assumes that we have all variables != 0.
+	// This is often the case for electronic circuits (because otherwise we would have short circuits etc).
+	// If it is ever needed to handle the more general case, probably the function to fix would be calcAllOneSideConclusions.
 	
 	private static int debugVerbose = 0;
 	private final static int DEPTH_LIMIT = 4;
@@ -761,6 +763,7 @@ public class EquationSystem {
 			if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
 			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
 			if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2);
+			// NOTE: here would probably the starting place to allow vars=0.
 			//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
 			
 			Utils.OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
