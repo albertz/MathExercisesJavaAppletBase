@@ -45,7 +45,8 @@ public class ElectronicCircuit {
 		
 		PGraph.Point getStringDrawPos(PGraph.Point start, PGraph.Point end) {
 			PGraph.Point pos = start.sum(end).mult(0.5);
-			pos.x += 5;
+			PGraph.Point dist = end.diff(start);
+			pos.x += 5 + Math.abs(dist.x) * 0.03;
 			pos.y -= 5;
 			return pos;
 		}
@@ -531,7 +532,7 @@ public class ElectronicCircuit {
 		for(PGraph.GraphPoint p : graph.dragablePoints) {
 			if(!(p instanceof NodePoint)) continue;
 			NodePoint np = (NodePoint) p;
-			if(np.point.distance(target) <= 1)
+			if(np.point.distance(target) <= 0.1)
 				return np;
 		}
 		return null;
@@ -577,9 +578,11 @@ public class ElectronicCircuit {
 		return constructOnPGraph(graph, clazz, oldPt, constructOnPGraph_LastPt);
 	}
 	void constructOnPGraph_Final(PGraph graph) {
+		initVarNames();
+
 		Collection<NodePoint> nodes = Utils.collFromIter(Utils.filterType(graph.dragablePoints, NodePoint.class));
 		
-		double borderSize = 0.1;
+		double borderSize = 0.2;
 		graph.x_l = Collections.min(Utils.map(nodes, new Utils.Function<NodePoint,Double>() {
 			public Double eval(NodePoint obj) { return obj.point.x; }
 		})) - borderSize;
