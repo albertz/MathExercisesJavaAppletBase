@@ -45,6 +45,7 @@ public class Content {
 		eqSys.addAuto("Q = C2 * U2");
 		eqSys.addAuto("Q = C3 * U3");
 		eqSys.addAuto("Q = C * U");
+		eqSys.addAuto("U = U1 + U2 + U3");
 		equationInput.setEquationSystem(eqSys, "C", Utils.listFromArgs("C1", "C2", "C3"));
 		equationInput.clear();
 	}
@@ -55,7 +56,7 @@ public class Content {
 		
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
-		equationInput = new VTEquationsInput("equ", 10, 10, applet.getWidth() - 60);
+		equationInput = new VTEquationsInput("equ", 0, 0, applet.getWidth() - 40);
 		questionLabel = new VTLabel("question", "", 10, 10, applet.getWidth() - 60);
 		initNewCircuit();
 				
