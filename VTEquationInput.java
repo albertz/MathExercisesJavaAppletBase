@@ -20,7 +20,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-public class VTTwoStepEquationInput extends VisualThing {
+public class VTEquationInput extends VisualThing {
 	
 	abstract class EquationPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
@@ -238,6 +238,39 @@ public class VTTwoStepEquationInput extends VisualThing {
 	
 	class MainPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
+
+		class BasicEquationsPanel extends EquationsPanel {
+			private static final long serialVersionUID = 1L;
+			{
+				super.descriptionLabel.text =
+					"Geben Sie Gleichungen, die Sie benötigen " +
+					"und aus der Schaltung ablesen können, " +
+					"hier ein.";
+			}
+			
+			public BasicEquationsPanel(int i) { super(i); }
+
+			@Override void onEquationUpdate(EquationPanel eqp) {
+				if(!recheckAllFrom(eqp))
+					followingEquationsPanel.resetAll();
+				else
+					followingEquationsPanel.recheckAll();
+			}
+			
+			@Override boolean recheck(EquationPanel eqp) {
+				if(!eqp.correctInput) return false;
+				if(eqSys.containsNormed(eqp.eq)) {
+					if(!haveEarlierSameEquation(eqp))
+						eqp.setInputRight("");
+					else
+						eqp.setInputWrong("doppelt");
+					return true;
+				} else {
+					eqp.setInputWrong("kann nicht aus der Schaltung abgelesen werden");
+					return false;
+				}
+			}
+		}
 		
 		class FollowingEquationsPanel extends EquationsPanel {
 			private static final long serialVersionUID = 1L;
@@ -249,19 +282,21 @@ public class VTTwoStepEquationInput extends VisualThing {
 			}
 			
 			EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
+				Iterable<EquationPanel> basicEquPanels = basicEquationsPanel.equations;
 				Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
 						new Utils.Predicate<EquationPanel>() {
 							public boolean apply(EquationPanel obj) {
 								return eqp == obj;
 							}
 						});
-				Iterable<EquationSystem.Equation> restEquations = Utils.map(
-						restEquPanels,
+				Iterable<EquationPanel> allEquPanels = Utils.concatCollectionView(basicEquPanels, restEquPanels);
+				Iterable<EquationSystem.Equation> allEquations = Utils.map(
+						allEquPanels,
 						new Utils.Function<EquationPanel,EquationSystem.Equation>() {
 							public EquationSystem.Equation eval(EquationPanel obj) { return obj.eq; }
 						});
 				return new EquationSystem(
-						Utils.concatCollectionView(eqSys.equations, restEquations),
+						Utils.collFromIter(allEquations),
 						eqSys.variableSymbols
 						);
 			}
@@ -290,25 +325,31 @@ public class VTTwoStepEquationInput extends VisualThing {
 			}
 		}
 
+		BasicEquationsPanel basicEquationsPanel = new BasicEquationsPanel(1);
 		FollowingEquationsPanel followingEquationsPanel = new FollowingEquationsPanel();
 		
 		@Override public void doLayout() {
+			basicEquationsPanel.setSize(getWidth(), 0);
+			basicEquationsPanel.doLayout();
 			followingEquationsPanel.setSize(getWidth(), 0);
 			followingEquationsPanel.doLayout();
-			followingEquationsPanel.setBounds(0, 0, width, followingEquationsPanel.getPreferredSize().height);
+			basicEquationsPanel.setBounds(0, 0, getWidth(), basicEquationsPanel.getPreferredSize().height);
+			followingEquationsPanel.setBounds(0, basicEquationsPanel.getHeight(), width, followingEquationsPanel.getPreferredSize().height);
 			setPreferredSize(new Dimension(getWidth(), followingEquationsPanel.getY() + followingEquationsPanel.getHeight()));			
 		}
 		
 		MainPanel() {
 			super();
 			this.setLayout(null);
+			this.add(basicEquationsPanel);
 			this.add(followingEquationsPanel);
 			doLayout();
 		}
 
 		void clear() {
+			basicEquationsPanel.clear();
+			basicEquationsPanel.addEquation();
 			followingEquationsPanel.clear();
-			followingEquationsPanel.addEquation();
 		}
 	}
 	
@@ -372,7 +413,7 @@ public class VTTwoStepEquationInput extends VisualThing {
 		//System.out.print("linear independent "); this.eqSys_linearIndependent.dump();
 	}
 	
-	VTTwoStepEquationInput(String name, int stepX, int stepY, int width) {
+	VTEquationInput(String name, int stepX, int stepY, int width) {
 		this.name = name;
 		this.stepX = stepX;
 		this.stepY = stepY;
