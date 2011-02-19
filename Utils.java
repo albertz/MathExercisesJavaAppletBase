@@ -1868,7 +1868,7 @@ public class Utils {
         	if(isNumber(-1)) return other.minusOne();
         	if(other.isOne()) return this;
         	if(other.isNumber(-1)) return this.minusOne();
-        	
+
         	OperatorTree ot = new OperatorTree(op);
 
         	if(op.equals("∙")) {
@@ -1891,7 +1891,7 @@ public class Utils {
         		return ot;
         	}
         	
-        	if(canBeInterpretedAsUnaryPrefixed()) {
+        	if(canBeInterpretedAsUnaryPrefixed() && !op.equals("/")) {
         		Entity e = unaryPrefixedContent();
         		if(e instanceof Subtree)
         			return ((Subtree) e).content.multiply(other).prefixed(op);
