@@ -34,7 +34,7 @@ public class Content {
 		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.ECapacitor.class, 4, 1);
 		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 4, 3);
 		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.VoltageSource.class, 1, 3);
-		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.Conn.class, 1, 1);
+		circuit.constructOnPGraph_Next(graph, ElectronicCircuit.EResistance.class, 1, 1);
 		circuit.constructOnPGraph_Final(graph);
 		
 		//ElectronicCircuit.EquationQuestion question = circuit.randomEquationQuestion();
