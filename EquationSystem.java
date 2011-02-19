@@ -726,7 +726,8 @@ public class EquationSystem {
 	}
 	
 	boolean canConcludeTo(Equation eq) {
-		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>());
+		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<Equation.Sum>());
+//		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>());
 	}
 	
 	private static Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
@@ -789,7 +790,7 @@ public class EquationSystem {
 
 			System.out.println("equation:");
 			debugEquationParsing(eqStr);
-			debugVerbose = 2;
+			debugVerbose = 1;
 			canConcludeTo(eq);			
 			debugVerbose = 0;
 
