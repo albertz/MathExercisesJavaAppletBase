@@ -78,9 +78,9 @@ public class VTMeta extends VTContainer  {
 	}
 	
 	public VisualThing[] getThingsByContentStr(String content) {
-		Number endpos = new Number();
+		Utils.Ref<Integer> endpos = new Utils.Ref<Integer>(0);
 		List things = getThingsByContentStr(content, 0, endpos);
-		if(endpos.number <= content.length())
+		if(endpos.value <= content.length())
 			System.err.println("getThingsByContentStr: not parsed until end");
 		for(int i = 0; i < things.size(); i++) {
 			// debug
@@ -392,14 +392,14 @@ public class VTMeta extends VTContainer  {
 		void onNewParam(int index, String param);
 	}
 
-	public List getThingsByContentStr(String content, int startpos, Number endpos) {
+	public List getThingsByContentStr(String content, int startpos, Utils.Ref<Integer> endpos) {
 		int state = 0;
 		int pos = startpos;
 		List lastlines = new LinkedList(); // VTLineCombiners
 		List things = new LinkedList(); // current things which are filled
 		String curstr = "";
 		Tag curtag = new Tag();
-		Number newpos = new Number(); // if recursive calls will be done, this is for getting the new pos
+		Utils.Ref<Integer> newpos = new Utils.Ref<Integer>(0); // if recursive calls will be done, this is for getting the new pos
 		String curtagtmpstr = ""; // used by lowerparam and upperparam in simple mode
 		
 		while(state >= 0) {
@@ -423,7 +423,7 @@ public class VTMeta extends VTContainer  {
 				case '{': // without tag, so handle it as container
 					// NOTE: VTMatrix.splitThing currently depends on exactly this behavior
 					addNewVT(things, curstr, createSimpleContainer(getThingsByContentStr(content, pos+1, newpos)));
-					pos = newpos.number - 1;
+					pos = newpos.value - 1;
 					break;
 				default: curstr += (char)c;
 				}
@@ -456,11 +456,11 @@ public class VTMeta extends VTContainer  {
 				break;
 			case 11: // tagmode, baseparam starting
 				curtag.baseparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
-				pos = newpos.number - 1; state = 10;
+				pos = newpos.value - 1; state = 10;
 				break;
 			case 12: // tagmode, extparam starting
 				curtag.extparam = getTextOutOfVisualThing(createSimpleContainer(getThingsByContentStr(content, pos, newpos)));
-				pos = newpos.number - 1; state = 10;
+				pos = newpos.value - 1; state = 10;
 				break;
 			case 13: // tagmode, lowerparam simple (directly after '_')
 				switch(c) {					
@@ -492,11 +492,11 @@ public class VTMeta extends VTContainer  {
 				break;
 			case 15: // tagmode, lowerparam normal (in {...})
 				curtag.lowerparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
-				pos = newpos.number - 1; state = 10;
+				pos = newpos.value - 1; state = 10;
 				break;
 			case 16: // tagmode, upperparam normal (in {...})
 				curtag.upperparam = createSimpleContainer(getThingsByContentStr(content, pos, newpos));
-				pos = newpos.number - 1; state = 10;
+				pos = newpos.value - 1; state = 10;
 				break;
 				
 			
@@ -508,7 +508,7 @@ public class VTMeta extends VTContainer  {
 			
 			pos++;
 		}
-		endpos.number = pos;
+		endpos.value = pos;
 		
 		// we fill the last things in the automata automatically in lastlines at the end
 		if(lastlines.size() == 1) {

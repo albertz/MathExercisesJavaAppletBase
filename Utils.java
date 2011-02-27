@@ -15,6 +15,11 @@ import java.util.Set;
 
 public class Utils {
 
+	static class Ref<T> {
+		T value;
+		Ref(T initial) { value = initial; }
+	}
+	
 	static Iterable<String> tokenizeString(final String str, String delim) {
 		final Set<Character> delimChars = new HashSet<Character>(collFromIter(iterableString(delim)));
 		return new Iterable<String>() {
