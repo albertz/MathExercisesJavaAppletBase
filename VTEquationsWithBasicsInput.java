@@ -118,7 +118,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 	
 	abstract class EquationsPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
-		SimpleLabel descriptionLabel = new SimpleLabel();
+		JSimpleLabel descriptionLabel = new JSimpleLabel();
 		List<EquationPanel> equations = new LinkedList<EquationPanel>();
 		JButton addNewEquationButton = new JButton();
 		

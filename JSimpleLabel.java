@@ -9,16 +9,16 @@ import java.awt.geom.Rectangle2D;
 
 import javax.swing.JComponent;
 
-class SimpleLabel extends JComponent {
+class JSimpleLabel extends JComponent {
 	private static final long serialVersionUID = 1L;
 	
 	String text = "";
 	Integer fixedWidth = null;
 	
-	SimpleLabel() {}
-	SimpleLabel(String text) { this.text = text; setFont(Applet.defaultFont); }
-	SimpleLabel(String text, int fixedWidth) { this.text = text; this.fixedWidth = fixedWidth; setFont(Applet.defaultFont); }
-	SimpleLabel(String text, int fixedWidth, Font font) { this.text = text; this.fixedWidth = fixedWidth; setFont(font); }
+	JSimpleLabel() {}
+	JSimpleLabel(String text) { this.text = text; setFont(Applet.defaultFont); }
+	JSimpleLabel(String text, int fixedWidth) { this.text = text; this.fixedWidth = fixedWidth; setFont(Applet.defaultFont); }
+	JSimpleLabel(String text, int fixedWidth, Font font) { this.text = text; this.fixedWidth = fixedWidth; setFont(font); }
 	
 	private abstract class WalkStringCallback {
 		abstract void exec(String s, int x, int y);

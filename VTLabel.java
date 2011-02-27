@@ -43,7 +43,7 @@ public class VTLabel extends VisualThing {
 	private String text;
 	private Font font = null;
 	private Color color = Color.black;
-	private SimpleLabel label = null;
+	private JSimpleLabel label = null;
 	private Integer fixedWidth = null;
 
 	public String getName() { return name; }
@@ -97,7 +97,7 @@ public class VTLabel extends VisualThing {
 	
 	public Component getComponent() {
 		if (label == null) {
-			label = new SimpleLabel();
+			label = new JSimpleLabel();
 			if (name != null)
 				label.setName(name);
 			label.text = text;
