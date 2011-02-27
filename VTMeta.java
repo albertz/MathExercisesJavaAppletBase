@@ -1,8 +1,6 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
 import java.awt.Color;
-import java.awt.Font;
-import java.awt.GraphicsEnvironment;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +10,7 @@ public class VTMeta extends VTContainer  {
 	private final Applet applet;
 	private VisualThing[] extern; // extern things for \object
 	private Runnable updater; // used by selector and text
-	private List vars = new LinkedList();
+	private List<Var> vars = new LinkedList<Var>();
 	
 	public VTMeta(Applet applet, String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
 		super((name == null || name.isEmpty()) ? ("__VTMeta") : name, stepX, stepY, null);
@@ -29,8 +27,8 @@ public class VTMeta extends VTContainer  {
 
 	public Var getVar(String name) {
 		for(int i = 0; i < vars.size(); i++) {
-			if(((Var) vars.get(i)).name.compareTo(name) == 0)
-				return (Var) vars.get(i);
+			if(vars.get(i).name.compareTo(name) == 0)
+				return vars.get(i);
 		}
 		return null;
 	}
@@ -66,11 +64,11 @@ public class VTMeta extends VTContainer  {
 		return null;
 	}
 	
-	public VisualThing createSimpleContainer(List thing_list) {
+	public VisualThing createSimpleContainer(List<VisualThing> thing_list) {
 		return new VTContainer(0, 0, getArrayByThingList(thing_list));
 	}
 	
-	public VisualThing[] getArrayByThingList(List thing_list) {
+	public VisualThing[] getArrayByThingList(List<VisualThing> thing_list) {
 		VisualThing[] things = new VisualThing[thing_list.size()];
 		for(int i = 0; i < things.length; i++)
 			things[i] = (VisualThing) thing_list.get(i);
@@ -79,7 +77,7 @@ public class VTMeta extends VTContainer  {
 	
 	public VisualThing[] getThingsByContentStr(String content) {
 		Utils.Ref<Integer> endpos = new Utils.Ref<Integer>(0);
-		List things = getThingsByContentStr(content, 0, endpos);
+		List<VisualThing> things = getThingsByContentStr(content, 0, endpos);
 		if(endpos.value <= content.length())
 			System.err.println("getThingsByContentStr: not parsed until end");
 		for(int i = 0; i < things.size(); i++) {
@@ -350,7 +348,7 @@ public class VTMeta extends VTContainer  {
 		return handleTag(tag, null);
 	}
 	
-	protected void addNewVT(List things, String curstr, VisualThing newVT) {
+	protected void addNewVT(List<VisualThing> things, String curstr, VisualThing newVT) {
 		if(curstr.length() > 0) things.add(new VTLabel(curstr, 0, 0));
 		if(newVT != null) things.add(newVT);
 	}
@@ -392,11 +390,11 @@ public class VTMeta extends VTContainer  {
 		void onNewParam(int index, String param);
 	}
 
-	public List getThingsByContentStr(String content, int startpos, Utils.Ref<Integer> endpos) {
+	public List<VisualThing> getThingsByContentStr(String content, int startpos, Utils.Ref<Integer> endpos) {
 		int state = 0;
 		int pos = startpos;
-		List lastlines = new LinkedList(); // VTLineCombiners
-		List things = new LinkedList(); // current things which are filled
+		List<VisualThing> lastlines = new LinkedList<VisualThing>(); // VTLineCombiners
+		List<VisualThing> things = new LinkedList<VisualThing>(); // current things which are filled
 		String curstr = "";
 		Tag curtag = new Tag();
 		Utils.Ref<Integer> newpos = new Utils.Ref<Integer>(0); // if recursive calls will be done, this is for getting the new pos
@@ -520,7 +518,7 @@ public class VTMeta extends VTContainer  {
 
 	// seperated string like "bla1,bla2" is input
 	public String[] getStringArrayFromString(String base) {
-		final List items = new LinkedList();
+		final List<String> items = new LinkedList<String>();
 		walkExtParams(base, new ExtParamWalker() {
 			public void onNewParam(int index, String param) {
 				items.add(param);
