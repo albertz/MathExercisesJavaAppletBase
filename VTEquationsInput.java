@@ -294,14 +294,14 @@ public class VTEquationsInput extends VisualThing {
 	
 	class WantedResult {
 		String wantedExprStr = "";
-		Utils.OperatorTree wantedExpr = null;
+		OperatorTree wantedExpr = null;
 		Set<String> allowedVars = null;
 		
 		WantedResult() {}
 		WantedResult(String wantedExprStr, Iterable<String> allowedVars) {
 			try {
 				this.wantedExprStr = wantedExprStr;
-				this.wantedExpr = Utils.OperatorTree.parse(wantedExprStr).simplify();
+				this.wantedExpr = OperatorTree.parse(wantedExprStr).simplify();
 				this.allowedVars = new TreeSet<String>(Utils.collFromIter(allowedVars));
 			}
 			catch(Throwable e) {
@@ -309,14 +309,14 @@ public class VTEquationsInput extends VisualThing {
 			}
 		}
 		
-		boolean isWantedExpr(Utils.OperatorTree expr) {
+		boolean isWantedExpr(OperatorTree expr) {
 			expr = expr.simplify();
 			if(wantedExpr.equals(expr)) return true;
 			//System.out.println("not wanted. " + expr + " != " + wantedExpr);
 			return false;
 		}
 		
-		boolean hasOnlyAllowedVars(Utils.OperatorTree expr) {
+		boolean hasOnlyAllowedVars(OperatorTree expr) {
 			for(String varName : expr.vars()) {
 				if(!allowedVars.contains(varName)) {
 					//System.out.println("not allowed var: " + varName + " in " + expr);

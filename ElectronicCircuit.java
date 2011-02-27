@@ -66,11 +66,11 @@ public class ElectronicCircuit {
 			drawUserString(g, start, end);
 		}
 
-		Utils.OperatorTree getFlowFromIn() { return end.getFlow(this); }
-		Utils.OperatorTree getFlowFromOut() { return start.getFlow(this); }
-		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Zero(); }
-		Utils.OperatorTree getVoltageFrom(Node n) {
-			Utils.OperatorTree voltageFromOut = getVoltageFromOut();
+		OperatorTree getFlowFromIn() { return end.getFlow(this); }
+		OperatorTree getFlowFromOut() { return start.getFlow(this); }
+		OperatorTree getVoltageFromOut() { return OperatorTree.Zero(); }
+		OperatorTree getVoltageFrom(Node n) {
+			OperatorTree voltageFromOut = getVoltageFromOut();
 			if(n == end) return voltageFromOut;
 			if(n == start) return voltageFromOut.minusOne();
 			throw new AssertionError("node must be either start or end");
@@ -88,9 +88,9 @@ public class ElectronicCircuit {
 	static class EResistance extends Conn {
 		String varRes = "_R" + this.hashCode();
 		String varFlow = "_I" + this.hashCode();
-		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
-		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
-		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Product(Utils.listFromArgs(Utils.OperatorTree.Variable(varRes).asEntity(), Utils.OperatorTree.Variable(varFlow).asEntity())); }
+		OperatorTree getFlowFromIn() { return OperatorTree.Variable(varFlow); }
+		OperatorTree getFlowFromOut() { return OperatorTree.Variable(varFlow); }
+		OperatorTree getVoltageFromOut() { return OperatorTree.Product(Utils.listFromArgs(OperatorTree.Variable(varRes).asEntity(), OperatorTree.Variable(varFlow).asEntity())); }
 		@Override void initVarNames(String postfix) {
 			varRes = "R" + postfix;
 			varFlow = "I" + postfix;
@@ -139,9 +139,9 @@ public class ElectronicCircuit {
 			varFlow = "I" + postfix;
 		}
 		@Override List<String> vars() { return Utils.listFromArgs(varVolt, varFlow); }
-		Utils.OperatorTree getFlowFromIn() { return Utils.OperatorTree.Variable(varFlow); }
-		Utils.OperatorTree getFlowFromOut() { return Utils.OperatorTree.Variable(varFlow); }
-		Utils.OperatorTree getVoltageFromOut() { return Utils.OperatorTree.Variable(varVolt).minusOne(); }
+		OperatorTree getFlowFromIn() { return OperatorTree.Variable(varFlow); }
+		OperatorTree getFlowFromOut() { return OperatorTree.Variable(varFlow); }
+		OperatorTree getVoltageFromOut() { return OperatorTree.Variable(varVolt).minusOne(); }
 		void draw(Graphics g, PGraph.Point start, PGraph.Point end) {
 			PGraph.Point diff = end.diff(start).mult(1.0/2.0);
 			PGraph.Point diff2 = diff.mult(1.0/24.0);
@@ -274,9 +274,9 @@ public class ElectronicCircuit {
 			}
 		}
 		
-		Utils.OperatorTree getFlow() { return getFlow(null); }
-		Utils.OperatorTree getFlow(Conn conn) {
-			Utils.OperatorTree sum = Utils.OperatorTree.Zero();
+		OperatorTree getFlow() { return getFlow(null); }
+		OperatorTree getFlow(Conn conn) {
+			OperatorTree sum = OperatorTree.Zero();
 			for(Conn c : in)
 				if(c != conn)
 					sum = sum.sum(c.getFlowFromOut().minusOne());
@@ -286,10 +286,10 @@ public class ElectronicCircuit {
 			return sum;
 		}
 		EquationSystem.Equation getFlowEquation() {
-			Utils.OperatorTree left = Utils.OperatorTree.Zero();
+			OperatorTree left = OperatorTree.Zero();
 			for(Conn c : in)
 				left = left.sum(c.getFlowFromOut());
-			Utils.OperatorTree right = Utils.OperatorTree.Zero();
+			OperatorTree right = OperatorTree.Zero();
 			for(Conn c : out)
 				right = right.sum(c.getFlowFromIn());
 			return new EquationSystem.Equation(left, right);
@@ -341,7 +341,7 @@ public class ElectronicCircuit {
 	EquationSystem.Equation equationFromMesh(List<MeshPart> mesh) {
 		EquationSystem.Equation eq = new EquationSystem.Equation();
 		for(MeshPart part : mesh) {
-			Utils.OperatorTree prod = part.conn.getVoltageFrom(part.nextNode);
+			OperatorTree prod = part.conn.getVoltageFrom(part.nextNode);
 			if(prod.isNegative())
 				eq.left = eq.left.sum(prod.minusOne());
 			else if(!prod.isZero())
@@ -354,7 +354,7 @@ public class ElectronicCircuit {
 		boolean haveNegative = false;
 		boolean havePositive = false;
 		for(MeshPart part : mesh) {
-			Utils.OperatorTree volt = part.conn.getVoltageFrom(part.nextNode);
+			OperatorTree volt = part.conn.getVoltageFrom(part.nextNode);
 			if(volt.isNegative()) haveNegative = true;
 			else if(!volt.isZero()) havePositive = true;
 		}

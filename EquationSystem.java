@@ -113,8 +113,8 @@ public class EquationSystem {
 		}
 		
 		abstract String baseOp();
-		Utils.OperatorTree asOperatorTree() {
-			Utils.OperatorTree ot = new Utils.OperatorTree();
+		OperatorTree asOperatorTree() {
+			OperatorTree ot = new OperatorTree();
 			ot.op = baseOp();
 			for(Expression child : childs())
 				ot.entities.add(child.asOperatorTree().asEntity());
@@ -161,19 +161,19 @@ public class EquationSystem {
 					@Override Iterable<String> vars() { return Utils.listFromArgs(sym); }
 					@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(); }
 					@Override String baseOp() { return "∙"; }
-					@Override Utils.OperatorTree asOperatorTree() {
-						if(pot == 0) return new Utils.OperatorTree("", new Utils.OperatorTree.RawString("1"));
-						Utils.OperatorTree ot = new Utils.OperatorTree();
+					@Override OperatorTree asOperatorTree() {
+						if(pot == 0) return new OperatorTree("", new OperatorTree.RawString("1"));
+						OperatorTree ot = new OperatorTree();
 						if(pot > 0) {
 							ot.op = (pot > 1) ? baseOp() : "";
 							for(int i = 0; i < pot; ++i)
-								ot.entities.add(new Utils.OperatorTree.RawString(sym));
+								ot.entities.add(new OperatorTree.RawString(sym));
 							return ot;
 						}
 						else {
 							ot.op = "/";
-							ot.entities.add(new Utils.OperatorTree.RawString("1"));
-							ot.entities.add(new Utils.OperatorTree.Subtree(new Pot(sym, -pot).asOperatorTree()));
+							ot.entities.add(new OperatorTree.RawString("1"));
+							ot.entities.add(new OperatorTree.Subtree(new Pot(sym, -pot).asOperatorTree()));
 						}
 						return ot;
 					}
@@ -304,16 +304,16 @@ public class EquationSystem {
 					for(String v : vars)
 						facs.add(new Pot(v));
 				}
-				Prod(Utils.OperatorTree ot) throws ParseError { fac = 1; parse(ot); }
-				void parse(Utils.OperatorTree ot) throws ParseError {
+				Prod(OperatorTree ot) throws ParseError { fac = 1; parse(ot); }
+				void parse(OperatorTree ot) throws ParseError {
 					if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
 						fac = -fac;
 						parse(ot.unaryPrefixedContent().asTree());
 					}
 					else if(ot.op.equals("∙") || ot.entities.size() <= 1) {
-						for(Utils.OperatorTree.Entity e : ot.entities) {
-							if(e instanceof Utils.OperatorTree.RawString) {
-								String s = ((Utils.OperatorTree.RawString) e).content;
+						for(OperatorTree.Entity e : ot.entities) {
+							if(e instanceof OperatorTree.RawString) {
+								String s = ((OperatorTree.RawString) e).content;
 								try {
 									fac *= Integer.parseInt(s);
 								}
@@ -323,7 +323,7 @@ public class EquationSystem {
 								}
 							}
 							else
-								parse( ((Utils.OperatorTree.Subtree) e).content );
+								parse( ((OperatorTree.Subtree) e).content );
 						}
 					}
 					else
@@ -333,14 +333,14 @@ public class EquationSystem {
 						throw new ParseError("'" + ot + "' must contain at least one variable.", "'" + ot + "' muss mindestens eine Variable enthalten.");
 				}
 				@Override String baseOp() { return "∙"; }
-				@Override Utils.OperatorTree asOperatorTree() {
-					if(fac == 0) return Utils.OperatorTree.Zero();
+				@Override OperatorTree asOperatorTree() {
+					if(fac == 0) return OperatorTree.Zero();
 					if(fac == 1 && !facs.isEmpty()) return super.asOperatorTree();
-					if(fac == 1 && facs.isEmpty()) return Utils.OperatorTree.One();
+					if(fac == 1 && facs.isEmpty()) return OperatorTree.One();
 					if(fac == -1 && !facs.isEmpty()) return super.asOperatorTree().minusOne();
-					if(fac == -1 && facs.isEmpty()) return Utils.OperatorTree.One().minusOne();
-					return Utils.OperatorTree.Product(Utils.listFromArgs(
-							Utils.OperatorTree.Number(fac).asEntity(),
+					if(fac == -1 && facs.isEmpty()) return OperatorTree.One().minusOne();
+					return OperatorTree.Product(Utils.listFromArgs(
+							OperatorTree.Number(fac).asEntity(),
 							super.asOperatorTree().asEntity()
 							));
 				}
@@ -471,28 +471,28 @@ public class EquationSystem {
 			Sum(String var) { entries.add(new Prod(var)); }
 			Sum(Prod prod) { entries.add(prod); }
 			Sum(int num) { entries.add(new Prod(num)); }
-			Sum(Utils.OperatorTree left, Utils.OperatorTree right) throws ParseError {
-				this(Utils.OperatorTree.MergedEquation(left, right)
+			Sum(OperatorTree left, OperatorTree right) throws ParseError {
+				this(OperatorTree.MergedEquation(left, right)
 					.transformMinusToPlus()
 					.simplify()
 					.transformMinusPushedDown()
 					.multiplyAllDivisions()
 					.pushdownAllMultiplications());
 			}
-			Sum(Utils.OperatorTree ot) throws ParseError { add(ot); }
-			void add(Utils.OperatorTree ot) throws ParseError {
+			Sum(OperatorTree ot) throws ParseError { add(ot); }
+			void add(OperatorTree ot) throws ParseError {
 				if(ot.isZero()) return;
 				if(ot.entities.size() == 1) {
-					Utils.OperatorTree.Entity e = ot.entities.get(0); 
-					if(e instanceof Utils.OperatorTree.Subtree)
-						add(((Utils.OperatorTree.Subtree) e).content);
+					OperatorTree.Entity e = ot.entities.get(0); 
+					if(e instanceof OperatorTree.Subtree)
+						add(((OperatorTree.Subtree) e).content);
 					else
 						entries.add(new Prod(ot));
 					return;
 				}
 				
 				if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
-					Utils.OperatorTree.Entity e = ot.unaryPrefixedContent();
+					OperatorTree.Entity e = ot.unaryPrefixedContent();
 					try {
 						entries.add(new Prod(e.asTree()).minusOne());
 					} catch(ParseError exc) {
@@ -504,7 +504,7 @@ public class EquationSystem {
 				}
 				
 				if(ot.op.equals("+")) {
-					for(Utils.OperatorTree.Entity e : ot.entities)
+					for(OperatorTree.Entity e : ot.entities)
 						add(e.asTree());
 				}
 				else if(ot.op.equals("∙")) {
@@ -516,10 +516,10 @@ public class EquationSystem {
 			}
 			@Override String baseOp() { return "+"; }
 			boolean isTautology() { return normalize().isZero(); }
-			Equation asEquation() { return new Equation(asOperatorTree(), Utils.OperatorTree.Zero()); }
+			Equation asEquation() { return new Equation(asOperatorTree(), OperatorTree.Zero()); }
 		}
 
-		Utils.OperatorTree left, right;
+		OperatorTree left, right;
 		@Override public String toString() { return left.toString() + " = " + right.toString(); }
 		public int compareTo(Equation o) {
 			int r = left.compareTo(o.left); if(r != 0) return r;
@@ -551,9 +551,9 @@ public class EquationSystem {
 			return false;
 		}
 		Iterable<String> vars() { return Utils.concatCollectionView(left.vars(), right.vars()); }
-		Equation() { left = new Utils.OperatorTree(); right = new Utils.OperatorTree(); }
-		Equation(Utils.OperatorTree left, Utils.OperatorTree right) { this.left = left; this.right = right; }
-		Equation(Utils.OperatorTree ot) throws ParseError {
+		Equation() { left = new OperatorTree(); right = new OperatorTree(); }
+		Equation(OperatorTree left, OperatorTree right) { this.left = left; this.right = right; }
+		Equation(OperatorTree ot) throws ParseError {
 			try {
 				if(ot.entities.size() == 0) throw new ParseError("Please give me an equation.", "Bitte Gleichung eingeben.");
 				if(!ot.op.equals("=")) throw new ParseError("'=' at top level required.", "'=' benötigt.");
@@ -568,8 +568,8 @@ public class EquationSystem {
 				throw e;
 			}
 		}
-		Equation(String str) throws ParseError { this(Utils.OperatorTree.parse(str)); }
-		Equation(Utils.OperatorTree ot, Set<String> allowedVars) throws ParseError { this(ot); assertValidVars(allowedVars); }
+		Equation(String str) throws ParseError { this(OperatorTree.parse(str)); }
+		Equation(OperatorTree ot, Set<String> allowedVars) throws ParseError { this(ot); assertValidVars(allowedVars); }
 		Equation(String str, Set<String> allowedVars) throws ParseError { this(str); assertValidVars(allowedVars); }
 		
 		void assertValidVars(Set<String> allowedVars) throws ParseError {
@@ -582,14 +582,14 @@ public class EquationSystem {
 		static class ParseError extends Exception {
 			private static final long serialVersionUID = 1L;
 			String english, german;
-			Utils.OperatorTree ot;
+			OperatorTree ot;
 			public ParseError(String english, String german) { super(english); this.english = english; this.german = german; }
 			public ParseError(ParseError e) { super(e.english); this.english = e.english; this.german = e.german; }
 		}
 		
 	}
 
-	void debugEquation(Utils.OperatorTree ot) {
+	void debugEquation(OperatorTree ot) {
 		ot = ot.simplify().transformMinusToPlus();
 		System.out.print("normalised input: " + ot + ", ");
 		try {
@@ -723,8 +723,8 @@ public class EquationSystem {
 		return false;
 	}
 	
-	Set<Utils.OperatorTree> identitiesForVar(String var) {
-		Set<Utils.OperatorTree> eqs = new TreeSet<Utils.OperatorTree>();
+	Set<OperatorTree> identitiesForVar(String var) {
+		Set<OperatorTree> eqs = new TreeSet<OperatorTree>();
 		for(Equation.Sum eq : normalizedSums()) {
 			Equation.Sum.ExtractedVar extractedVar = eq.extractVar(var);
 			if(extractedVar == null) continue; // either we don't have that var there or it is an higher order polynom
@@ -758,20 +758,20 @@ public class EquationSystem {
 			if(extract1 == null) continue; // can happen if we have higher order polynoms
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 
-			Utils.OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
+			OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
 			if(debugVerbose >= 2) System.out.print("var: " + var + " in " + otherEq);
 			if(debugVerbose >= 2) System.out.print(", fac: " + fac.debugStringDouble());
 			fac = fac.mergeDivisions().simplifyDivision();
 			if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
-			Utils.OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
+			OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
 			if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2);
 			// NOTE: here would probably the starting place to allow vars=0.
 			//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
 			
-			Utils.OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
+			OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
 			Equation.Sum resultingSum;
 			try {
-				resultingSum = new Equation.Sum(resultingEquation, Utils.OperatorTree.Zero());
+				resultingSum = new Equation.Sum(resultingEquation, OperatorTree.Zero());
 			} catch (Equation.ParseError e) {
 				e.printStackTrace(); // should not happen
 				continue;
@@ -832,14 +832,14 @@ public class EquationSystem {
 	}
 		
 	static void debugEquationParsing(String equ) throws Equation.ParseError {
-		Utils.OperatorTree ot = Utils.OperatorTree.parse(equ);
+		OperatorTree ot = OperatorTree.parse(equ);
 		if(!ot.op.equals("=")) throw new Equation.ParseError("'" + equ + "' must have '=' at the root.", "");
 		if(ot.entities.size() != 2) throw new Equation.ParseError("'" + equ + "' must have '=' with 2 sides.", "");		
-		Utils.OperatorTree left = ot.entities.get(0).asTree(), right = ot.entities.get(1).asTree();
+		OperatorTree left = ot.entities.get(0).asTree(), right = ot.entities.get(1).asTree();
 
 		System.out.println("equ (" + left.debugStringDouble() + ") = (" + right.debugStringDouble() + "): {");
 
-		ot = Utils.OperatorTree.MergedEquation(left, right);
+		ot = OperatorTree.MergedEquation(left, right);
 		System.out.println("  merge: " + ot.debugStringDouble());
 		
 		ot = ot.transformMinusToPlus();
@@ -860,12 +860,12 @@ public class EquationSystem {
 		System.out.println("}");
 	}
 	
-	static void assertEqual(Utils.OperatorTree a, Utils.OperatorTree b) {
+	static void assertEqual(OperatorTree a, OperatorTree b) {
 		if(!a.toString().equals(b.toString()))
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}
 	
-	static void assertEqual(Utils.OperatorTree.Entity a, Utils.OperatorTree.Entity b) {
+	static void assertEqual(OperatorTree.Entity a, OperatorTree.Entity b) {
 		if(!a.equals(b))
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}
@@ -877,18 +877,18 @@ public class EquationSystem {
 
 	static void debugSimplifications() throws Equation.ParseError {
 		assertEqual(new Equation("U1 / I1 = 1 / (1 / R2 + 1 / R3)").normalizedSum(), "I1 ∙ R2 ∙ R3 + -R2 ∙ U1 + -R3 ∙ U1");
-		assertEqual(Utils.OperatorTree.parse("-I1"), Utils.OperatorTree.parse("-I1"));
-		assertEqual(Utils.OperatorTree.parse("-I1").unaryPrefixedContent(), Utils.OperatorTree.parse("-I1").unaryPrefixedContent());
-		assertEqual(Utils.OperatorTree.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.One());
-		assertEqual(Utils.OperatorTree.parse("(-R1 + -R4) / (-R1 + -R4)").mergeDivisions().simplifyDivision(), Utils.OperatorTree.One());
-		assertEqual(Utils.OperatorTree.parse("-1 / -x").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("1 / x"));
-		assertEqual(Utils.OperatorTree.parse("(I1 ∙ U3) / I1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("U3"));
-		assertEqual(Utils.OperatorTree.parse("(I2 ∙ I3) / -I2").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-I3"));
-		assertEqual(Utils.OperatorTree.parse("-R2 ∙ U3 / R2").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-U3"));
-		assertEqual(Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions(), Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
-		assertEqual(Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
-		assertEqual(Utils.OperatorTree.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), Utils.OperatorTree.parse("U3"));		
-		assertEqual(Utils.OperatorTree.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), Utils.OperatorTree.parse("-R1 + -R4"));
+		assertEqual(OperatorTree.parse("-I1"), OperatorTree.parse("-I1"));
+		assertEqual(OperatorTree.parse("-I1").unaryPrefixedContent(), OperatorTree.parse("-I1").unaryPrefixedContent());
+		assertEqual(OperatorTree.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), OperatorTree.One());
+		assertEqual(OperatorTree.parse("(-R1 + -R4) / (-R1 + -R4)").mergeDivisions().simplifyDivision(), OperatorTree.One());
+		assertEqual(OperatorTree.parse("-1 / -x").mergeDivisions().simplifyDivision(), OperatorTree.parse("1 / x"));
+		assertEqual(OperatorTree.parse("(I1 ∙ U3) / I1").mergeDivisions().simplifyDivision(), OperatorTree.parse("U3"));
+		assertEqual(OperatorTree.parse("(I2 ∙ I3) / -I2").mergeDivisions().simplifyDivision(), OperatorTree.parse("-I3"));
+		assertEqual(OperatorTree.parse("-R2 ∙ U3 / R2").mergeDivisions().simplifyDivision(), OperatorTree.parse("-U3"));
+		assertEqual(OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions(), OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
+		assertEqual(OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
+		assertEqual(OperatorTree.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), OperatorTree.parse("U3"));		
+		assertEqual(OperatorTree.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), OperatorTree.parse("-R1 + -R4"));
 	}
 	
 	static void debug() {

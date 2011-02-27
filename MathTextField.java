@@ -14,8 +14,8 @@ public class MathTextField extends JTextField {
 
 	private static final long serialVersionUID = 3991754180692357067L;
 
-	private Utils.OperatorTree operatorTree = new Utils.OperatorTree();
-	public Utils.OperatorTree getOperatorTree() { return operatorTree; }
+	private OperatorTree operatorTree = new OperatorTree();
+	public OperatorTree getOperatorTree() { return operatorTree; }
 
 	public void updateByOpTree() {
 		setText(operatorTree.toString());
@@ -135,7 +135,7 @@ public class MathTextField extends JTextField {
 			}
 
 			synchronized void setNewString(FilterBypass fb, String tempStr) throws BadLocationException {
-				operatorTree = Utils.OperatorTree.parse(tempStr, "");
+				operatorTree = OperatorTree.parse(tempStr, "");
 				MathTextField.this.updateByOpTree(fb);
 			}
 		});
