@@ -10,7 +10,7 @@ import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
 
-public class MathTextField extends JTextField {
+public class JMathTextField extends JTextField {
 
 	private static final long serialVersionUID = 3991754180692357067L;
 
@@ -22,7 +22,7 @@ public class MathTextField extends JTextField {
 	}
 	
 	protected void updateByOpTree(javax.swing.text.DocumentFilter.FilterBypass fb) {
-		String oldStr = MathTextField.this.getText();
+		String oldStr = JMathTextField.this.getText();
 		String newStr = operatorTree.toString();
 		int commonStart = Utils.equalStartLen(oldStr, newStr);
 		int commonEnd = Utils.equalEndLen(oldStr, newStr);
@@ -57,13 +57,13 @@ public class MathTextField extends JTextField {
 			public void replace(FilterBypass fb, int offset, int length,
 					String string, AttributeSet attrs)
 					throws BadLocationException {
-				String s = MathTextField.this.getText();
+				String s = JMathTextField.this.getText();
 				boolean insertedDummyChar = false;
 				boolean insertedBrackets = false;
 				String marked = s.substring(offset, offset + length);
 
 				if(string.matches(" |\\)") && offset + 1 < s.length() && s.substring(offset, offset + 1).equals(string)) {
-					MathTextField.this.setCaretPosition(offset + 1);
+					JMathTextField.this.setCaretPosition(offset + 1);
 					return;
 				}
 				
@@ -121,22 +121,22 @@ public class MathTextField extends JTextField {
 				setNewString(fb, s.substring(0, offset) + string + s.substring(offset + length));
 				
 				if(insertedDummyChar) {
-					int p = MathTextField.this.getText().indexOf('_');
+					int p = JMathTextField.this.getText().indexOf('_');
 					if(p >= 0) {
-						MathTextField.this.setCaretPosition(p);
-						MathTextField.this.moveCaretPosition(p + 1);						
+						JMathTextField.this.setCaretPosition(p);
+						JMathTextField.this.moveCaretPosition(p + 1);						
 					}
 				}
 				else if(insertedBrackets) {
 					// move just before the ')'
-					if(MathTextField.this.getCaretPosition() > 0)
-						MathTextField.this.setCaretPosition(MathTextField.this.getCaretPosition() - 1);
+					if(JMathTextField.this.getCaretPosition() > 0)
+						JMathTextField.this.setCaretPosition(JMathTextField.this.getCaretPosition() - 1);
 				}
 			}
 
 			synchronized void setNewString(FilterBypass fb, String tempStr) throws BadLocationException {
 				operatorTree = OperatorTree.parse(tempStr, "");
-				MathTextField.this.updateByOpTree(fb);
+				JMathTextField.this.updateByOpTree(fb);
 			}
 		});
 		

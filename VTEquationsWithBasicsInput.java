@@ -24,7 +24,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 	
 	abstract class EquationPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
-		MathTextField textField = new MathTextField();
+		JMathTextField textField = new JMathTextField();
 		JLabel infoLabel = new JLabel();
 		JButton removeButton = new JButton();
 		EquationSystem.Equation eq = new EquationSystem.Equation();
