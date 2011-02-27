@@ -15,6 +15,11 @@ import java.util.Set;
 
 public class Utils {
 
+	static class Var {
+		public String name = "";
+		public String value = "";
+	}
+
 	static class Ref<T> {
 		T value;
 		Ref(T initial) { value = initial; }

@@ -10,7 +10,7 @@ public class VTMeta extends VTContainer  {
 	private final Applet applet;
 	private VisualThing[] extern; // extern things for \object
 	private Runnable updater; // used by selector and text
-	private List<Var> vars = new LinkedList<Var>();
+	private List<Utils.Var> vars = new LinkedList<Utils.Var>();
 	
 	public VTMeta(Applet applet, String name, int stepX, int stepY, String content, VisualThing[] extern, Runnable updater) {
 		super((name == null || name.isEmpty()) ? ("__VTMeta") : name, stepX, stepY, null);
@@ -25,7 +25,7 @@ public class VTMeta extends VTContainer  {
 		this(applet, null, stepX, stepY, content, extern, updater);
 	}
 
-	public Var getVar(String name) {
+	public Utils.Var getVar(String name) {
 		for(int i = 0; i < vars.size(); i++) {
 			if(vars.get(i).name.compareTo(name) == 0)
 				return vars.get(i);
@@ -33,10 +33,10 @@ public class VTMeta extends VTContainer  {
 		return null;
 	}
 	
-	public Var getVar(String name, boolean createNewIfNotThere) {
-		Var var = getVar(name);
+	public Utils.Var getVar(String name, boolean createNewIfNotThere) {
+		Utils.Var var = getVar(name);
 		if(var == null && createNewIfNotThere) {
-			var = new Var();
+			var = new Utils.Var();
 			var.name = name;
 			vars.add(var);
 		}
@@ -44,13 +44,13 @@ public class VTMeta extends VTContainer  {
 	}
 	
 	public String getVarValue(String name) {
-		Var var = getVar(name);
+		Utils.Var var = getVar(name);
 		if(var == null) return null;
 		return var.value;
 	}
 	
 	public void setVarValue(String name, String value) {
-		Var v = getVar(name, true);
+		Utils.Var v = getVar(name, true);
 		v.value = value;
 	}
 	
