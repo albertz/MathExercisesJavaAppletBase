@@ -82,7 +82,12 @@ class OperatorTree implements Comparable<OperatorTree> {
     			if(op.equals("+")) x += y;
     			else if(op.equals("-")) x -= y;
     			else if(op.equals("∙")) x *= y;
-    			else if(op.equals("/")) x /= y;
+    			else if(op.equals("/")) {
+    				if(x % y == 0)
+    					x /= y;
+    				else
+    					return null; // this is not an integer, it's a rational number
+    			}
 			} catch(ArithmeticException exc) { // e.g. div by zero 
 				return null;
 			}
