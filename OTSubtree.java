@@ -22,6 +22,7 @@ class OTSubtree extends OTEntity {
 			return content.toString();
 		if(content.canBeInterpretedAsUnaryPrefixed())
 			return content.toString();
+		if(parentOp.length() != 1 || content.op.length() != 1) return "(" + content.toString() + ")";
 		int parentOpIdx = OperatorTree.knownOps.indexOf(parentOp);
 		int childOpIdx = OperatorTree.knownOps.indexOf(content.op);
 		if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
