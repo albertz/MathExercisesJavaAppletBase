@@ -22,11 +22,11 @@ class OTSubtree extends OTEntity {
 			return content.toString();
 		if(content.canBeInterpretedAsUnaryPrefixed())
 			return content.toString();
-		final String ops = "/∙+-=";
-		int parentOpIdx = ops.indexOf(parentOp);
-		int childOpIdx = ops.indexOf(content.op);
+		int parentOpIdx = OperatorTree.knownOps.indexOf(parentOp);
+		int childOpIdx = OperatorTree.knownOps.indexOf(content.op);
 		if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
-		if(parentOpIdx == 3) parentOpIdx--; if(childOpIdx == 3) childOpIdx--; // take +- as equal
+		if(parentOpIdx == OperatorTree.knownOps.indexOf('-')) parentOpIdx--; // take +- as equal
+		if(childOpIdx == OperatorTree.knownOps.indexOf('-')) childOpIdx--; // take +- as equal
 		if(childOpIdx <= parentOpIdx) return content.toString();
 		return "(" + content.toString() + ")";
 	}

@@ -15,6 +15,7 @@ import java.util.Set;
 class OperatorTree implements Comparable<OperatorTree> {
 	String op = "";
 	List<OTEntity> entities = new LinkedList<OTEntity>();
+	final static String knownOps = "^/∙+-="; // they also must be in order
 	
 	OperatorTree() {}
 	OperatorTree(String op) { this.op = op; } 
