@@ -94,7 +94,14 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(x == null) return false;
     	return x.intValue() == num;
     }
-		
+	
+    boolean isFunctionCall() {
+    	// right now, everything which is not empty and not a known operation is a function
+    	if(op.length() == 0) return false;
+    	if(op.length() == 1) return knownOps.indexOf(op) < 0;
+    	return true;
+    }
+    
 	boolean canBeInterpretedAsUnaryPrefixed() {
 		return entities.size() == 2 && entities.get(0) instanceof OTSubtree && ((OTSubtree)entities.get(0)).content.entities.isEmpty();	
 	}
