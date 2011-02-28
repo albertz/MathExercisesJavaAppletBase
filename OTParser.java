@@ -12,13 +12,13 @@ public class OTParser {
 	static OperatorTree grabUnaryPrefixedOpFromSplitted(OperatorTree splitted) {
 		OperatorTree ot = new OperatorTree();
 		boolean nextOpWanted = false;
-		for(Iterator<OperatorTree.Entity> eit = splitted.entities.iterator(); eit.hasNext();) {
-			OperatorTree.Entity e = eit.next();
-			if(e instanceof OperatorTree.RawString) {
-				String op = ((OperatorTree.RawString) e).content;
+		for(Iterator<OTEntity> eit = splitted.entities.iterator(); eit.hasNext();) {
+			OTEntity e = eit.next();
+			if(e instanceof OTRawString) {
+				String op = ((OTRawString) e).content;
 				if(!nextOpWanted) {
 					//System.out.println("prefix: " + op + " in " + splitted);
-					ot.entities.add(new OperatorTree.Subtree(grabUnaryPrefixedOpFromSplitted(op, eit)));
+					ot.entities.add(new OTSubtree(grabUnaryPrefixedOpFromSplitted(op, eit)));
 					//System.out.println("last prefixed: " + ((Subtree) ot.entities.get(ot.entities.size() - 1)).content);
 					nextOpWanted = true;
 				} else {
@@ -35,32 +35,32 @@ public class OTParser {
 		return ot;
 	}
 
-	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<OperatorTree.Entity> rest) {
-		OperatorTree.Entity obj = null;
+	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<OTEntity> rest) {
+		OTEntity obj = null;
 		
 		if(rest.hasNext()) {
-			OperatorTree.Entity e = rest.next();
-			if(e instanceof OperatorTree.Subtree) {
-				OperatorTree eSubtree = ((OperatorTree.Subtree) e).content;
+			OTEntity e = rest.next();
+			if(e instanceof OTSubtree) {
+				OperatorTree eSubtree = ((OTSubtree) e).content;
 				if(eSubtree.entities.size() == 1)
 					obj = eSubtree.entities.get(0);
 				else
 					obj = e;
 			} else // e instanceof RawString -> another unary prefix
-				obj = new OperatorTree.Subtree(grabUnaryPrefixedOpFromSplitted(((OperatorTree.RawString) e).content, rest));    			
+				obj = new OTSubtree(grabUnaryPrefixedOpFromSplitted(((OTRawString) e).content, rest));    			
 		}
 		else
 			// we have expected another entry but there is none anymore.
 			// add a dummy empty subtree so that it looks like an unary prefixed op.
-			obj = new OperatorTree.Subtree(new OperatorTree());
+			obj = new OTSubtree(new OperatorTree());
 		
 		return obj.prefixed(op);
 	}
 
 	static OperatorTree handleOpsInSplitted(OperatorTree splitted, List<Set<String>> binOps) {
 		if(binOps.isEmpty()) {
-			if(splitted.entities.size() == 1 && splitted.entities.get(0) instanceof OperatorTree.Subtree)
-				return ((OperatorTree.Subtree) splitted.entities.get(0)).content;
+			if(splitted.entities.size() == 1 && splitted.entities.get(0) instanceof OTSubtree)
+				return ((OTSubtree) splitted.entities.get(0)).content;
 			return splitted;
 		}
 		
@@ -69,31 +69,31 @@ public class OTParser {
 		    		
 		splitted = splitSplittedByOps(splitted, equallyPriorityOps);
 		if(splitted.entities.size() == 1)
-			return handleOpsInSplitted( ((OperatorTree.Subtree) splitted.entities.get(0)).content, restBinOps );
+			return handleOpsInSplitted( ((OTSubtree) splitted.entities.get(0)).content, restBinOps );
 		
 		OperatorTree ot = new OperatorTree();
 		boolean nextOpWanted = false;
-		for(OperatorTree.Entity e : splitted.entities) {
-			if(e instanceof OperatorTree.RawString) {
-				String op = ((OperatorTree.RawString) e).content;
+		for(OTEntity e : splitted.entities) {
+			if(e instanceof OTRawString) {
+				String op = ((OTRawString) e).content;
 				if(!nextOpWanted) throw new AssertionError("we should have handled that already in grabUnaryPrefixedOpFromSplitted");
 				if(ot.op.isEmpty())
 					ot.op = op;
 				else
 					// it must be an op in equallyPriorityOps because of splitSplittedByOps
-					ot = new OperatorTree(op, new OperatorTree.Subtree(ot));
+					ot = new OperatorTree(op, new OTSubtree(ot));
 				nextOpWanted = false;
 			}
 			else { // e instanceof Subtree
-				if(nextOpWanted) throw new AssertionError("should not happen by the way splitByOps works; ops = " + binOps + ", splitted = " + splitted + ", current = " + ot + ", next = " + ((OperatorTree.Subtree) e).content);
-				OperatorTree subtree = ((OperatorTree.Subtree) e).content;
+				if(nextOpWanted) throw new AssertionError("should not happen by the way splitByOps works; ops = " + binOps + ", splitted = " + splitted + ", current = " + ot + ", next = " + ((OTSubtree) e).content);
+				OperatorTree subtree = ((OTSubtree) e).content;
 				//if(subtree.entities.size() == 1 && subtree.entities.get(0) instanceof Subtree)
 				//	subtree = ((Subtree) subtree.entities.get(0)).content;
 				subtree = handleOpsInSplitted( subtree, restBinOps );
 				if(subtree.entities.size() == 1)
 					ot.entities.add(subtree.entities.get(0));
 				else
-					ot.entities.add(new OperatorTree.Subtree(subtree));
+					ot.entities.add(new OTSubtree(subtree));
 				nextOpWanted = true;
 			}				
 		}
@@ -126,11 +126,11 @@ public class OTParser {
 		if(source.op.isEmpty() && source.entities.size() > 1)
 			ot.op = defaultOp;
 		
-		for(OperatorTree.Entity e : source.entities) {
-			if(e instanceof OperatorTree.RawString)
+		for(OTEntity e : source.entities) {
+			if(e instanceof OTRawString)
 				ot.entities.add(e);
 			else
-				ot.entities.add( new OperatorTree.Subtree( parseDefaultAnonBinOpInTree( ((OperatorTree.Subtree) e).content, defaultOp ), ((OperatorTree.Subtree) e).explicitEnclosing ) );
+				ot.entities.add( new OTSubtree( parseDefaultAnonBinOpInTree( ((OTSubtree) e).content, defaultOp ), ((OTSubtree) e).explicitEnclosing ) );
 		}
 		return ot;
 	}
@@ -153,15 +153,15 @@ public class OTParser {
 		return opl;
 	}
 
-	static OperatorTree.Entity parseOpsInEntity(final OperatorTree.Entity source, final Set<String> binOps, List<Set<String>> binOpList) {
-		if(source instanceof OperatorTree.RawString) {
+	static OTEntity parseOpsInEntity(final OTEntity source, final Set<String> binOps, List<Set<String>> binOpList) {
+		if(source instanceof OTRawString) {
 			OperatorTree ot = parseOpsInTree(new OperatorTree("", source), binOps, binOpList);
 			if(ot.entities.size() == 0) throw new AssertionError("something is wrong");
 			else if(ot.entities.size() == 1) return ot.entities.get(0);
-			return new OperatorTree.Subtree(ot);        		
+			return new OTSubtree(ot);        		
 		}
 		else
-			return new OperatorTree.Subtree(parseOpsInTree(((OperatorTree.Subtree)source).content, binOps, binOpList), ((OperatorTree.Subtree) source).explicitEnclosing);
+			return new OTSubtree(parseOpsInTree(((OTSubtree)source).content, binOps, binOpList), ((OTSubtree) source).explicitEnclosing);
 	}
 
 	static OperatorTree parseOpsInTree(final OperatorTree source, final Set<String> binOps, List<Set<String>> binOpList) {
@@ -170,19 +170,19 @@ public class OTParser {
 		OperatorTree ot = new OperatorTree();
 		if(!source.op.isEmpty()) {
 			ot.op = source.op;
-			for(OperatorTree.Entity e : source.entities)
+			for(OTEntity e : source.entities)
 				ot.entities.add(parseOpsInEntity(e, binOps, binOpList));
 			return ot;
 		}
 		
 		OperatorTree splitted = splitByOps(source, binOps);
-		if(splitted.entities.size() == 1 && splitted.entities.get(0) instanceof OperatorTree.Subtree) {
+		if(splitted.entities.size() == 1 && splitted.entities.get(0) instanceof OTSubtree) {
 			// no op found -> we put the source just into one single subtree
-			for(OperatorTree.Entity e : ((OperatorTree.Subtree) splitted.entities.get(0)).content.entities) {
-				if(e instanceof OperatorTree.RawString)
+			for(OTEntity e : ((OTSubtree) splitted.entities.get(0)).content.entities) {
+				if(e instanceof OTRawString)
 					ot.entities.add(e); // we already parsed that in splitByOps
 				else
-					ot.entities.add(new OperatorTree.Subtree(parseOpsInTree( ((OperatorTree.Subtree) e).content, binOps, binOpList ), ((OperatorTree.Subtree) e).explicitEnclosing));
+					ot.entities.add(new OTSubtree(parseOpsInTree( ((OTSubtree) e).content, binOps, binOpList ), ((OTSubtree) e).explicitEnclosing));
 			}
 			return ot;
 		}
@@ -213,41 +213,41 @@ public class OTParser {
 		OperatorTree res = new OperatorTree();
 		OperatorTree lastSubtree = new OperatorTree();
 		
-		for(OperatorTree.Entity e : ot.entities) {
-			if(e instanceof OperatorTree.RawString) {
+		for(OTEntity e : ot.entities) {
+			if(e instanceof OTRawString) {
 	    		String lastStr = "";
-				for(Character c : Utils.iterableString(((OperatorTree.RawString) e).content)) {
+				for(Character c : Utils.iterableString(((OTRawString) e).content)) {
 					if(equalPriorityOps.contains("" + c)) {
 						if(!lastStr.isEmpty()) {
-							lastSubtree.entities.add(new OperatorTree.RawString(lastStr));
+							lastSubtree.entities.add(new OTRawString(lastStr));
 							lastStr = "";
 						}
 						
 						if(!lastSubtree.entities.isEmpty()) {
-				    		res.entities.add(new OperatorTree.Subtree(lastSubtree));
+				    		res.entities.add(new OTSubtree(lastSubtree));
 				    		lastSubtree = new OperatorTree();
 						}
 						
-						res.entities.add(new OperatorTree.RawString("" + c));
+						res.entities.add(new OTRawString("" + c));
 					}
 					else if(c != ' ')							
 						lastStr += c;
 					else {
 						if(!lastStr.isEmpty()) {
-							lastSubtree.entities.add(new OperatorTree.RawString(lastStr));
+							lastSubtree.entities.add(new OTRawString(lastStr));
 							lastStr = "";
 						}							
 					}
 				}
 				if(!lastStr.isEmpty())
-					lastSubtree.entities.add(new OperatorTree.RawString(lastStr));
+					lastSubtree.entities.add(new OTRawString(lastStr));
 			}
 			else { // e instanceof Subtree
 				lastSubtree.entities.add(e);
 			}
 		}
 		if(!lastSubtree.entities.isEmpty())
-			res.entities.add(new OperatorTree.Subtree(lastSubtree));			
+			res.entities.add(new OTSubtree(lastSubtree));			
 		
 		return res;
 	}
@@ -256,12 +256,12 @@ public class OTParser {
 		OperatorTree ot = new OperatorTree();
 		OperatorTree lastSubtree = new OperatorTree();
 		
-		for(OperatorTree.Entity e : splitted.entities) {
-			if(e instanceof OperatorTree.RawString) {
-				String op = ((OperatorTree.RawString) e).content;
+		for(OTEntity e : splitted.entities) {
+			if(e instanceof OTRawString) {
+				String op = ((OTRawString) e).content;
 				if(ops.contains(op)) {
 					if(!lastSubtree.entities.isEmpty())
-			    		ot.entities.add(new OperatorTree.Subtree(lastSubtree));
+			    		ot.entities.add(new OTSubtree(lastSubtree));
 					ot.entities.add(e);
 					lastSubtree = new OperatorTree();
 					continue;
@@ -270,7 +270,7 @@ public class OTParser {
 			lastSubtree.entities.add(e);
 		}
 		if(!lastSubtree.entities.isEmpty())
-			ot.entities.add(new OperatorTree.Subtree(lastSubtree));
+			ot.entities.add(new OTSubtree(lastSubtree));
 		return ot;
 	}
 
@@ -278,9 +278,9 @@ public class OTParser {
 		OperatorTree ot = new OperatorTree();
 		for(ParseTree.Entity e : t.entities) {
 			if(e instanceof ParseTree.RawString)
-				ot.entities.add( new OperatorTree.RawString(((ParseTree.RawString)e).content) );
+				ot.entities.add( new OTRawString(((ParseTree.RawString)e).content) );
 			else
-				ot.entities.add( new OperatorTree.Subtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content), true ) );
+				ot.entities.add( new OTSubtree( undefinedOpTreeFromParseTree(((ParseTree.Subtree)e).content), true ) );
 		}
 		return ot;
 	}

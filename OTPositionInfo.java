@@ -26,7 +26,7 @@ abstract class OTPositionInfo {
 	}
 	
 	static class StringPos extends OTPositionInfo {
-    	OperatorTree.RawString rs;
+    	OTRawString rs;
     	int pos;            	
 
     	@Override OTPositionInfo next() {
@@ -57,17 +57,17 @@ abstract class OTPositionInfo {
 				pos.absolutePos = absolutePos + 1/*space*/ + ot.op.length() + 1/*space*/;
 				return pos;
 			}
-			OperatorTree.Entity nextEntity = ot.entities.get(index);
+			OTEntity nextEntity = ot.entities.get(index);
 			OTPositionInfo pos = null;
-			if(nextEntity instanceof OperatorTree.RawString) {
+			if(nextEntity instanceof OTRawString) {
 				OTPositionInfo.StringPos spos = new StringPos();
-				spos.rs = (OperatorTree.RawString) nextEntity;
+				spos.rs = (OTRawString) nextEntity;
 				spos.pos = 0;
 				pos = spos;
 			}
 			else {
 				OTPositionInfo.BetweenEntities spos = new BetweenEntities();
-				spos.ot = ((OperatorTree.Subtree) nextEntity).content;
+				spos.ot = ((OTSubtree) nextEntity).content;
 				spos.index = 0;
 				pos = spos;
 			}

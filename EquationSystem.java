@@ -162,18 +162,18 @@ public class EquationSystem {
 					@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(); }
 					@Override String baseOp() { return "∙"; }
 					@Override OperatorTree asOperatorTree() {
-						if(pot == 0) return new OperatorTree("", new OperatorTree.RawString("1"));
+						if(pot == 0) return new OperatorTree("", new OTRawString("1"));
 						OperatorTree ot = new OperatorTree();
 						if(pot > 0) {
 							ot.op = (pot > 1) ? baseOp() : "";
 							for(int i = 0; i < pot; ++i)
-								ot.entities.add(new OperatorTree.RawString(sym));
+								ot.entities.add(new OTRawString(sym));
 							return ot;
 						}
 						else {
 							ot.op = "/";
-							ot.entities.add(new OperatorTree.RawString("1"));
-							ot.entities.add(new OperatorTree.Subtree(new Pot(sym, -pot).asOperatorTree()));
+							ot.entities.add(new OTRawString("1"));
+							ot.entities.add(new OTSubtree(new Pot(sym, -pot).asOperatorTree()));
 						}
 						return ot;
 					}
@@ -311,9 +311,9 @@ public class EquationSystem {
 						parse(ot.unaryPrefixedContent().asTree());
 					}
 					else if(ot.op.equals("∙") || ot.entities.size() <= 1) {
-						for(OperatorTree.Entity e : ot.entities) {
-							if(e instanceof OperatorTree.RawString) {
-								String s = ((OperatorTree.RawString) e).content;
+						for(OTEntity e : ot.entities) {
+							if(e instanceof OTRawString) {
+								String s = ((OTRawString) e).content;
 								try {
 									fac *= Integer.parseInt(s);
 								}
@@ -323,7 +323,7 @@ public class EquationSystem {
 								}
 							}
 							else
-								parse( ((OperatorTree.Subtree) e).content );
+								parse( ((OTSubtree) e).content );
 						}
 					}
 					else
@@ -483,16 +483,16 @@ public class EquationSystem {
 			void add(OperatorTree ot) throws ParseError {
 				if(ot.isZero()) return;
 				if(ot.entities.size() == 1) {
-					OperatorTree.Entity e = ot.entities.get(0); 
-					if(e instanceof OperatorTree.Subtree)
-						add(((OperatorTree.Subtree) e).content);
+					OTEntity e = ot.entities.get(0); 
+					if(e instanceof OTSubtree)
+						add(((OTSubtree) e).content);
 					else
 						entries.add(new Prod(ot));
 					return;
 				}
 				
 				if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
-					OperatorTree.Entity e = ot.unaryPrefixedContent();
+					OTEntity e = ot.unaryPrefixedContent();
 					try {
 						entries.add(new Prod(e.asTree()).minusOne());
 					} catch(ParseError exc) {
@@ -504,7 +504,7 @@ public class EquationSystem {
 				}
 				
 				if(ot.op.equals("+")) {
-					for(OperatorTree.Entity e : ot.entities)
+					for(OTEntity e : ot.entities)
 						add(e.asTree());
 				}
 				else if(ot.op.equals("∙")) {
@@ -865,7 +865,7 @@ public class EquationSystem {
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}
 	
-	static void assertEqual(OperatorTree.Entity a, OperatorTree.Entity b) {
+	static void assertEqual(OTEntity a, OTEntity b) {
 		if(!a.equals(b))
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}

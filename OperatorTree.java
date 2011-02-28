@@ -16,100 +16,28 @@ import java.util.Stack;
 
 class OperatorTree implements Comparable<OperatorTree> {
 	String op = "";
-	abstract static class Entity implements Comparable<OperatorTree.Entity> {
-		OperatorTree asTree() { return new OperatorTree("", this); }
-		OperatorTree prefixed(final String op) {
-			// empty subtree at the beginning is the mark for a prefix op
-			OperatorTree ot = new OperatorTree(op, new Subtree(new OperatorTree()));
-			ot.entities.add(this);
-			return ot;
-		}
-		boolean isEnclosedImplicitely() { return true; }
-		String toString(String parentOp) { return toString(); }
-		abstract Object getContent();
-		@Override public int hashCode() { return 31 + getContent().hashCode(); }
-		@Override public boolean equals(Object obj) {
-			if(!(obj instanceof OperatorTree.Entity)) return false;
-			return compareTo((OperatorTree.Entity) obj) == 0;
-		}
-	}
-	static class RawString extends OperatorTree.Entity {
-		String content = "";
-		RawString() {}
-		RawString(String s) { if(s == null) throw new AssertionError("string must be non-null"); content = s; }
-		@Override public String toString() { return debugOperatorTreeDump ? ("{" + content + "}") : content; }
-		public int compareTo(OperatorTree.Entity o) {
-			if(o instanceof OperatorTree.RawString) return content.compareTo(((OperatorTree.RawString) o).content);
-			return -1;
-		}
-		Object getContent() { return content; }
-		static Utils.Function<OperatorTree.RawString,String> toStringConverter() {
-			return new Utils.Function<OperatorTree.RawString,String>() {
-				public String eval(OperatorTree.RawString obj) {
-					return obj.content;
-				}
-			};
-		}
-	}
-	static class Subtree extends OperatorTree.Entity {
-		OperatorTree content;
-		boolean explicitEnclosing = false;
-		Subtree(OperatorTree t) { content = t; }
-		Subtree(OperatorTree t, boolean explicitEnclosing) { content = t; this.explicitEnclosing = explicitEnclosing; }
-		@Override boolean isEnclosedImplicitely() { return explicitEnclosing; }
-		@Override public String toString() {
-			if(debugOperatorTreeDump || explicitEnclosing)
-				return "(" + content.toString() + ")";
-			if(content.entities.size() == 1)
-				return content.toString();
-			if(content.canBeInterpretedAsUnaryPrefixed())
-				return content.toString();
-			return "(" + content.toString() + ")";
-		}
-		@Override String toString(String parentOp) {
-			if(debugOperatorTreeDump || explicitEnclosing)
-				return "(" + content.toString() + ")";
-			if(content.entities.size() == 1)
-				return content.toString();
-			if(content.canBeInterpretedAsUnaryPrefixed())
-				return content.toString();
-			final String ops = "/∙+-=";
-			int parentOpIdx = ops.indexOf(parentOp);
-			int childOpIdx = ops.indexOf(content.op);
-			if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
-			if(parentOpIdx == 3) parentOpIdx--; if(childOpIdx == 3) childOpIdx--; // take +- as equal
-			if(childOpIdx <= parentOpIdx) return content.toString();
-			return "(" + content.toString() + ")";
-		}
-		@Override OperatorTree asTree() { return content; }
-		Object getContent() { return content; }
-		public int compareTo(OperatorTree.Entity o) {
-			if(o instanceof OperatorTree.Subtree) return content.compareTo(((OperatorTree.Subtree) o).content);
-			return 1; // not subtree, i.e. rawstring, i.e. greater
-		}
-	}
-	List<OperatorTree.Entity> entities = new LinkedList<OperatorTree.Entity>();
+	List<OTEntity> entities = new LinkedList<OTEntity>();
 	
 	OperatorTree() {}
 	OperatorTree(String op) { this.op = op; } 
-	OperatorTree(String op, OperatorTree.Entity e) { this.op = op; entities.add(e); } 
-	OperatorTree(String op, List<OperatorTree.Entity> entities) { this.op = op; this.entities = entities; }
-	OperatorTree copy() { return new OperatorTree(op, new LinkedList<OperatorTree.Entity>(entities)); }
+	OperatorTree(String op, OTEntity e) { this.op = op; entities.add(e); } 
+	OperatorTree(String op, List<OTEntity> entities) { this.op = op; this.entities = entities; }
+	OperatorTree copy() { return new OperatorTree(op, new LinkedList<OTEntity>(entities)); }
 	static OperatorTree MergedEquation(OperatorTree left, OperatorTree right) {
 		return new OperatorTree("+", Utils.listFromArgs(left.asEntity(), right.minusOne().asEntity()));
 	}    	
-	static OperatorTree Sum(List<OperatorTree.Entity> entities) { return new OperatorTree("+", entities); }
-	static OperatorTree Product(List<OperatorTree.Entity> entities) { return new OperatorTree("∙", entities); }
+	static OperatorTree Sum(List<OTEntity> entities) { return new OperatorTree("+", entities); }
+	static OperatorTree Product(List<OTEntity> entities) { return new OperatorTree("∙", entities); }
 	
     static OperatorTree Zero() { return Number(0); }        
     boolean isZero() {
     	if(op.equals("∙") && entities.isEmpty()) return false;
     	if(entities.isEmpty()) return true;
     	if(entities.size() > 1) return false;
-    	OperatorTree.Entity e = entities.get(0);
-    	if(e instanceof OperatorTree.RawString)
-    		return ((OperatorTree.RawString) e).content.equals("0");
-    	return ((OperatorTree.Subtree) e).content.isZero();
+    	OTEntity e = entities.get(0);
+    	if(e instanceof OTRawString)
+    		return ((OTRawString) e).content.equals("0");
+    	return ((OTSubtree) e).content.isZero();
     }
 
     static OperatorTree One() { return Number(1); }        
@@ -117,10 +45,10 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(op.equals("∙") && entities.isEmpty()) return true;
     	if(entities.isEmpty()) return false;
     	if(entities.size() > 1) return false;
-    	OperatorTree.Entity e = entities.get(0);
-    	if(e instanceof OperatorTree.RawString)
-    		return ((OperatorTree.RawString) e).content.equals("1");
-    	return ((OperatorTree.Subtree) e).content.isOne();
+    	OTEntity e = entities.get(0);
+    	if(e instanceof OTRawString)
+    		return ((OTRawString) e).content.equals("1");
+    	return ((OTSubtree) e).content.isOne();
     }
     
     static OperatorTree Variable(String var) {
@@ -129,18 +57,18 @@ class OperatorTree implements Comparable<OperatorTree> {
     		throw new AssertionError("Variable '" + var + "' must not be interpretable as a number.");
     	}
     	catch(NumberFormatException e) {
-        	return new RawString(var).asTree();        		
+        	return new OTRawString(var).asTree();        		
     	}
     }
-	static OperatorTree Number(int num) { return new RawString("" + num).asTree(); }
+	static OperatorTree Number(int num) { return new OTRawString("" + num).asTree(); }
 	Integer asNumber() {
 		if(isZero()) return 0;
 		if(isOne()) return 1;
 		if(entities.size() == 1) {
-			OperatorTree.Entity e = entities.get(0);
-			if(e instanceof OperatorTree.Subtree)
-				return ((OperatorTree.Subtree)e).content.asNumber();
-			String s = ((OperatorTree.RawString)e).content;
+			OTEntity e = entities.get(0);
+			if(e instanceof OTSubtree)
+				return ((OTSubtree)e).content.asNumber();
+			String s = ((OTRawString)e).content;
 			try { return Integer.parseInt(s); }
 			catch(NumberFormatException exc) { return null; }
 		}
@@ -148,7 +76,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(op.equals("+") || op.equals("-")) x = 0;
 		else if(op.equals("∙") || op.equals("/")) x = 1;
 		else return null;
-		for(OperatorTree.Entity e : entities) {
+		for(OTEntity e : entities) {
 			Integer y = e.asTree().asNumber();
 			if(y == null) return null;
 			try {
@@ -170,7 +98,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
 	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
 	
-	static class RawStringIterator implements Iterator<OperatorTree.RawString> {
+	static class RawStringIterator implements Iterator<OTRawString> {
 		static class State {
 			int entityIndex = 0;
 			OperatorTree ot;
@@ -178,9 +106,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 			State(OperatorTree t) { ot = t; }
 			State(RawStringIterator.State s) { entityIndex = s.entityIndex; ot = s.ot; }
 			boolean hasNext() { return entityIndex < ot.entities.size(); }
-			OperatorTree.Entity current() { return ot.entities.get(entityIndex); }
+			OTEntity current() { return ot.entities.get(entityIndex); }
 			void remove() { ot.entities.remove(entityIndex); }
-			void replace(OperatorTree.Entity e) { ot.entities.set(entityIndex, e); }
+			void replace(OTEntity e) { ot.entities.set(entityIndex, e); }
 			boolean isAtEnd() { return entityIndex == ot.entities.size() - 1; }
 		}
 		Stack<RawStringIterator.State> stateStack = new Stack<RawStringIterator.State>();
@@ -192,9 +120,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 			lastState = i.lastState; // this is safe because we never manipulate lastState
 		}
 		OperatorTree.RawStringIterator copy() { return new RawStringIterator(this); }
-		static Iterable<OperatorTree.RawString> iterable(final OperatorTree t) {
-			return new Iterable<OperatorTree.RawString>() {
-				public Iterator<OperatorTree.RawString> iterator() {
+		static Iterable<OTRawString> iterable(final OperatorTree t) {
+			return new Iterable<OTRawString>() {
+				public Iterator<OTRawString> iterator() {
 					return new RawStringIterator(t);
 				}
 			};
@@ -212,18 +140,18 @@ class OperatorTree implements Comparable<OperatorTree> {
 		
 		void walkSubtrees() {
 			walkdown();
-			while(!stateStack.empty() && stateStack.peek().current() instanceof OperatorTree.Subtree) {
-				stateStack.push(new State( ((OperatorTree.Subtree)stateStack.peek().current()).content ));
+			while(!stateStack.empty() && stateStack.peek().current() instanceof OTSubtree) {
+				stateStack.push(new State( ((OTSubtree)stateStack.peek().current()).content ));
 				walkdown();
 			}
 		}
 		
-		public OperatorTree.RawString peek() {
+		public OTRawString peek() {
 			if(!hasNext()) throw new NoSuchElementException();
-			return (OperatorTree.RawString) stateStack.peek().current();
+			return (OTRawString) stateStack.peek().current();
 		}
 		    		
-		public OperatorTree.RawString next() {
+		public OTRawString next() {
 			if(!hasNext()) throw new NoSuchElementException();
 			
 			lastState = new State(stateStack.peek());
@@ -231,7 +159,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			stateStack.peek().entityIndex++;
 			walkSubtrees();
 			
-			return (OperatorTree.RawString) lastState.current();
+			return (OTRawString) lastState.current();
 		}
 
 		public void remove() {
@@ -248,7 +176,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 		
 		// replaces last element returned by next() with e in underlying container
-		public void replace(OperatorTree.Entity e) {
+		public void replace(OTEntity e) {
 			if(lastState == null) throw new IllegalStateException();
 			lastState.replace(e);
 		}
@@ -265,30 +193,30 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 	    	
 	boolean canBeInterpretedAsUnaryPrefixed() {
-		return entities.size() == 2 && entities.get(0) instanceof OperatorTree.Subtree && ((OperatorTree.Subtree)entities.get(0)).content.entities.isEmpty();	
+		return entities.size() == 2 && entities.get(0) instanceof OTSubtree && ((OTSubtree)entities.get(0)).content.entities.isEmpty();	
 	}
 	
-	OperatorTree.Entity unaryPrefixedContent() {
+	OTEntity unaryPrefixedContent() {
 		if(!canBeInterpretedAsUnaryPrefixed()) throw new AssertionError("we expect the OT to be unary prefixed");
 		return entities.get(1);
 	}
 	
 	OperatorTree prefixed(String prefixOp) {
-		return new OperatorTree(prefixOp, Utils.listFromArgs(new Subtree(new OperatorTree()), asEntity()));
+		return new OperatorTree(prefixOp, Utils.listFromArgs(new OTSubtree(new OperatorTree()), asEntity()));
 	}
 	
 	OperatorTree replaceVar(String var, OperatorTree replacement) {
 		OperatorTree ot = new OperatorTree(op);
-		for(OperatorTree.Entity e : entities) {
-			if(e instanceof OperatorTree.RawString) {
-				if(((OperatorTree.RawString)e).content.equals(var))
+		for(OTEntity e : entities) {
+			if(e instanceof OTRawString) {
+				if(((OTRawString)e).content.equals(var))
 					ot.entities.add(replacement.asEntity());
 				else
 					ot.entities.add(e);
 			}
 			else {
-				OperatorTree.Subtree subtree = (OperatorTree.Subtree) e;
-				ot.entities.add(new Subtree(subtree.content.replaceVar(var, replacement), subtree.explicitEnclosing));
+				OTSubtree subtree = (OTSubtree) e;
+				ot.entities.add(new OTSubtree(subtree.content.replaceVar(var, replacement), subtree.explicitEnclosing));
 			}
 		}
 		return ot;
@@ -296,14 +224,14 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
 	boolean isNegative() {
 		if(entities.size() == 1) {
-			OperatorTree.Entity e = entities.get(0);
-			if(e instanceof OperatorTree.RawString) return false;
-			return ((OperatorTree.Subtree) e).content.isNegative();
+			OTEntity e = entities.get(0);
+			if(e instanceof OTRawString) return false;
+			return ((OTSubtree) e).content.isNegative();
 		}
 		
 		if(op.equals("∙") || op.equals("/")) {
 			boolean neg = false;
-			for(OperatorTree.Entity e : entities)
+			for(OTEntity e : entities)
 				neg ^= e.asTree().isNegative();
 			return neg;
 		}
@@ -321,8 +249,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 			if(isZero()) return "0";
 			if(isOne()) return "1";
 		}*/
-		Iterable<String> entitiesStr = Utils.map(entities, new Utils.Function<OperatorTree.Entity,String>() {
-			public String eval(OperatorTree.Entity obj) {
+		Iterable<String> entitiesStr = Utils.map(entities, new Utils.Function<OTEntity,String>() {
+			public String eval(OTEntity obj) {
 				return obj.toString(op);
 			}
 		});
@@ -345,7 +273,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			int c = op.compareTo(o.op);
 			if(c != 0) return c;
 		}
-		Comparator<Collection<OperatorTree.Entity>> comp = Utils.orderOnCollection();
+		Comparator<Collection<OTEntity>> comp = Utils.orderOnCollection();
 		return comp.compare(entities, o.entities);
 	}
 	@Override public int hashCode() {
@@ -359,8 +287,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return compareTo((OperatorTree) obj) == 0;
 	}
 
-	Iterable<OperatorTree.RawString> leafs() { return RawStringIterator.iterable(this); }
-	Iterable<String> leafsAsString() { return Utils.map(leafs(), RawString.toStringConverter()); }
+	Iterable<OTRawString> leafs() { return RawStringIterator.iterable(this); }
+	Iterable<String> leafsAsString() { return Utils.map(leafs(), OTRawString.toStringConverter()); }
 
     Iterable<String> vars() {
     	Iterable<String> leafs = leafsAsString();
@@ -385,9 +313,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 					public boolean hasNext() { return childs == null || childs.hasNext(); }
 					public String next() {
 						if(childs == null) {
-							Iterable<OperatorTree.Subtree> subtrees = Utils.filterType(OperatorTree.this.entities, OperatorTree.Subtree.class);
-							Iterable<Iterable<String>> iterables = Utils.map(subtrees, new Utils.Function<OperatorTree.Subtree,Iterable<String>>() {
-								public Iterable<String> eval(OperatorTree.Subtree obj) {
+							Iterable<OTSubtree> subtrees = Utils.filterType(OperatorTree.this.entities, OTSubtree.class);
+							Iterable<Iterable<String>> iterables = Utils.map(subtrees, new Utils.Function<OTSubtree,Iterable<String>>() {
+								public Iterable<String> eval(OTSubtree obj) {
 									return obj.content.ops();
 								}
 							});
@@ -404,8 +332,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
 	OperatorTree removeObsolete() {
 		if(entities.size() == 1) {
-			if(entities.get(0) instanceof OperatorTree.Subtree)
-				return ((OperatorTree.Subtree) entities.get(0)).content.removeObsolete();
+			if(entities.get(0) instanceof OTSubtree)
+				return ((OTSubtree) entities.get(0)).content.removeObsolete();
 			return this;
 		}
 			
@@ -413,9 +341,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 
 		if(op.equals("+") || op.equals("-")) {
 			boolean first = true;
-			for(OperatorTree.Entity e : entities) {
-				if(e instanceof OperatorTree.Subtree)
-					e = ((OperatorTree.Subtree) e).content.removeObsolete().asEntity();
+			for(OTEntity e : entities) {
+				if(e instanceof OTSubtree)
+					e = ((OTSubtree) e).content.removeObsolete().asEntity();
 				if(!e.asTree().isZero() || (op.equals("-") && first))
 					ot.entities.add(e);
 				first = false;
@@ -423,18 +351,18 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 		else if(op.equals("∙") || op.equals("/")) {
 			boolean first = true;
-			for(OperatorTree.Entity e : entities) {
-				if(e instanceof OperatorTree.Subtree)
-					e = ((OperatorTree.Subtree) e).content.removeObsolete().asEntity();
+			for(OTEntity e : entities) {
+				if(e instanceof OTSubtree)
+					e = ((OTSubtree) e).content.removeObsolete().asEntity();
 				if(!e.asTree().isOne() || (op.equals("/") && first))
 					ot.entities.add(e);
 				first = false;
 			}
 		}
 		else {
-			for(OperatorTree.Entity e : entities) {
-				if(e instanceof OperatorTree.Subtree)
-					e = ((OperatorTree.Subtree) e).content.removeObsolete().asEntity();
+			for(OTEntity e : entities) {
+				if(e instanceof OTSubtree)
+					e = ((OTSubtree) e).content.removeObsolete().asEntity();
 				ot.entities.add(e);
 			}
 		}
@@ -443,40 +371,40 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 	
     OperatorTree mergeOps(Set<String> ops) {
-    	if(entities.size() == 1 && entities.get(0) instanceof OperatorTree.Subtree)
-    		return ((OperatorTree.Subtree) entities.get(0)).content.mergeOps(ops);
+    	if(entities.size() == 1 && entities.get(0) instanceof OTSubtree)
+    		return ((OTSubtree) entities.get(0)).content.mergeOps(ops);
     	
     	OperatorTree ot = new OperatorTree(op);
-    	for(OperatorTree.Entity e : entities) {
-    		if(e instanceof OperatorTree.RawString)
+    	for(OTEntity e : entities) {
+    		if(e instanceof OTRawString)
     			ot.entities.add(e);
     		else {
-    			OperatorTree subtree = ((OperatorTree.Subtree) e).content.mergeOps(ops);
+    			OperatorTree subtree = ((OTSubtree) e).content.mergeOps(ops);
     			if(subtree.op.equals(ot.op) && ops.contains(op) && !subtree.canBeInterpretedAsUnaryPrefixed())
     				ot.entities.addAll(subtree.entities);
     			else
-    				ot.entities.add(new Subtree(subtree));
+    				ot.entities.add(new OTSubtree(subtree));
     		}
     	}
     	return ot;
     }
     
     OperatorTree mergeOpsFromRight(Set<String> ops) {
-    	if(entities.size() == 1 && entities.get(0) instanceof OperatorTree.Subtree)
-    		return ((OperatorTree.Subtree) entities.get(0)).content.mergeOpsFromRight(ops);
+    	if(entities.size() == 1 && entities.get(0) instanceof OTSubtree)
+    		return ((OTSubtree) entities.get(0)).content.mergeOpsFromRight(ops);
     	
     	OperatorTree ot = new OperatorTree();
     	boolean first = true;
     	ot.op = op;
-    	for(OperatorTree.Entity e : entities) {
-    		if(e instanceof OperatorTree.RawString)
+    	for(OTEntity e : entities) {
+    		if(e instanceof OTRawString)
     			ot.entities.add(e);
     		else {
-    			OperatorTree subtree = ((OperatorTree.Subtree) e).content.mergeOpsFromRight(ops);
+    			OperatorTree subtree = ((OTSubtree) e).content.mergeOpsFromRight(ops);
     			if(first && subtree.op.equals(ot.op) && ops.contains(op) && !subtree.canBeInterpretedAsUnaryPrefixed())
     				ot = subtree;
     			else
-    				ot.entities.add(new Subtree(subtree));
+    				ot.entities.add(new OTSubtree(subtree));
     		}
     		first = false;
     	}
@@ -487,13 +415,13 @@ class OperatorTree implements Comparable<OperatorTree> {
     OperatorTree mergeOpsFromRight(String ops) { return mergeOpsFromRight(OTParser.simpleParseOps(ops)); }
     OperatorTree simplify() { return mergeOps("=+∙").mergeOpsFromRight("-/").removeObsolete(); }
     
-    OperatorTree transformOp(String oldOp, String newOp, Utils.Function<OperatorTree.Entity,OperatorTree.Entity> leftTransform, Utils.Function<OperatorTree.Entity,OperatorTree.Entity> rightTransform) {
+    OperatorTree transformOp(String oldOp, String newOp, Utils.Function<OTEntity,OTEntity> leftTransform, Utils.Function<OTEntity,OTEntity> rightTransform) {
     	OperatorTree ot = new OperatorTree();
     	if(!op.equals(oldOp) || canBeInterpretedAsUnaryPrefixed()) {
     		ot.op = op;
-        	for(OperatorTree.Entity e : entities) {
-        		if(e instanceof OperatorTree.Subtree)
-        			ot.entities.add( new Subtree( ((OperatorTree.Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((OperatorTree.Subtree) e).explicitEnclosing ) );
+        	for(OTEntity e : entities) {
+        		if(e instanceof OTSubtree)
+        			ot.entities.add( new OTSubtree( ((OTSubtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((OTSubtree) e).explicitEnclosing ) );
         		else // e instanceof RawString
         			ot.entities.add(e);
         	}
@@ -503,9 +431,9 @@ class OperatorTree implements Comparable<OperatorTree> {
     	// op == oldOp here 
     	ot.op = newOp;
     	boolean first = true;
-    	for(OperatorTree.Entity e : entities) {
-    		if(e instanceof OperatorTree.Subtree)
-    			e = new Subtree( ((OperatorTree.Subtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((OperatorTree.Subtree) e).explicitEnclosing );
+    	for(OTEntity e : entities) {
+    		if(e instanceof OTSubtree)
+    			e = new OTSubtree( ((OTSubtree) e).content.transformOp(oldOp, newOp, leftTransform, rightTransform), ((OTSubtree) e).explicitEnclosing );
     		if(first) {
     			if(leftTransform != null) e = leftTransform.eval(e);
     		} else {
@@ -519,48 +447,48 @@ class OperatorTree implements Comparable<OperatorTree> {
     
     OperatorTree transformMinusToPlus() {
 		return transformOp("-", "+", null,
-				new Utils.Function<OperatorTree.Entity,OperatorTree.Entity>() {
-					public OperatorTree.Entity eval(OperatorTree.Entity obj) {
-						return new Subtree(obj.prefixed("-"));
+				new Utils.Function<OTEntity,OTEntity>() {
+					public OTEntity eval(OTEntity obj) {
+						return new OTSubtree(obj.prefixed("-"));
 					}
 				});
     }
     
     OperatorTree transformMinusPushedDown() {
-    	OperatorTree.Entity e = transformMinusPushedDown(false);
-    	if(e instanceof OperatorTree.Subtree)
-    		return ((OperatorTree.Subtree) e).content;
+    	OTEntity e = transformMinusPushedDown(false);
+    	if(e instanceof OTSubtree)
+    		return ((OTSubtree) e).content;
     	return new OperatorTree("", e);
     }
-    OperatorTree.Entity transformMinusPushedDown(boolean negate) {
+    OTEntity transformMinusPushedDown(boolean negate) {
     	if(canBeInterpretedAsUnaryPrefixed() && op.equals("-")) {        		
-    		OperatorTree.Entity e = unaryPrefixedContent();
+    		OTEntity e = unaryPrefixedContent();
     		negate = !negate;
-    		if(e instanceof OperatorTree.Subtree)
-    			return ((OperatorTree.Subtree) e).content.transformMinusPushedDown(negate);
+    		if(e instanceof OTSubtree)
+    			return ((OTSubtree) e).content.transformMinusPushedDown(negate);
     		if(negate)
-    			return new Subtree(e.prefixed("-"));
+    			return new OTSubtree(e.prefixed("-"));
     		return e;
     	}
     	else {
     		OperatorTree ot = new OperatorTree();
     		ot.op = op;
-    		for(OperatorTree.Entity e : entities) {
-    			if(e instanceof OperatorTree.Subtree) {
-    				OperatorTree.Subtree origSubtree = (OperatorTree.Subtree) e;
+    		for(OTEntity e : entities) {
+    			if(e instanceof OTSubtree) {
+    				OTSubtree origSubtree = (OTSubtree) e;
     				e = origSubtree.content.transformMinusPushedDown(negate);
-    				if(e instanceof OperatorTree.Subtree)
-    					((OperatorTree.Subtree) e).explicitEnclosing = origSubtree.explicitEnclosing;
+    				if(e instanceof OTSubtree)
+    					((OTSubtree) e).explicitEnclosing = origSubtree.explicitEnclosing;
     			}
     			else {
     				if(negate)
-    					e = new Subtree(e.prefixed("-"));
+    					e = new OTSubtree(e.prefixed("-"));
     			}
     			ot.entities.add(e);
     			// don't negate further entries if this is a multiplication/division
     			if(op.equals("∙") || op.equals("/")) negate = false;
     		}
-    		return new Subtree(ot);
+    		return new OTSubtree(ot);
     	}
     }
     
@@ -569,13 +497,13 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(other.isZero()) return this;
 
 		if((this.op.equals("+") || this.entities.size() == 1) && (other.op.equals("+") || other.entities.size() == 1))
-			return Sum(new LinkedList<OperatorTree.Entity>(Utils.concatCollectionView(entities, other.entities)));
+			return Sum(new LinkedList<OTEntity>(Utils.concatCollectionView(entities, other.entities)));
 					
 		if(this.op.equals("+"))
-			return Sum(new LinkedList<OperatorTree.Entity>(Utils.concatCollectionView(this.entities, Utils.listFromArgs(other.asEntity()))));
+			return Sum(new LinkedList<OTEntity>(Utils.concatCollectionView(this.entities, Utils.listFromArgs(other.asEntity()))));
 
 		if(other.op.equals("+"))
-			return Sum(new LinkedList<OperatorTree.Entity>(Utils.concatCollectionView(Utils.listFromArgs(this.asEntity()), other.entities)));
+			return Sum(new LinkedList<OTEntity>(Utils.concatCollectionView(Utils.listFromArgs(this.asEntity()), other.entities)));
 
 		return Sum(Utils.listFromArgs(this.asEntity(), other.asEntity()));
 	}
@@ -584,14 +512,14 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(canBeInterpretedAsUnaryPrefixed() && op.equals("-"))
     		return unaryPrefixedContent().asTree();
     	
-    	OperatorTree.Entity e = transformMinusPushedDown(true);
+    	OTEntity e = transformMinusPushedDown(true);
     	return e.asTree();
 	}
 
-	OperatorTree.Entity asEntity() {
+	OTEntity asEntity() {
 		if(entities.size() == 1)
 			return entities.get(0);
-		return new Subtree(this);
+		return new OTSubtree(this);
 	}
     
 	OperatorTree divide(OperatorTree other) {
@@ -607,7 +535,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			if(entities.size() == 2)
 				return new OperatorTree("/", Utils.listFromArgs(entities.get(0), entities.get(1).asTree().multiply(other).asEntity()));
 			OperatorTree ot = new OperatorTree(op);
-			for(OperatorTree.Entity e : entities) ot.entities.add(e);
+			for(OTEntity e : entities) ot.entities.add(e);
 			ot.entities.add(other.asEntity());
 			return ot;
 		}
@@ -616,19 +544,19 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
 	OperatorTree mergeDivisions() {
 		if(entities.size() == 1) {
-			OperatorTree.Entity e = entities.get(0);
-			if(e instanceof OperatorTree.Subtree)
-				return ((OperatorTree.Subtree)e).content.mergeDivisions();
+			OTEntity e = entities.get(0);
+			if(e instanceof OTSubtree)
+				return ((OTSubtree)e).content.mergeDivisions();
 			return this;
 		}
 		
 		if(op.equals("∙")) {
 			OperatorTree nom = One(), denom = One();
-			for(OperatorTree.Entity e : entities) {
+			for(OTEntity e : entities) {
 				OperatorTree ot = e.asTree().mergeDivisions();
 				if(ot.op.equals("/")) {
 					int i = 0;
-					for(OperatorTree.Entity e2 : ot.entities) {
+					for(OTEntity e2 : ot.entities) {
 						if(i == 0) nom = nom.multiply(e2.asTree());
 						else denom = denom.multiply(e2.asTree());
 						i++;
@@ -641,11 +569,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 		else if(op.equals("/")) {
 			OperatorTree nom = One(), denom = One();
 			int i = 0;
-			for(OperatorTree.Entity e : entities) {
+			for(OTEntity e : entities) {
 				OperatorTree ot = e.asTree().mergeDivisions();
 				if(ot.op.equals("/")) {
 					int j = 0;
-					for(OperatorTree.Entity e2 : ot.entities) {
+					for(OTEntity e2 : ot.entities) {
 						if(j == 0 && i == 0 || j > 0 && i > 0) nom = nom.multiply(e2.asTree());
 						else denom = denom.multiply(e2.asTree());
 						j++;
@@ -661,7 +589,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 		else {
 			OperatorTree ot = new OperatorTree(op);
-			for(OperatorTree.Entity e : entities)
+			for(OTEntity e : entities)
 				ot.entities.add(e.asTree().mergeDivisions().asEntity());
 			return ot;
 		}
@@ -671,8 +599,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(equals(fac)) return One();
 		if(minusOne().equals(fac)) return Number(-1);
 		if(entities.size() == 1) {
-			if(entities.get(0) instanceof OperatorTree.Subtree)
-				return ((OperatorTree.Subtree) entities.get(0)).content.canRemoveFactor(fac);
+			if(entities.get(0) instanceof OTSubtree)
+				return ((OTSubtree) entities.get(0)).content.canRemoveFactor(fac);
 			return null;
 		}
 		
@@ -690,7 +618,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		else needOne = false;
 		boolean haveOne = false;
 		int numfac = 1;
-		for(OperatorTree.Entity e : entities) {
+		for(OTEntity e : entities) {
 			if(needOne && haveOne) {
 				ot.entities.add(e);
 				continue;
@@ -715,11 +643,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return ot;
 	}
 	
-	static Utils.Pair<Integer,Integer> simplifyDivisionFactor(List<OperatorTree.Entity> nomProd, List<OperatorTree.Entity> denomProd) {
+	static Utils.Pair<Integer,Integer> simplifyDivisionFactor(List<OTEntity> nomProd, List<OTEntity> denomProd) {
 		Utils.Pair<Integer,Integer> nomDenomFacs = new Utils.Pair<Integer,Integer>(1,1);
 		int fac = 1;
 		for(int i = 0; i < nomProd.size(); ++i) {
-			OperatorTree.Entity e = nomProd.get(i);
+			OTEntity e = nomProd.get(i);
 			if(e.asTree().isNegative()) {
 				nomProd.set(i, e.asTree().minusOne().asEntity());
 				fac *= -1;
@@ -729,7 +657,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			nomProd.set(i, e.asTree().simplify().asEntity());
 		}
 		for(int i = 0; i < denomProd.size(); ++i) {
-			OperatorTree.Entity e = denomProd.get(i);
+			OTEntity e = denomProd.get(i);
 			if(e.asTree().isNegative()) {
 				denomProd.set(i, e.asTree().minusOne().asEntity());
 				fac *= -1;
@@ -782,7 +710,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			}
 			
 			//System.out.println("div: " + nomProd + " / " + denomProd);
-			for(OperatorTree.Entity e : new ArrayList<OperatorTree.Entity>(Utils.concatCollectionView(denomProd.entities, Utils.listFromArgs(denom.asEntity())))) {
+			for(OTEntity e : new ArrayList<OTEntity>(Utils.concatCollectionView(denomProd.entities, Utils.listFromArgs(denom.asEntity())))) {
 				OperatorTree newNom = nom.canRemoveFactor(e.asTree());
 				OperatorTree newDenom = denom.canRemoveFactor(e.asTree());
 				//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
@@ -804,9 +732,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 	OperatorTree nextDivision() {
 		if(entities.isEmpty()) return null;
 		if(op.equals("/")) return entities.get(entities.size()-1).asTree();
-		for(OperatorTree.Entity e : entities) {
-			if(e instanceof OperatorTree.Subtree) {
-				OperatorTree next = ((OperatorTree.Subtree) e).content.nextDivision();
+		for(OTEntity e : entities) {
+			if(e instanceof OTSubtree) {
+				OperatorTree next = ((OTSubtree) e).content.nextDivision();
 				if(next != null) return next;
 			}
 		}
@@ -827,8 +755,8 @@ class OperatorTree implements Comparable<OperatorTree> {
     
     boolean haveDenominatorInSubtree(OperatorTree denom) {
     	if(matchDenominatorInDiv(denom)) return true;
-    	for(OperatorTree.Entity e : entities) {
-    		if(e instanceof OperatorTree.Subtree && e.asTree().haveDenominatorInSubtree(denom))
+    	for(OTEntity e : entities) {
+    		if(e instanceof OTSubtree && e.asTree().haveDenominatorInSubtree(denom))
     			return true;
     	}
     	return false;
@@ -864,9 +792,9 @@ class OperatorTree implements Comparable<OperatorTree> {
     	}
     	
     	if(canBeInterpretedAsUnaryPrefixed() && !op.equals("/")) {
-    		OperatorTree.Entity e = unaryPrefixedContent();
-    		if(e instanceof OperatorTree.Subtree)
-    			return ((OperatorTree.Subtree) e).content.multiply(other).prefixed(op);
+    		OTEntity e = unaryPrefixedContent();
+    		if(e instanceof OTSubtree)
+    			return ((OTSubtree) e).content.multiply(other).prefixed(op);
     		ot.op = "∙";
     		ot.entities.add(asEntity());
     		ot.entities.add(other.asEntity());
@@ -874,9 +802,9 @@ class OperatorTree implements Comparable<OperatorTree> {
     	}
     	
     	if(entities.size() == 1) {
-    		OperatorTree.Entity e = entities.get(0);
-    		if(e instanceof OperatorTree.Subtree)
-    			return ((OperatorTree.Subtree) e).content.multiply(other);
+    		OTEntity e = entities.get(0);
+    		if(e instanceof OTSubtree)
+    			return ((OTSubtree) e).content.multiply(other);
     		ot.op = "∙";
     		ot.entities.add(e);
     		ot.entities.add(other.asEntity());
@@ -894,7 +822,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     		}
     		else {
     			boolean first = true;
-            	for(OperatorTree.Entity e : entities) {
+            	for(OTEntity e : entities) {
             		if(first)
             			ot.entities.add(e.asTree().multiply(other).asEntity());
             		else
@@ -906,7 +834,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     	}
     	
     	// +, - or whatever else -> mult each entry
-    	for(OperatorTree.Entity e : entities)
+    	for(OTEntity e : entities)
     		ot.entities.add(e.asTree().multiply(other).asEntity());
     	return ot;
     }
@@ -915,7 +843,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(this.isOne()) return other;
 		if((op.equals("+") || op.equals("-")) && !canBeInterpretedAsUnaryPrefixed()) {
 			OperatorTree newOt = new OperatorTree(op);
-			for(OperatorTree.Entity e : entities) {
+			for(OTEntity e : entities) {
 				OperatorTree ot = e.asTree().pushdownMultiplication(other);
 				if(ot.op.equals("+"))
 					newOt.entities.addAll(ot.entities);
@@ -926,7 +854,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 		if(other.op.equals("+") || other.op.equals("-") && !other.canBeInterpretedAsUnaryPrefixed()) {
 			OperatorTree newOt = new OperatorTree(other.op);
-			for(OperatorTree.Entity e : other.entities) {
+			for(OTEntity e : other.entities) {
 				OperatorTree ot = pushdownMultiplication(e.asTree());
 				if(ot.op.equals("+"))
 					newOt.entities.addAll(ot.entities);
@@ -953,15 +881,15 @@ class OperatorTree implements Comparable<OperatorTree> {
     OperatorTree pushdownAllMultiplications() {
     	if(op.equals("∙")) {
     		OperatorTree ot = One();
-    		for(OperatorTree.Entity e : entities)
+    		for(OTEntity e : entities)
     			ot = ot.pushdownMultiplication(e.asTree().pushdownAllMultiplications());
     		return ot;
     	}
     	else {
         	OperatorTree ot = new OperatorTree(op);
-        	for(OperatorTree.Entity e : entities) {
-        		if(e instanceof OperatorTree.Subtree) {
-        			OperatorTree subtree = ((OperatorTree.Subtree) e).content.pushdownAllMultiplications();
+        	for(OTEntity e : entities) {
+        		if(e instanceof OTSubtree) {
+        			OperatorTree subtree = ((OTSubtree) e).content.pushdownAllMultiplications();
         			if(op.equals("+") && subtree.op.equals("+"))
         				ot.entities.addAll(subtree.entities);
         			else
