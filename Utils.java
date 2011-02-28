@@ -658,7 +658,7 @@ public class Utils {
     
     static void debugUtilsParsingOpTree(String s) {
 		OperatorTree.debugOperatorTreeDump = true;
-		OperatorTree ot = OperatorTree.parse(s); 
+		OperatorTree ot = OTParser.parse(s); 
 		String debugStr = ot.toString();
 		OperatorTree.debugOperatorTreeDump = false;
 		String normalStr = ot.toString();

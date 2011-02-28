@@ -362,7 +362,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 		WantedResult(String wantedExprStr, Iterable<String> allowedVars) {
 			try {
 				this.wantedExprStr = wantedExprStr;
-				this.wantedExpr = OperatorTree.parse(wantedExprStr).simplify();
+				this.wantedExpr = OTParser.parse(wantedExprStr).simplify();
 				this.allowedVars = new TreeSet<String>(Utils.collFromIter(allowedVars));
 			}
 			catch(Throwable e) {

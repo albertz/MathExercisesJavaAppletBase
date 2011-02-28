@@ -568,7 +568,7 @@ public class EquationSystem {
 				throw e;
 			}
 		}
-		Equation(String str) throws ParseError { this(OperatorTree.parse(str)); }
+		Equation(String str) throws ParseError { this(OTParser.parse(str)); }
 		Equation(OperatorTree ot, Set<String> allowedVars) throws ParseError { this(ot); assertValidVars(allowedVars); }
 		Equation(String str, Set<String> allowedVars) throws ParseError { this(str); assertValidVars(allowedVars); }
 		
@@ -832,7 +832,7 @@ public class EquationSystem {
 	}
 		
 	static void debugEquationParsing(String equ) throws Equation.ParseError {
-		OperatorTree ot = OperatorTree.parse(equ);
+		OperatorTree ot = OTParser.parse(equ);
 		if(!ot.op.equals("=")) throw new Equation.ParseError("'" + equ + "' must have '=' at the root.", "");
 		if(ot.entities.size() != 2) throw new Equation.ParseError("'" + equ + "' must have '=' with 2 sides.", "");		
 		OperatorTree left = ot.entities.get(0).asTree(), right = ot.entities.get(1).asTree();
@@ -877,18 +877,18 @@ public class EquationSystem {
 
 	static void debugSimplifications() throws Equation.ParseError {
 		assertEqual(new Equation("U1 / I1 = 1 / (1 / R2 + 1 / R3)").normalizedSum(), "I1 ∙ R2 ∙ R3 + -R2 ∙ U1 + -R3 ∙ U1");
-		assertEqual(OperatorTree.parse("-I1"), OperatorTree.parse("-I1"));
-		assertEqual(OperatorTree.parse("-I1").unaryPrefixedContent(), OperatorTree.parse("-I1").unaryPrefixedContent());
-		assertEqual(OperatorTree.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), OperatorTree.One());
-		assertEqual(OperatorTree.parse("(-R1 + -R4) / (-R1 + -R4)").mergeDivisions().simplifyDivision(), OperatorTree.One());
-		assertEqual(OperatorTree.parse("-1 / -x").mergeDivisions().simplifyDivision(), OperatorTree.parse("1 / x"));
-		assertEqual(OperatorTree.parse("(I1 ∙ U3) / I1").mergeDivisions().simplifyDivision(), OperatorTree.parse("U3"));
-		assertEqual(OperatorTree.parse("(I2 ∙ I3) / -I2").mergeDivisions().simplifyDivision(), OperatorTree.parse("-I3"));
-		assertEqual(OperatorTree.parse("-R2 ∙ U3 / R2").mergeDivisions().simplifyDivision(), OperatorTree.parse("-U3"));
-		assertEqual(OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions(), OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
-		assertEqual(OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), OperatorTree.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
-		assertEqual(OperatorTree.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), OperatorTree.parse("U3"));		
-		assertEqual(OperatorTree.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), OperatorTree.parse("-R1 + -R4"));
+		assertEqual(OTParser.parse("-I1"), OTParser.parse("-I1"));
+		assertEqual(OTParser.parse("-I1").unaryPrefixedContent(), OTParser.parse("-I1").unaryPrefixedContent());
+		assertEqual(OTParser.parse("-I1 / -I1").mergeDivisions().simplifyDivision(), OperatorTree.One());
+		assertEqual(OTParser.parse("(-R1 + -R4) / (-R1 + -R4)").mergeDivisions().simplifyDivision(), OperatorTree.One());
+		assertEqual(OTParser.parse("-1 / -x").mergeDivisions().simplifyDivision(), OTParser.parse("1 / x"));
+		assertEqual(OTParser.parse("(I1 ∙ U3) / I1").mergeDivisions().simplifyDivision(), OTParser.parse("U3"));
+		assertEqual(OTParser.parse("(I2 ∙ I3) / -I2").mergeDivisions().simplifyDivision(), OTParser.parse("-I3"));
+		assertEqual(OTParser.parse("-R2 ∙ U3 / R2").mergeDivisions().simplifyDivision(), OTParser.parse("-U3"));
+		assertEqual(OTParser.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions(), OTParser.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
+		assertEqual(OTParser.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), OTParser.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
+		assertEqual(OTParser.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), OTParser.parse("U3"));		
+		assertEqual(OTParser.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), OTParser.parse("-R1 + -R4"));
 	}
 	
 	static void debug() {
