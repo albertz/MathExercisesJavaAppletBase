@@ -93,9 +93,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(x == null) return false;
     	return x.intValue() == num;
     }
-	
-	OperatorTree sublist(int from, int to) { return new OperatorTree(op, entities.subList(from, to)); }
-	
+		
 	boolean canBeInterpretedAsUnaryPrefixed() {
 		return entities.size() == 2 && entities.get(0) instanceof OTSubtree && ((OTSubtree)entities.get(0)).content.entities.isEmpty();	
 	}
