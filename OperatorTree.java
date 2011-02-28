@@ -517,14 +517,13 @@ class OperatorTree implements Comparable<OperatorTree> {
     	return ot;
     }
     
-    static Utils.Function<OperatorTree.Entity,OperatorTree.Entity> DoPrefixByOp(final String op) {
-    	return new Utils.Function<OperatorTree.Entity,OperatorTree.Entity>() {
-    		public OperatorTree.Entity eval(OperatorTree.Entity obj) { return new Subtree(obj.prefixed(op)); }
-    	};
-    }
-    
     OperatorTree transformMinusToPlus() {
-		return transformOp("-", "+", null, DoPrefixByOp("-"));
+		return transformOp("-", "+", null,
+				new Utils.Function<OperatorTree.Entity,OperatorTree.Entity>() {
+					public OperatorTree.Entity eval(OperatorTree.Entity obj) {
+						return new Subtree(obj.prefixed("-"));
+					}
+				});
     }
     
     OperatorTree transformMinusPushedDown() {
