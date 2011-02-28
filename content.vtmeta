@@ -1,4 +1,5 @@
-In dieser Aufgabe sehen Sie eine schöne Eigenschaft der Lösungen der logistischen Gleichung.
+In dieser Aufgabe sehen Sie eine schöne Eigenschaft der Lösungen
+der logistischen Gleichung.
 
 Es sei \m{f} eine Lösung der logistischen Gleichung \m{D(x) = -r∙x∙(1 - x/k)}.
 (Dabei ist \m{D(x)} die Ableitung von \m{x} nach der ersten Variable.)
