@@ -9,7 +9,7 @@ Zeigen Sie, dass die Funktion \m{1/f} die Differentialgleichung
 
 löst.
 
-\hint{Sie können also annehmen, dass \m{D(x) = -r∙f∙(1 - f/k)} gilt.}
+\hint{Sie können also annehmen, dass \m{D(f) = -r∙f∙(1 - f/k)} gilt.}
 \hint{Zeigen Sie nun, dass \m{D(1/f) = −r/f + r/k} gilt.}
 \hint{Benutzen Sie \m{D(1/f) = -f'/f^2}.}
 
