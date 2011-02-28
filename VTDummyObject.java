@@ -1,9 +1,6 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
 import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
 
 public class VTDummyObject extends VisualThing implements Applet.CorrectCheck {
 
@@ -15,14 +12,13 @@ public class VTDummyObject extends VisualThing implements Applet.CorrectCheck {
 	}
 
 	private int stepX, stepY;
-	private int width, height;
 	private String name;
 	private Component panel = null;
 	private Applet.CorrectCheck checker;
 
 	public Component getComponent() {
 		if (panel == null) {
-			panel = new Component() {};
+			panel = new Component() { private static final long serialVersionUID = 1L; };
 			panel.setName(name);
 			panel.setSize(0, 0);
 		}
