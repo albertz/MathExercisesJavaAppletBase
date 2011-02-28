@@ -10,7 +10,6 @@ import java.awt.Graphics;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.swing.JLabel;
 
 
 public class VTMatrix extends VTContainer {
@@ -42,15 +41,6 @@ public class VTMatrix extends VTContainer {
 		return w;
 	}
 		
-	private int rowX(int J) {
-		int w = 0;
-		for(int j = 0; j < J; ++j) {
-			if(j > 0) w += sepWidth;
-			w += rowWidth(j);
-		}
-		return w;		
-	}
-	
 	private int spaceWidthBefore(int i, int j) {
 		int w = (rowWidth(j) - content[i][j].getWidth()) / 2;
 		if(j > 0) w += (rowWidth(j-1) - content[i][j-1].getWidth()) / 2;
