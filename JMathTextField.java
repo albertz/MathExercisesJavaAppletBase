@@ -135,7 +135,7 @@ public class JMathTextField extends JTextField {
 			}
 
 			synchronized void setNewString(FilterBypass fb, String tempStr) throws BadLocationException {
-				operatorTree = OTParser.parse(tempStr, "");
+				operatorTree = OTParser.parse(tempStr, null);
 				JMathTextField.this.updateByOpTree(fb);
 			}
 		});

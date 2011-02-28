@@ -108,11 +108,12 @@ public class OTParser {
 			
 		t = parseOpsInTree(t, binOps, binOpList);
 		//System.out.println("before defaultop: " + t);
-		if(!defaultAnonBinOp.isEmpty()) t = parseDefaultAnonBinOpInTree(t, defaultAnonBinOp);
+		if(defaultAnonBinOp != null) t = parseDefaultAnonBinOpInTree(t, defaultAnonBinOp);
+		else t = parseFunctionCalls(t);
 		return t;
 	}
 
-	static OperatorTree parse(String str) { return parse(str, "∙"); }
+	static OperatorTree parse(String str) { return parse(str, null); }
 
 	static OperatorTree parse(String str, String defaultAnonBinOp) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", defaultAnonBinOp); }
 
@@ -135,6 +136,29 @@ public class OTParser {
 		return ot;
 	}
 
+	static OperatorTree parseFunctionCalls(final OperatorTree source) {
+		if(source.op.isEmpty() && source.entities.size() > 1 && source.entities.get(0) instanceof OTRawString) {
+			// set the first entity as the function
+			OperatorTree ot = new OperatorTree();
+			ot.op = ((OTRawString) source.entities.get(0)).content;
+			ot.entities.addAll(source.entities.subList(1, source.entities.size()));
+			if(ot.isFunctionCall())
+				return parseFunctionCalls(ot);
+			// something is wrong. this can't be used as a function call. fallback here
+		}
+		
+		OperatorTree ot = new OperatorTree();
+		ot.op = source.op;
+		
+		for(OTEntity e : source.entities) {
+			if(e instanceof OTRawString)
+				ot.entities.add(e);
+			else
+				ot.entities.add( new OTSubtree( parseFunctionCalls( ((OTSubtree) e).content ), ((OTSubtree) e).explicitEnclosing ) );
+		}
+		return ot;		
+	}
+	
 	static List<Set<String>> parseOpList(String ops) {
 		List<Set<String>> opl = new LinkedList<Set<String>>();
 		Set<String> curEquOps = new HashSet<String>();
