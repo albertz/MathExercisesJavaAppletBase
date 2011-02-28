@@ -1,15 +1,16 @@
 In dieser Aufgabe sehen Sie eine schöne Eigenschaft der Lösungen der logistischen Gleichung.
 
-Es sei \m{f} eine Lösung der logistischen Gleichung \m{x' = -r∙x∙(1 - x/k)}.
+Es sei \m{f} eine Lösung der logistischen Gleichung \m{D(x) = -r∙x∙(1 - x/k)}.
+(Dabei ist \m{D(x)} die Ableitung nach der ersten Variable von \m{x}.)
 
 Zeigen Sie, dass die Funktion \m{1/f} die Differentialgleichung
 
-  \m{x' = −r∙x + r/k}
+  \m{D(x) = −r∙x + r/k}
 
 löst.
 
-\hint{Sie können also annehmen, dass \m{x' = -r∙f∙(1 - f/k)} gilt.}
-\hint{Zeigen Sie nun, dass \m{(1/f)' = −r/f + r/k} gilt.}
-\hint{Benutzen Sie \m{(1/f)' = -f'/f^2}.}
+\hint{Sie können also annehmen, dass \m{D(x) = -r∙f∙(1 - f/k)} gilt.}
+\hint{Zeigen Sie nun, dass \m{D(1/f) = −r/f + r/k} gilt.}
+\hint{Benutzen Sie \m{D(1/f) = -f'/f^2}.}
 
 \object[equ]
