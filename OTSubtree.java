@@ -5,8 +5,7 @@ class OTSubtree extends OTEntity {
 	boolean explicitEnclosing = false;
 	OTSubtree(OperatorTree t) { content = t; }
 	OTSubtree(OperatorTree t, boolean explicitEnclosing) { content = t; this.explicitEnclosing = explicitEnclosing; }
-	@Override boolean isEnclosedImplicitely() { return explicitEnclosing; }
-	@Override public String toString() {
+    @Override public String toString() {
 		if(OperatorTree.debugOperatorTreeDump || explicitEnclosing)
 			return "(" + content.toString() + ")";
 		if(content.entities.size() == 1)

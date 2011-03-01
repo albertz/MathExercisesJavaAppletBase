@@ -9,8 +9,7 @@ abstract class OTEntity implements Comparable<OTEntity> {
 		ot.entities.add(this);
 		return ot;
 	}
-	boolean isEnclosedImplicitely() { return true; }
-	String toString(String parentOp) { return toString(); }
+    String toString(String parentOp) { return toString(); }
 	abstract Object getContent();
 	@Override public int hashCode() { return 31 + getContent().hashCode(); }
 	@Override public boolean equals(Object obj) {
