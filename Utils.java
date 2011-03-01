@@ -74,7 +74,8 @@ public class Utils {
 			for(Iterator<E> i = iterator(); i.hasNext(); ++c) i.next();
 			return c;
 		}
-		public Object[] toArray() { return toArray(new Object[] {}); }
+		@SuppressWarnings({"ToArrayCallWithZeroLengthArrayArgument"})
+        public Object[] toArray() { return toArray(new Object[] {}); }
 		public <T> T[] toArray(T[] array) { 
 		    int size = size();
 		    if (array.length < size) { 
@@ -94,8 +95,7 @@ public class Utils {
 		public boolean addAll(Collection<? extends E> c) { throw new UnsupportedOperationException(); }
 		public void clear() { throw new UnsupportedOperationException(); }
 		public boolean contains(Object o) {
-			for(Iterator<E> i = iterator(); i.hasNext(); )
-				if(i.next().equals(o)) return true;
+            for(E e : this) if(e.equals(o)) return true;
 			return false;
 		}
 		public boolean containsAll(Collection<?> c) { throw new UnsupportedOperationException(); }
@@ -105,7 +105,8 @@ public class Utils {
 		@Override public String toString() { return "[" + concat(this, ", ") + "]"; }
 	}
 	
-	@SuppressWarnings("unchecked") static <T> Class<? extends T> classOf(T obj) {
+	@SuppressWarnings({"unchecked", "UnusedDeclaration"})
+    static <T> Class<? extends T> classOf(T obj) {
 		return (Class<? extends T>) obj.getClass();
 	}
 
@@ -321,7 +322,8 @@ public class Utils {
 		});
 	}
 	
-	static <T> Set<T> filter(final Set<T> i, final Predicate<? super T> pred) {
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <T> Set<T> filter(final Set<T> i, final Predicate<? super T> pred) {
 		return new LightSet<T>() {
 			public Iterator<T> iterator() {
 				return filter((Iterable<T>) i, pred).iterator();
@@ -363,7 +365,8 @@ public class Utils {
 		};
 	}
 	
-	static <T> Collection<T> cuttedFromRight(final Iterable<T> coll, final Predicate<T> stopCondition) {
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <T> Collection<T> cuttedFromRight(final Iterable<T> coll, final Predicate<T> stopCondition) {
 		return new LightCollection<T>() {
 			public Iterator<T> iterator() {
 				return new Iterator<T>() {
@@ -416,8 +419,10 @@ public class Utils {
 		}
 	}
 	
-	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll) { return allPairs(coll, coll, true, true); }
-	static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll1, Iterable<T> coll2) { return allPairs(coll1, coll2, false, false); }
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll) { return allPairs(coll, coll, true, true); }
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll1, Iterable<T> coll2) { return allPairs(coll1, coll2, false, false); }
 	static <T> Iterable<Pair<T,T>> allPairs(final Iterable<T> coll1, final Iterable<T> coll2, final boolean removeIdentityAndSwappedPairs, final boolean useDeepEqualCheck) {
 		return new Iterable<Pair<T,T>>() {
 			public Iterator<Pair<T,T>> iterator() {
@@ -469,7 +474,8 @@ public class Utils {
 		};
 	}	
 		
-	static <T1,T2> Iterable<Pair<T1,T2>> zip(final Iterable<T1> i1, final Iterable<T2> i2) {
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <T1,T2> Iterable<Pair<T1,T2>> zip(final Iterable<T1> i1, final Iterable<T2> i2) {
 		return new Iterable<Pair<T1,T2>>() {
 			public Iterator<Pair<T1, T2>> iterator() {
 				return new Iterator<Pair<T1,T2>>() {
@@ -516,20 +522,20 @@ public class Utils {
 		Y eval(X obj);
 	}
 
-	static <X> Function<X,X> identifyFunc() {
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <X> Function<X,X> identifyFunc() {
 		return new Function<X,X>() {
 			public X eval(X obj) { return obj; }
 		};
 	}	
 	
-	static <Y, X extends Y> Function<X,Y> identifyFunc2() {
+	@SuppressWarnings({"UnusedDeclaration"})
+    static <Y, X extends Y> Function<X,Y> identifyFunc2() {
 		return new Function<X,Y>() {
 			public Y eval(X obj) { return obj; }
 		};
 	}
-	
-	static interface CopyableIterator<X> extends Iterator<X>, Cloneable {}
-	
+
     static <X,Y> Iterable<Y> map(final Iterable<? extends X> coll, final Function<X,Y> func) {
 		return new Iterable<Y>() {
 			public Iterator<Y> iterator() {
@@ -561,6 +567,7 @@ public class Utils {
     	return s;
     }
 
+    @SuppressWarnings({"UnusedDeclaration"})
     static <T> Iterable<T> iterableReverseList(final List<T> l) {
     	return new Iterable<T>() {
     		public Iterator<T> iterator() {
@@ -666,7 +673,8 @@ public class Utils {
 		System.out.println("parsed " + s + " -> " + debugStr + " -> " + normalStr + " -> " + simplifiedStr);
 	}
 
-	static void debugUtilsParsingOpTree() {
+	@SuppressWarnings({"UnusedDeclaration"})
+    static void debugUtilsParsingOpTree() {
 		debugUtilsParsingOpTree("a * b = c");
 		debugUtilsParsingOpTree("a + b * d");
 		debugUtilsParsingOpTree("1 + 2 - 3 - 4 + 5");
