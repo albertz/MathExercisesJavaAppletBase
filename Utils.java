@@ -704,6 +704,8 @@ public class Utils {
 		debugUtilsParsingOpTree("1 + -(2 + 3) + 4");
 		debugUtilsParsingOpTree("a - (b - c)");
 		debugUtilsParsingOpTree("a + +b");
+		debugUtilsParsingOpTree("a * b ^ c * d = a * b ^ -c * d");
+		debugUtilsParsingOpTree("a * b ^ 2 * d = a * b ^ -2 * d");
 	}
     
     
