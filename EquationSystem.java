@@ -931,6 +931,7 @@ public class EquationSystem {
 		assertEqual(OTParser.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), OTParser.parse("-R1 + -R4"));
 	}
 	
+	@SuppressWarnings({"ConstantConditions"})
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i);		
@@ -1071,7 +1072,7 @@ public class EquationSystem {
 			System.out.println(" in " + e.ot.debugStringDouble());
 			try {
 				debugEquationParsing(e.ot.toString());
-			} catch (Equation.ParseError e1) {}
+			} catch (Equation.ParseError ignored) {}
 			e.printStackTrace(System.out);
 			
 		} catch (Throwable e) {
