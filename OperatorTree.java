@@ -160,10 +160,6 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(canBeInterpretedAsUnaryPrefixed())
 			// this is a special case used for unary ops (or ops which look like those)
 			return op + unaryPrefixedContent().toString(); // always put brackets if it is a subtree
-		/*if(entities.isEmpty()) {
-			if(isZero()) return "0";
-			if(isOne()) return "1";
-		}*/
 		Iterable<String> entitiesStr = Utils.map(entities, new Utils.Function<OTEntity,String>() {
 			public String eval(OTEntity obj) {
 				return obj.toString(op);
