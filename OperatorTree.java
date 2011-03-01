@@ -3,6 +3,7 @@
  */
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -93,7 +94,12 @@ class OperatorTree implements Comparable<OperatorTree> {
     					x /= other;
     				else
     					return null; // this is not an integer, it's a rational number
-    			}
+    			} else if(op.equals("^")) {
+				    BigInteger result = BigInteger.valueOf(x).pow(other);
+				    x = result.intValue();
+				    if(!result.equals(BigInteger.valueOf(x))) // it means it is too big for int
+					    throw new ArithmeticException();
+			    }
 			} catch(ArithmeticException exc) { // e.g. div by zero 
 				return null;
 			}
