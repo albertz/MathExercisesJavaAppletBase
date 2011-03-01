@@ -21,13 +21,12 @@ class OTSubtree extends OTEntity {
 			return content.toString();
 		if(content.canBeInterpretedAsUnaryPrefixed())
 			return content.toString();
-		if(parentOp.length() != 1 || content.op.length() != 1) return "(" + content.toString() + ")";
-		int parentOpIdx = OperatorTree.knownOps.indexOf(parentOp);
-		int childOpIdx = OperatorTree.knownOps.indexOf(content.op);
+
+		int parentOpIdx = Utils.getIndex(OTParser.parseOpList(OperatorTree.knownOps), parentOp);
+		int childOpIdx = Utils.getIndex(OTParser.parseOpList(OperatorTree.knownOps), content.op);
 		if(parentOpIdx < 0 || childOpIdx < 0) return "(" + content.toString() + ")";
-		if(parentOpIdx == OperatorTree.knownOps.indexOf('-')) parentOpIdx--; // take +- as equal
-		if(childOpIdx == OperatorTree.knownOps.indexOf('-')) childOpIdx--; // take +- as equal
-		if(childOpIdx <= parentOpIdx) return content.toString();
+
+		if(childOpIdx >= parentOpIdx) return content.toString();
 		return "(" + content.toString() + ")";
 	}
 	@Override OperatorTree asTree() { return content; }

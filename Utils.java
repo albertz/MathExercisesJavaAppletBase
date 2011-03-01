@@ -24,7 +24,16 @@ public class Utils {
 		T value;
 		Ref(T initial) { value = initial; }
 	}
-	
+
+    static <T> int getIndex(Iterable<? extends Collection<T>> cols, T obj) {
+        int i = 0;
+        for(Collection<T> col : cols) {
+            if(col.contains(obj)) return i;
+            i++;
+        }
+        return -1;
+    }
+
 	static Iterable<String> tokenizeString(final String str, String delim) {
 		final Set<Character> delimChars = new HashSet<Character>(collFromIter(iterableString(delim)));
 		return new Iterable<String>() {

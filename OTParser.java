@@ -1,10 +1,6 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public class OTParser {
@@ -115,7 +111,7 @@ public class OTParser {
 
 	static OperatorTree parse(String str) { return parse(str, null); }
 
-	static OperatorTree parse(String str, String defaultAnonBinOp) { return parse(str.replace('*', '∙').replace(',', '.'), "= +- ∙/", defaultAnonBinOp); }
+	static OperatorTree parse(String str, String defaultAnonBinOp) { return parse(str.replace('*', '∙').replace(',', '.'), OperatorTree.knownOps, defaultAnonBinOp); }
 
 	static OperatorTree parse(String str, String binOps, String defaultAnonBinOp) {
 		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), defaultAnonBinOp );
@@ -190,7 +186,7 @@ public class OTParser {
 
 	static OperatorTree parseOpsInTree(final OperatorTree source, final Set<String> binOps, List<Set<String>> binOpList) {
 		if(source.entities.isEmpty()) return source;
-		
+
 		OperatorTree ot = new OperatorTree();
 		if(!source.op.isEmpty()) {
 			ot.op = source.op;
