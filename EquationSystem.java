@@ -667,15 +667,7 @@ public class EquationSystem {
 			public Equation.Sum eval(Equation.Sum obj) { return obj.reduce(); }
 		});
 	}
-	
-	EquationSystem linearIndependent() {
-		EquationSystem eqSys = new EquationSystem(variableSymbols);
-		for(Equation eq : equations)
-			if(!eqSys.canConcludeTo(eq))
-				eqSys.equations.add(eq);
-		return eqSys;
-	}
-	
+
 	Equation add(String equStr) throws Equation.ParseError {
 		Equation eq = new Equation(equStr, variableSymbols);
 		equations.add(eq);
