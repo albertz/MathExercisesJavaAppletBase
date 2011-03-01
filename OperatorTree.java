@@ -146,7 +146,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 			return neg;
 		}
 		
-		return canBeInterpretedAsUnaryPrefixed() && op.equals("-") && !unaryPrefixedContent().asTree().isNegative();
+		if(canBeInterpretedAsUnaryPrefixed() && op.equals("-"))
+			return !unaryPrefixedContent().asTree().isNegative();
+
+		return false;
 	}
 	
 	@Override public String toString() {
