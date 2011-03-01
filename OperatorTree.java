@@ -42,7 +42,13 @@ class OperatorTree implements Comparable<OperatorTree> {
     static OperatorTree One() { return Number(1); }        
     boolean isOne() {
     	if(op.equals("∙") && entities.isEmpty()) return true;
-    	if(entities.isEmpty()) return false;
+		if(op.equals("^") && !entities.isEmpty()) {
+			if(entities.get(0).asTree().isOne()) return true;
+			for(OTEntity e : entities.subList(1, entities.size()))
+				if(e.asTree().isZero()) return true;
+			return false;
+		}
+	    if(entities.isEmpty()) return false;
     	if(entities.size() > 1) return false;
     	OTEntity e = entities.get(0);
     	if(e instanceof OTRawString)
