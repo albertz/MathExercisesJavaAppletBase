@@ -638,7 +638,7 @@ public class EquationSystem {
 				Utils.extendedCollectionView(equations, additionalEquations),
 				variableSymbols);
 	}
-	EquationSystem extendedSystem() { return extendedSystem(new LinkedList<Equation>()); }
+
 	EquationSystem normalized() {
 		return new EquationSystem(
 				Utils.map(equations, new Utils.Function<Equation,Equation>() {
