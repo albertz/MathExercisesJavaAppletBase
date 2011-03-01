@@ -654,6 +654,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 	OperatorTree nextDivision() {
 		if(entities.isEmpty()) return null;
 		if(op.equals("/")) return entities.get(entities.size()-1).asTree();
+		if(!op.isEmpty() && (op.length() != 1 || "+-∙/".indexOf(op) < 0)) return null;
 		for(OTEntity e : entities) {
 			if(e instanceof OTSubtree) {
 				OperatorTree next = ((OTSubtree) e).content.nextDivision();
