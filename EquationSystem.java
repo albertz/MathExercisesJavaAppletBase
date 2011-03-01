@@ -639,13 +639,6 @@ public class EquationSystem {
 				variableSymbols);
 	}
 
-	EquationSystem normalized() {
-		return new EquationSystem(
-				Utils.map(equations, new Utils.Function<Equation,Equation>() {
-					public Equation eval(Equation obj) { return obj.normalize(); }
-				}),
-				variableSymbols);
-	}
 	Iterable<Equation.Sum> normalizedSums() {
 		return Utils.map(equations, new Utils.Function<Equation,Equation.Sum>() {
 			public Equation.Sum eval(Equation obj) { return obj.normalizedSum(); }
