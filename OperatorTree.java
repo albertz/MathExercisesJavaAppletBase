@@ -405,7 +405,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     		return new OTSubtree(ot);
     	}
 	    else {
-		    if(negate) return minusOne().asEntity();
+		    if(negate) return prefixed("-").asEntity(); // NOTE: we cannot use minusOne() because that would be circular
 		    return asEntity();
 	    }
     }
