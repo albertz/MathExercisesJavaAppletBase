@@ -366,6 +366,14 @@ public class Applet extends JApplet {
 		return getPackageName().replace('.', '/');
 	}
 
+    public String getClassPath() {
+        String paths = System.getProperty("java.class.path");
+        if(paths == null) return null;
+        String[] pathArr = paths.split(":");
+        if(pathArr.length == 0) return null;
+        return pathArr[0];
+    }
+
 	final Runnable updater = new Runnable() {
 		public void run() {
 			resetSelectorColors();
@@ -386,20 +394,24 @@ public class Applet extends JApplet {
 			res = new FileInputStream(fileName);
 		} catch (Exception e) {}
 		if(res != null) return res;
-		
+
+        String basepath = getClassPath();
+        if(basepath == null) basepath = "";
+        else basepath += "/";
+
 		try {
-			String path = "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath(); 
+			String path = basepath + "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath();
 			res = new FileInputStream(path + "/" + fileName);
 		} catch (Exception e) {}
 		if(res != null) return res;
 
 		try {
-			String path = "../Lehreinheiten/" + getPackageNameBase().replace('$', ' ') + "/Code/" + getPackageAsPath(); 
+			String path = basepath + "../Lehreinheiten/" + getPackageNameBase().replace('$', ' ') + "/Code/" + getPackageAsPath();
 			res = new FileInputStream(path + "/" + fileName);
 		} catch (Exception e) {}
 		if(res != null) return res;
 		
-		System.err.println("ERROR: FileNotFound: $workspace/" + fileName);
+		System.err.println("ERROR: FileNotFound: " + fileName + "; user.dir=" + System.getProperty("user.dir") + "; basepath=" + basepath);
 		throw new Exception("ERROR: FileNotFound: " + fileName);
 	}
 		
