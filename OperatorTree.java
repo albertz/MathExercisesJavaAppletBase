@@ -756,10 +756,16 @@ class OperatorTree implements Comparable<OperatorTree> {
     		return ot;
     	}
     	
-    	// +, - or whatever else -> mult each entry
-    	for(OTEntity e : entities)
-    		ot.entities.add(e.asTree().multiply(other).asEntity());
-    	return ot;
+	    if(op.isEmpty() || op.equals("+") || op.equals("-")) {
+    	    for(OTEntity e : entities)
+	    		ot.entities.add(e.asTree().multiply(other).asEntity());
+	    	return ot;
+	    }
+
+	    ot.op = "∙";
+	    ot.entities.add(this.asEntity());
+	    ot.entities.add(other.asEntity());
+	    return ot;
     }
     
     OperatorTree pushdownMultiplication(OperatorTree other) {
