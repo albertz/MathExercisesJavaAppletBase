@@ -119,25 +119,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 	OperatorTree prefixed(String prefixOp) {
 		return new OperatorTree(prefixOp, Utils.listFromArgs(new OTSubtree(new OperatorTree()), asEntity()));
 	}
-	
-	OperatorTree replaceVar(String var, OperatorTree replacement) {
-		OperatorTree ot = new OperatorTree(op);
-		for(OTEntity e : entities) {
-			if(e instanceof OTRawString) {
-				if(((OTRawString)e).content.equals(var))
-					ot.entities.add(replacement.asEntity());
-				else
-					ot.entities.add(e);
-			}
-			else {
-				OTSubtree subtree = (OTSubtree) e;
-				ot.entities.add(new OTSubtree(subtree.content.replaceVar(var, replacement), subtree.explicitEnclosing));
-			}
-		}
-		return ot;
-	}
-	
-	boolean isNegative() {
+
+    boolean isNegative() {
 		if(entities.size() == 1) {
 			OTEntity e = entities.get(0);
 			if(e instanceof OTRawString) return false;
