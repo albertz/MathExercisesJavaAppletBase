@@ -36,7 +36,7 @@ public class OTParser {
 	}
 
 	static OperatorTree grabUnaryPrefixedOpFromSplitted(final String op, final Iterator<OTEntity> rest) {
-		OTEntity obj = null;
+		OTEntity obj;
 		
 		if(rest.hasNext()) {
 			OTEntity e = rest.next();
