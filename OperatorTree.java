@@ -76,15 +76,15 @@ class OperatorTree implements Comparable<OperatorTree> {
 		else if(op.equals("∙") || op.equals("/")) x = 1;
 		else return null;
 		for(OTEntity e : entities) {
-			Integer y = e.asTree().asNumber();
-			if(y == null) return null;
+			Integer other = e.asTree().asNumber();
+			if(other == null) return null;
 			try {
-    			if(op.equals("+")) x += y;
-    			else if(op.equals("-")) x -= y;
-    			else if(op.equals("∙")) x *= y;
+    			if(op.equals("+")) x += other;
+    			else if(op.equals("-")) x -= other;
+    			else if(op.equals("∙")) x *= other;
     			else if(op.equals("/")) {
-    				if(x % y == 0)
-    					x /= y;
+    				if(x % other == 0)
+    					x /= other;
     				else
     					return null; // this is not an integer, it's a rational number
     			}
@@ -97,7 +97,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     boolean isNumber(int num) {
     	Integer x = asNumber();
     	if(x == null) return false;
-    	return x.intValue() == num;
+    	return x == num;
     }
 	
     boolean isFunctionCall() {
@@ -654,7 +654,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
     OperatorTree multiplyAllDivisions() {
     	OperatorTree ot = this;
-    	OperatorTree nextDiv = null;
+        OperatorTree nextDiv;
     	while((nextDiv = ot.nextDivision()) != null)
     		ot = ot.multiply(nextDiv);
     	return ot;
