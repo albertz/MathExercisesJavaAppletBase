@@ -384,7 +384,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     			return new OTSubtree(e.prefixed("-"));
     		return e;
     	}
-    	else {
+    	else if(op.isEmpty() || (op.length() == 1 && "+-∙/".indexOf(op) >= 0)) {
     		OperatorTree ot = new OperatorTree();
     		ot.op = op;
     		for(OTEntity e : entities) {
@@ -404,6 +404,10 @@ class OperatorTree implements Comparable<OperatorTree> {
     		}
     		return new OTSubtree(ot);
     	}
+	    else {
+		    if(negate) return minusOne().asEntity();
+		    return asEntity();
+	    }
     }
     
 	OperatorTree sum(OperatorTree other) {
