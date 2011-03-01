@@ -521,7 +521,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 				return ((OTSubtree) entities.get(0)).content.canRemoveFactor(fac);
 			return null;
 		}
-		
+
+		if(!op.isEmpty() && (op.length() != 1 || "+-∙/".indexOf(op) < 0))
+			return null;
+
 		OperatorTree ot = new OperatorTree(op);
 		boolean needOne;
 		if(op.equals("∙")) needOne = true;
@@ -534,6 +537,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			return ot;
 		}
 		else needOne = false;
+
 		boolean haveOne = false;
 		int numfac = 1;
 		for(OTEntity e : entities) {
