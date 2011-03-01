@@ -327,7 +327,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     
     OperatorTree mergeOps(String ops) { return mergeOps(OTParser.simpleParseOps(ops)); }        
     OperatorTree mergeOpsFromRight(String ops) { return mergeOpsFromRight(OTParser.simpleParseOps(ops)); }
-    OperatorTree simplify() { return mergeOps("=+∙").mergeOpsFromRight("-/").removeObsolete(); }
+    OperatorTree simplify() { return mergeOps("=+∙").mergeOpsFromRight("-/^").removeObsolete(); }
     
     OperatorTree transformOp(String oldOp, String newOp, Utils.Function<OTEntity,OTEntity> leftTransform, Utils.Function<OTEntity,OTEntity> rightTransform) {
     	OperatorTree ot = new OperatorTree();
