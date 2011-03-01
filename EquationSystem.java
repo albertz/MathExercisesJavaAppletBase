@@ -758,17 +758,7 @@ public class EquationSystem {
 		if(debugVerbose >= 2) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
 		return false;
 	}
-	
-	Set<OperatorTree> identitiesForVar(String var) {
-		Set<OperatorTree> eqs = new TreeSet<OperatorTree>();
-		for(Equation.Sum eq : normalizedSums()) {
-			Equation.Sum.ExtractedVar extractedVar = eq.extractVar(var);
-			if(extractedVar == null) continue; // either we don't have that var there or it is an higher order polynom
-			eqs.add(extractedVar.independentPart.asOperatorTree().divide(extractedVar.varMult.asOperatorTree()).minusOne());
-		}
-		return eqs;
-	}
-	
+
 	boolean canConcludeTo(Equation eq) {
 		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<Equation.Sum>(), 0);
 //		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>(), 0);
