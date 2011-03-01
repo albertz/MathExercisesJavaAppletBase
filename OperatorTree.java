@@ -108,7 +108,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     }
     
 	boolean canBeInterpretedAsUnaryPrefixed() {
-		return entities.size() == 2 && entities.get(0) instanceof OTSubtree && ((OTSubtree)entities.get(0)).content.entities.isEmpty();	
+		return !isFunctionCall() && entities.size() == 2 && entities.get(0) instanceof OTSubtree && ((OTSubtree)entities.get(0)).content.entities.isEmpty();	
 	}
 	
 	OTEntity unaryPrefixedContent() {
