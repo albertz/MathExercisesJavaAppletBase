@@ -133,6 +133,38 @@ public class EquationSystem {
 					@Override public String toString() { return sym + ((pot != 1) ? ("^" + pot) : ""); }		
 					Pot(String s) { sym = s; }
 					Pot(String s, int p) { sym = s; pot = p; }
+                    Pot(OperatorTree ot) throws ParseError { parse(ot); }
+                    void parse(OperatorTree ot) throws ParseError {
+                        if(ot.entities.isEmpty()) {
+                            if(ot.isOne()) {
+                                pot = 0;
+                                return;
+                            }
+                            throw new ParseError("empty input not supported as Pot", "leere Eingabe als Potenz nicht erlaubt");
+                        }
+                        if(ot.entities.size() == 1) {
+                            if(ot.entities.get(0) instanceof OTRawString) {
+                                sym = ((OTRawString) ot.entities.get(0)).content;
+                                return;
+                            }
+                            parse(ot.entities.get(0).asTree());
+                            return;
+                        }
+
+                        if(ot.op.equals("^")) {
+                            if(ot.entities.size() > 2)
+                                throw new ParseError("in " + ot + " the ^-op must be binary", "in " + ot + " darf die ^-Op nur binär sein");
+                            OTEntity first = ot.entities.get(0), second = ot.entities.get(1);
+	                        parse(first.asTree());
+	                        Integer num = second.asTree().asNumber();
+	                        if(num == null)
+		                        throw new ParseError(second.asTree().toString() + " is not a number in " + ot, second.asTree().toString() + " ist keine Zahl in " + ot);
+	                        pot *= num;
+	                        return;
+                        }
+
+	                    throw new ParseError("not supported right now: " + ot.toString(true), "xxx");
+                    }
 					public int compareTo(Pot o) {
 						int c = sym.compareTo(o.sym);
 						if(c != 0) return c;
@@ -162,18 +194,18 @@ public class EquationSystem {
 					@Override Iterable<? extends Expression> childs() { return Utils.listFromArgs(); }
 					@Override String baseOp() { return "∙"; }
 					@Override OperatorTree asOperatorTree() {
-						if(pot == 0) return new OperatorTree("", new OTRawString("1"));
+						if(pot == 0) return OperatorTree.One();
+                        if(pot == 1) return OperatorTree.Variable(sym);
 						OperatorTree ot = new OperatorTree();
-						if(pot > 0) {
-							ot.op = (pot > 1) ? baseOp() : "";
-							for(int i = 0; i < pot; ++i)
-								ot.entities.add(new OTRawString(sym));
-							return ot;
+						if(pot > 1) {
+							ot.op = "^";
+                            ot.entities.add(OperatorTree.Variable(sym).asEntity());
+                            ot.entities.add(OperatorTree.Number(pot).asEntity());
 						}
 						else {
 							ot.op = "/";
-							ot.entities.add(new OTRawString("1"));
-							ot.entities.add(new OTSubtree(new Pot(sym, -pot).asOperatorTree()));
+							ot.entities.add(OperatorTree.One().asEntity());
+							ot.entities.add(new Pot(sym, -pot).asOperatorTree().asEntity());
 						}
 						return ot;
 					}
@@ -326,6 +358,9 @@ public class EquationSystem {
 								parse( ((OTSubtree) e).content );
 						}
 					}
+                    else if(ot.op.equals("^")) {
+                        facs.add(new Pot(ot));
+                    }
 					else
 						throw new ParseError("'" + ot + "' must be a product.", "'" + ot + "' muss ein Produkt sein.");
 					
@@ -477,7 +512,8 @@ public class EquationSystem {
 					.simplify()
 					.transformMinusPushedDown()
 					.multiplyAllDivisions()
-					.pushdownAllMultiplications());
+					.pushdownAllMultiplications()
+					.transformMinusPushedDown());
 			}
 			Sum(OperatorTree ot) throws ParseError { add(ot); }
 			void add(OperatorTree ot) throws ParseError {
@@ -507,7 +543,7 @@ public class EquationSystem {
 					for(OTEntity e : ot.entities)
 						add(e.asTree());
 				}
-				else if(ot.op.equals("∙")) {
+				else if(ot.op.equals("∙") || ot.op.equals("^")) {
 					entries.add(new Prod(ot));
 				}
 				else
@@ -585,7 +621,7 @@ public class EquationSystem {
 			OperatorTree ot;
 			public ParseError(String english, String german) { super(english); this.english = english; this.german = german; }
 			public ParseError(ParseError e) { super(e.english); this.english = e.english; this.german = e.german; }
-		}
+        }
 		
 	}
 
@@ -773,6 +809,7 @@ public class EquationSystem {
 			try {
 				resultingSum = new Equation.Sum(resultingEquation, OperatorTree.Zero());
 			} catch (Equation.ParseError e) {
+				System.err.println("something strange happend; resultingEquation: " + resultingEquation);
 				e.printStackTrace(); // should not happen
 				continue;
 			}
@@ -857,6 +894,9 @@ public class EquationSystem {
 		ot = ot.pushdownAllMultiplications();
 		System.out.println("  pushdownAllMultiplications: " + ot.debugStringDouble());
 
+		ot = ot.transformMinusPushedDown();
+		System.out.println("  transformMinusPushedDown: " + ot.debugStringDouble());
+
 		System.out.println("}");
 	}
 	
@@ -905,6 +945,7 @@ public class EquationSystem {
 			//debugEquationParsing("U3 = I1 * (R1 + R4)");
 			//debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
 			//debugEquationParsing("U1 / I1 = 1 / (1 / R2 + 1 / R3)");
+			//debugEquationParsing("I1 ∙ I4 ∙ R1 ∙ R4 + I1 ∙ I4 ∙ R1 ^ 2 + I4 ^ 2 ∙ R1 ∙ R4 + I4 ^ 2 ∙ R4 ^ 2 + -(U3 ^ 2) + I1 ∙ R1 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + I1 ∙ R4 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + -U3 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) = 0");
 			debugSimplifications();
 			
 			sys.add("Q = C1 * U1");
