@@ -148,8 +148,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 				return obj.toString(op);
 			}
 		});
-        if(isFunctionCall())
+        if(isFunctionCall()) {
+            if(entities.size() == 1 && entities.get(0) instanceof OTSubtree)
+                return op + entities.get(0); // some shorter version
             return op + " " + Utils.concat(entitiesStr, " ");
+        }
 		return Utils.concat(entitiesStr, " " + op + " ");
 	}
     static boolean debugOperatorTreeDump = false;
