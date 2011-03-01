@@ -2,6 +2,7 @@ package applets.Termumformungen$in$der$Technik_03_Logistik;
 
 import javax.swing.JScrollPane;
 
+@SuppressWarnings({"UnusedParameters"})
 public class Content {
 
 	Applet applet;
@@ -20,8 +21,8 @@ public class Content {
 	}
 
 	void postinit() {}
-	void next(int i) {}	
-	boolean isCorrect(int i, String sel) { return false; }
+	void next(int i) {}
+    boolean isCorrect(int i, String sel) { return false; }
 	
 	void initNewCircuit() {
 		graph.setSize(520, 200);
