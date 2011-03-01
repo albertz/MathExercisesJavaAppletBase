@@ -625,17 +625,6 @@ public class EquationSystem {
 		
 	}
 
-	void debugEquation(OperatorTree ot) {
-		ot = ot.simplify().transformMinusToPlus();
-		System.out.print("normalised input: " + ot + ", ");
-		try {
-			Equation eq = new Equation(ot, variableSymbols);
-			System.out.println("parsed: " + eq + ", normalised eq: " + eq.normalize());
-		} catch (Equation.ParseError e) {
-			System.out.println("error while parsing " + ot + ": " + e.getMessage());
-		}
-	}
-	
 	Collection<Equation> equations = new LinkedList<Equation>();
 	
 	EquationSystem() {}
