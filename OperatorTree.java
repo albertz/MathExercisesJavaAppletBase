@@ -667,8 +667,14 @@ class OperatorTree implements Comparable<OperatorTree> {
     OperatorTree multiplyAllDivisions() {
     	OperatorTree ot = this;
         OperatorTree nextDiv;
-    	while((nextDiv = ot.nextDivision()) != null)
+	    int counter = 0;
+	    final int COUNTER_LIMIT = 10000;
+    	while((nextDiv = ot.nextDivision()) != null) {
     		ot = ot.multiply(nextDiv);
+		    counter++;
+		    if(counter > COUNTER_LIMIT)
+			    throw new AssertionError("counter limit reached\n ot: " + ot.debugStringDouble() + "\n nextDiv: " + nextDiv.debugStringDouble());
+	    }
     	return ot;
     }
     
