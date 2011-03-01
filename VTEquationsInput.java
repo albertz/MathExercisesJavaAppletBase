@@ -183,7 +183,7 @@ public class VTEquationsInput extends VisualThing {
 		
 		abstract boolean recheck(EquationPanel eqp);
 		
-		Iterator<EquationPanel> getNextAfter(EquationPanel eqp) {			
+		Iterator<EquationPanel> getNextAfter(EquationPanel eqp) {
 			for(Iterator<EquationPanel> eqpIter = equations.iterator(); eqpIter.hasNext();)
 				if(eqpIter.next() == eqp) return eqpIter;
 			throw new AssertionError("equation panel not found");				
