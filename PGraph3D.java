@@ -1,19 +1,15 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.event.MouseEvent;
 import java.util.Calendar;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.Timer;
@@ -373,6 +369,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				return 0;
 			}
 			
+			/*
 			public int compareLineLine(PrimitiveLine l1, PrimitiveLine l2) {
 				return comparePoints(l1.middle(), l2.middle());
 			}
@@ -431,7 +428,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				if(o1 instanceof PrimitivePolygon)
 					return comparePolygon_((PrimitivePolygon) o1, o2);
 				return comparePoint_((PrimitivePoint) o1, o2);				
-			}
+			}*/
 			
 			public int compare(Primitive o1, Primitive o2) {
 				// complex compare doesnt work right now, some bug somewhere
