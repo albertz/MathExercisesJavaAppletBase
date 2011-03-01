@@ -246,7 +246,7 @@ public class Utils {
 		return concatCollectionView(listFromArgs(c1, c2));
 	}
 	
-	static <E> Set<E> mergedSetView(final Iterable<? extends Set<E>> sets) {
+	static <E> Set<E> mergedSetView(final Iterable<? extends Iterable<E>> sets) {
 		return new LightSet<E>() {
 			public Iterator<E> iterator() {
 				// NOTE: Because of unique, this requires O(N) memory.
