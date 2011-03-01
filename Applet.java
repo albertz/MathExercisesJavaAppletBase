@@ -36,19 +36,11 @@ public class Applet extends JApplet {
 	
 	JScrollPane scrollPane = null;
 	
-	/**
-	 * This is the xxx default constructor
-	 */
 	public Applet() {
 		super();
 		instance = this;
 	}
 	
-	/**
-	 * This method initializes this
-	 * 
-	 * @return void
-	 */
 	public void init() {
 		try {
 			defaultFont = Font.createFont(Font.TRUETYPE_FONT, getResource("DejaVuSans.ttf")).deriveFont(12.0f);
