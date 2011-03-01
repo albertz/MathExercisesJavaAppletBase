@@ -1,6 +1,5 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import java.util.Random;
 import javax.swing.JScrollPane;
 
 public class Content {
