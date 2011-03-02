@@ -32,12 +32,6 @@ public class EquationSystem {
 		String asVariable() { return castTo(Equation.Sum.Prod.Pot.class).asVariable(); } 
 		Integer asNumber() { return castTo(Equation.Sum.Prod.class).asNumber(); }
 
-		boolean equalsToNum(int num) {
-			Integer myNum = asNumber();
-			if(myNum != null) return myNum == num;
-			return false;
-		}
-		
 		abstract Iterable<? extends Expression> childs();
 		Iterable<String> vars() {
 			Iterable<Iterable<String>> varIters = Utils.map(childs(), new Utils.Function<Expression, Iterable<String>>() {
