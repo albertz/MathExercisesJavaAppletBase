@@ -628,7 +628,6 @@ public class EquationSystem {
 	Collection<Equation> equations = new LinkedList<Equation>();
 	
 	EquationSystem() {}
-	EquationSystem(Set<String> variableSymbols) { this.variableSymbols = variableSymbols; }
 	EquationSystem(Collection<Equation> equations, Set<String> variableSymbols) {
 		this.equations = equations;
 		this.variableSymbols = variableSymbols;
