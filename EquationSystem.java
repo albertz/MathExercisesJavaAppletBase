@@ -620,8 +620,7 @@ public class EquationSystem {
 			String english, german;
 			OperatorTree ot;
 			public ParseError(String english, String german) { super(english); this.english = english; this.german = german; }
-			public ParseError(ParseError e) { super(e.english); this.english = e.english; this.german = e.german; }
-        }
+		}
 		
 	}
 
