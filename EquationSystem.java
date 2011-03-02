@@ -16,71 +16,7 @@ import java.util.TreeSet;
 
 public class EquationSystem {
 
-	Set<String> baseUnits = new HashSet<String>();
-	
-	static class Unit {
-		static class Pot {
-			String baseUnit; int pot;
-			Pot(String u) { baseUnit = u; pot = 1; }
-			Pot(String u, int p) { baseUnit = u; pot = p; }
-			@Override public String toString() { return baseUnit + ((pot != 1) ? ("^" + pot) : ""); }
-		}
-		List<Pot> facs = new LinkedList<Pot>();
-		void init(String str) {
-			int state = 0;
-			String curPot = "";
-			String curBaseUnit = "";
-			for(int i = 0; i <= str.length(); ++i) {
-				int c = (i < str.length()) ? str.charAt(i) : 0;
-				boolean finishCurrent = false;
-				if(c == '^') {
-					if(state != 0) throw new AssertionError("bad ^ at " + i);
-					if(curBaseUnit.isEmpty()) throw new AssertionError("missing unit, bad ^ at " + i);
-					state = 1;
-				}
-				else if(c >= '0' && c <= '9' || c == '-') {
-					if(state == 0) curBaseUnit += (char)c;
-					else curPot += (char)c;
-				}
-				else if(c == ' ' || c == 0) {
-					if(state == 0 && !curBaseUnit.isEmpty()) finishCurrent = true;
-					if(state == 1 && !curPot.isEmpty()) finishCurrent = true;
-				}
-				else {
-					if(state == 1) throw new AssertionError("invalid char " + (char)c + " at " + i);
-					curBaseUnit += (char)c;
-				}
-				if(finishCurrent) {
-					Pot p = new Pot(curBaseUnit);
-					if(state > 0) p.pot = Integer.parseInt(curPot);
-					facs.add(p);
-					state = 0; curBaseUnit = ""; curPot = "";
-				}
-			}			
-		}
-		void simplify() {
-			Map<String,Integer> pot = new HashMap<String, Integer>();
-			for(Pot p : this.facs) {
-				int oldPot = pot.containsKey(p.baseUnit) ? pot.get(p.baseUnit) : 0;
-				pot.put(p.baseUnit, oldPot + p.pot);
-			}
-			facs.clear();
-			for(String u : pot.keySet()) {
-				if(pot.get(u) != 0)
-					facs.add(new Pot(u, pot.get(u)));
-			}			
-		}
-		Unit(String str) { init(str); simplify(); }
-		Unit(String str, Set<String> allowedBaseUnits) {
-			init(str); simplify();
-			for(Pot p : facs)
-				if(!allowedBaseUnits.contains(p.baseUnit))
-					throw new AssertionError("unit " + p.baseUnit + " not allowed");
-		}
-		@Override public String toString() { return Utils.concat(facs, " "); }
-	}
-		
-	Set<String> variableSymbols = new HashSet<String>();	
+	Set<String> variableSymbols = new HashSet<String>();
 	void registerVariableSymbol(String var) { variableSymbols.add(var); }	
 		
 	static abstract class Expression {
