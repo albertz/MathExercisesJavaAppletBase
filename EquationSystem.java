@@ -1,9 +1,7 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import java.math.BigInteger;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -26,7 +24,7 @@ public class EquationSystem {
 			if(clazz.isAssignableFrom(Integer.class)) return clazz.cast(asNumber());
 			try {
 				return clazz.getConstructor(getClass()).newInstance(this);
-			} catch (Exception e) {}
+			} catch (Exception ignored) {}
 			throw new AssertionError("unknown type: " + clazz);
 		}
 		String asVariable() { return castTo(Equation.Sum.Prod.Pot.class).asVariable(); } 
@@ -165,7 +163,6 @@ public class EquationSystem {
 					return super.castTo(clazz);
 				}
 				boolean isZero() { return fac == 0; }
-				boolean isOne() { return fac == 1 && facs.isEmpty(); }
 				@Override public String toString() {
 					if(facs.isEmpty()) return "" + fac;
 					if(fac == 1) return Utils.concat(facs, " ∙ ");
@@ -240,32 +237,9 @@ public class EquationSystem {
 						res.facs.add(new Pot(p.sym, -p.pot));
 					return res.normalize();
 				}
-				Prod commonBase(Prod other) {
-					Prod base = new Prod();
-					base.fac = BigInteger.valueOf(fac).gcd(BigInteger.valueOf(other.fac)).intValue();
-					Map<String,Integer> varMap1 = varMap();
-					Map<String,Integer> varMap2 = other.varMap();							
-					Set<String> commonVars = new HashSet<String>();
-					commonVars.addAll(varMap1.keySet());
-					commonVars.retainAll(varMap2.keySet());
-					for(String var : commonVars) {
-						Pot pot = new Pot(var);
-						pot.pot = Math.min(varMap1.get(var), varMap2.get(var));
-						if(pot.pot != 0)
-							base.facs.add(pot);
-					}
-					return base;
-				}
 				@Override Iterable<? extends Expression> childs() { return facs; }
 				Prod() {}
-				Prod(int num) { this.fac = num; }
-				Prod(String var) { fac = 1; facs.add(new Pot(var)); }
 				Prod(int fac, List<Pot> facs) { this.fac = fac; this.facs = facs; }
-				Prod(Iterable<String> vars) {
-					fac = 1;
-					for(String v : vars)
-						facs.add(new Pot(v));
-				}
 				Prod(OperatorTree ot) throws ParseError { fac = 1; parse(ot); }
 				void parse(OperatorTree ot) throws ParseError {
 					if(ot.canBeInterpretedAsUnaryPrefixed() && ot.op.equals("-")) {
@@ -280,8 +254,7 @@ public class EquationSystem {
 									fac *= Integer.parseInt(s);
 								}
 								catch(NumberFormatException ex) {
-									String var = s;
-									facs.add(new Pot(var));
+									facs.add(new Pot(/*var*/ s));
 								}
 							}
 							else
@@ -318,7 +291,6 @@ public class EquationSystem {
 				return compareTo((Sum) obj) == 0;
 			}
 			boolean isZero() { return entries.isEmpty(); }
-			boolean isOne() { return entries.size() == 1 && entries.get(0).isOne(); }
 			Sum normalize() {
 				List<Prod> newEntries = new LinkedList<Prod>();
 				for(Prod prod : entries)
@@ -403,11 +375,6 @@ public class EquationSystem {
 				}
 				return sum;
 			}
-			Sum commomBase(Sum other) {
-				if(isZero() || other.isZero()) return new Sum();
-				if(entries.size() > 1 || other.entries.size() > 1) return new Sum(1); // we should optimize this maybe later...
-				return new Sum(entries.get(0).commonBase(other.entries.get(0)));
-			}
 			@Override Iterable<? extends Expression> childs() { return entries; }
 			static class ExtractedVar {
 				String var;
@@ -433,9 +400,6 @@ public class EquationSystem {
 				return null;
 			}
 			Sum() {}
-			Sum(String var) { entries.add(new Prod(var)); }
-			Sum(Prod prod) { entries.add(prod); }
-			Sum(int num) { entries.add(new Prod(num)); }
 			Sum(OperatorTree left, OperatorTree right) throws ParseError {
 				this(OperatorTree.MergedEquation(left, right)
 					.transformMinusToPlus()
