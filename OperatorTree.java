@@ -679,8 +679,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 	static private void __mergeProductFactor(SortedMap<OperatorTree,Integer> facs, OperatorTree ot) {
 		Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
 		Integer power = facs.get(pot.first);
-		if(power == null) power = 1;
-		else power += pot.second;
+		if(power == null) power = 0;
+		power += pot.second;
 		facs.put(pot.first, power);
 	}
 
@@ -858,7 +858,6 @@ class OperatorTree implements Comparable<OperatorTree> {
 		OperatorTree sum = this;
 		for(OperatorTree p : firstProdEntries) {
 			Utils.Pair<OperatorTree,Integer> pot = p.normedPot();
-			// TODO: we could also just pass p here and do it right in divideIfReducing
 			for(int i = 0; i < pot.second; ++i) {
 				OperatorTree newSum = sum.divideIfReducing(pot.first, false);
 				if(newSum == null) break;
