@@ -742,7 +742,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		List<Utils.Pair<Integer,List<OperatorTree>>> newEntries = new LinkedList<Utils.Pair<Integer,List<OperatorTree>>>();
 		for(OTEntity prod : entities)
 			newEntries.add(prod.asTree().asProduct().normedProductFactorList());
-		Collections.sort(newEntries, Utils.<Integer,List<OperatorTree>>pairComparator(Utils.<Integer>comparatorFromCompareable(), Utils.<OperatorTree,List<OperatorTree>>collectionComparator()));
+		Collections.sort(newEntries, Utils.<Integer,List<OperatorTree>>pairComparatorSecond(Utils.<OperatorTree,List<OperatorTree>>collectionComparator()));
 		Utils.Pair<Integer,List<OperatorTree>> lastProd = null;
 
 		OperatorTree sum = new OperatorTree("+");
@@ -761,7 +761,6 @@ class OperatorTree implements Comparable<OperatorTree> {
 			if(pit.next().asTree().isZero())
 				pit.remove();
 		}
-		Collections.sort(sum.entities);
 
 		if(!sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
 			return sum.minusOne();

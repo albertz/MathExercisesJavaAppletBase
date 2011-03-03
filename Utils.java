@@ -428,6 +428,9 @@ public class Utils {
 			this.first = first;
 			this.second = second;
 		}
+		@Override public String toString() {
+			return "(" + first + "," + second + ")";
+		}
 	}
 
 	static <T1,T2> Comparator<Pair<T1,T2>> pairComparator(final Comparator<? super T1> comp1, final Comparator<? super T2> comp2) {
@@ -436,6 +439,14 @@ public class Utils {
 				int c = comp1.compare(o1.first, o2.first);
 				if(c != 0) return c;
 				return comp2.compare(o1.second, o2.second);
+			}
+		};
+	}
+
+	static <T1,T2> Comparator<Pair<T1,T2>> pairComparatorSecond(final Comparator<? super T2> comp) {
+		return new Comparator<Pair<T1,T2>>() {
+			public int compare(Pair<T1,T2> o1, Pair<T1,T2> o2) {
+				return comp.compare(o1.second, o2.second);
 			}
 		};
 	}
