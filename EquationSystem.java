@@ -725,6 +725,8 @@ public class EquationSystem {
 
 		System.out.println("equ (" + left.debugStringDouble() + ") = (" + right.debugStringDouble() + "): {");
 
+		// These steps match the processing in OperatorTree.normalized().
+
 		ot = OperatorTree.MergedEquation(left, right);
 		System.out.println("  merge: " + ot.debugStringDouble());
 		
@@ -745,6 +747,9 @@ public class EquationSystem {
 
 		ot = ot.transformMinusPushedDown();
 		System.out.println("  transformMinusPushedDown: " + ot.debugStringDouble());
+
+		ot = ot.normedSum();
+		System.out.println("  normedSum: " + ot.debugStringDouble());
 
 		System.out.println("}");
 	}
