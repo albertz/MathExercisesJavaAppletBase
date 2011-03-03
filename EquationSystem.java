@@ -688,7 +688,7 @@ public class EquationSystem {
 			System.out.println("Error: assertCanConcludeTo failed for: " + eqStr + " // " + eq.normalizedSum());
 			System.out.println("system:");
 			for(Equation e : equations)
-				System.out.println("  " + e + " // " + e.normalize());
+				System.out.println("  " + e + " // " + e.normalize() + " // " + e.normalizedSum().reducedSum());
 
 			System.out.println("equation:");
 			debugEquationParsing(eqStr);
@@ -704,9 +704,9 @@ public class EquationSystem {
 		Equation eq = new Equation(eqStr, variableSymbols);
 		if(canConcludeTo(eq)) {
 			System.out.println("Error: assertCanNotConcludeTo failed for: " + eqStr + " // " + eq.normalizedSum());
-			System.out.println("normed system:");
+			System.out.println("system:");
 			for(Equation e : equations)
-				System.out.println("  " + e.normalize());
+				System.out.println("  " + e + " // " + e.normalize() + " // " + e.normalizedSum().reducedSum());
 			
 			System.out.println("equation:");
 			debugEquationParsing(eqStr);
