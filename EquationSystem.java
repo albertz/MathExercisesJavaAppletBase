@@ -524,11 +524,6 @@ public class EquationSystem {
 		this.equations = equations;
 		this.variableSymbols = variableSymbols;
 	}
-	EquationSystem extendedSystem(Collection<Equation> additionalEquations) {
-		return new EquationSystem(
-				Utils.extendedCollectionView(equations, additionalEquations),
-				variableSymbols);
-	}
 
 	Iterable<OperatorTree> normalizedSums() {
 		return Utils.map(equations, new Utils.Function<Equation,OperatorTree>() {
