@@ -417,10 +417,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     }
     
     OperatorTree transformMinusPushedDown() {
-    	OTEntity e = transformMinusPushedDown(false);
-    	if(e instanceof OTSubtree)
-    		return ((OTSubtree) e).content;
-    	return new OperatorTree("", e);
+    	return transformMinusPushedDown(false).asTree();
     }
     OTEntity transformMinusPushedDown(boolean negate) {
     	if(canBeInterpretedAsUnaryPrefixed() && op.equals("-")) {        		
