@@ -475,9 +475,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     OperatorTree minusOne() {
     	if(canBeInterpretedAsUnaryPrefixed() && op.equals("-"))
     		return unaryPrefixedContent().asTree();
-    	
-    	OTEntity e = transformMinusPushedDown(true);
-    	return e.asTree();
+    	return transformMinusPushedDown(true).asTree();
 	}
 
 	OTEntity asEntity() {
