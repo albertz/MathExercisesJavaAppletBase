@@ -180,9 +180,9 @@ public class EquationSystem {
 //		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>(), 0);
 	}
 	
-	private static Set<String> commonVars(OperatorTree eq1, OperatorTree eq2) {
-		Set<String> commonVars = new HashSet<String>(Utils.collFromIter(eq1.vars()));
-		commonVars.retainAll(new HashSet<String>(Utils.collFromIter(eq2.vars())));
+	private static Set<OperatorTree> commonBaseFactors(OperatorTree eq1, OperatorTree eq2) {
+		Set<OperatorTree> commonVars = new HashSet<OperatorTree>(eq1.baseFactors());
+		commonVars.retainAll(new HashSet<OperatorTree>(eq2.baseFactors()));
 		return commonVars;
 	}
 
@@ -192,27 +192,27 @@ public class EquationSystem {
 		if(fixedEq.isZero()) return results;
 		if(otherEq.isZero()) return results;
 
-		Set<String> commonVars = commonVars(fixedEq, otherEq);
+		Set<OperatorTree> baseFactors = commonBaseFactors(fixedEq, otherEq);
 		
-		for(String var : commonVars) {					
-			OperatorTree.ExtractedVar extract1 = fixedEq.extractVar(var);
-			OperatorTree.ExtractedVar extract2 = otherEq.extractVar(var);
+		for(OperatorTree baseFactor : baseFactors) {
+			OperatorTree.ExtractedFactor extract1 = fixedEq.extractFactor(baseFactor);
+			OperatorTree.ExtractedFactor extract2 = otherEq.extractFactor(baseFactor);
 			if(extract1 == null) { // can happen if we have higher order polynoms
-				if(debugVerbose >= 3) System.out.println("cannot extract " + var + " in " + fixedEq);
+				if(debugVerbose >= 3) System.out.println("cannot extract " + baseFactor + " in " + fixedEq);
 				continue;
 			}
 			if(extract2 == null) { // can happen if we have higher order polynoms
-				if(debugVerbose >= 3) System.out.println("cannot extract " + var + " in " + otherEq);
+				if(debugVerbose >= 3) System.out.println("cannot extract " + baseFactor + " in " + otherEq);
 				continue;
 			}
 
 			OperatorTree fac = extract1.varMult.divide(extract2.varMult).minusOne();
-			if(debugVerbose >= 2) System.out.print("var: " + var + " in " + otherEq);
+			if(debugVerbose >= 2) System.out.print("var: " + baseFactor + " in " + otherEq);
 			if(debugVerbose >= 2) System.out.print(", fac: " + fac.debugStringDouble());
 			fac = fac.mergeDivisions().simplifyDivision();
 			if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
 			OperatorTree newSum = otherEq.multiply(fac);
-			if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2);
+			if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + baseFactor + ": " + extract1 + " and " + extract2);
 			// NOTE: here would probably the starting place to allow vars=0.
 			//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
 			

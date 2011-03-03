@@ -3,8 +3,6 @@
  */
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import com.sun.org.apache.bcel.internal.generic.IfInstruction;
-
 import java.math.BigInteger;
 import java.util.*;
 
@@ -259,6 +257,29 @@ class OperatorTree implements Comparable<OperatorTree> {
 				}
 			}
     	});
+	}
+
+	Collection<OperatorTree> baseFactors() {
+		if(isFunctionCall()) return Utils.listFromArgs(this);
+
+		Iterable<Iterable<OperatorTree>> subs = Utils.map(entities, new Utils.Function<OTEntity,Iterable<OperatorTree>>() {
+			public Iterable<OperatorTree> eval(OTEntity obj) {
+				if(obj instanceof OTRawString) {
+					String s = ((OTRawString) obj).content;
+					try {
+						Integer.parseInt(s);
+						return Utils.listFromArgs(); // it's an integer -> it's not a var
+					}
+					catch(NumberFormatException ignored) {} // it's not an integer -> it's a var
+					return Utils.listFromArgs(Variable(s));
+				}
+				else { // obj instanceof OTSubtree
+					return ((OTSubtree) obj).content.baseFactors();
+				}
+			}
+		});
+
+		return Utils.concatCollectionView(subs);
 	}
 	
 	Iterable<String> ops() {
@@ -781,23 +802,21 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return sum;
 	}
 
-	static class ExtractedVar {
-		String var;
+	static class ExtractedFactor {
+		OperatorTree fac;
 		OperatorTree varMult = new OperatorTree("+");
 		OperatorTree independentPart = new OperatorTree("+");
 		@Override public String toString() {
-			return "{var=" + var + ", varMult=" + varMult + ", independentPart=" + independentPart + "}";
+			return "{var=" + fac + ", varMult=" + varMult + ", independentPart=" + independentPart + "}";
 		}
 	}
 
-	ExtractedVar extractVar(String var) {
-		// NOTE: This could also be used for any OperatorTree, not just a variable.
-		// If needed, just rename this and the ExtractedVar class.
-		ExtractedVar extracted = new ExtractedVar();
-		extracted.var = var;
+	ExtractedFactor extractFactor(OperatorTree fac) {
+		ExtractedFactor extracted = new ExtractedFactor();
+		extracted.fac = fac;
 		for(OperatorTree p : sumEntries()) {
 			if(p.isZero()) continue;
-			OperatorTree newP = p.divideIfReducing(Variable(var), true);
+			OperatorTree newP = p.divideIfReducing(fac, true);
 			if(newP != null)
 				extracted.varMult.entities.add(newP.asEntity());
 			else
