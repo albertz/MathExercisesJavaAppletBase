@@ -830,15 +830,16 @@ class OperatorTree implements Comparable<OperatorTree> {
 
 		else { // take as product
 			Utils.Pair<Integer,List<OperatorTree>> prod = normedProductFactorList();
-			for(Iterator<OperatorTree> pit = prod.second.iterator(); pit.hasNext(); ) {
-				Utils.Pair<OperatorTree,Integer> p = pit.next().normedPot();
+			for(int i = 0; i < prod.second.size(); ++i) {
+				Utils.Pair<OperatorTree,Integer> p = prod.second.get(i).normedPot();
 				if(p.first.equals(ot)) {
 					if(p.second > 1 && !requireRemove) {
 						p.second--;
+						prod.second.set(i, Power(p));
 						return productFactorListAsTree(prod);
 					}
 					if(p.second == 1) {
-						pit.remove();
+						prod.second.remove(i);
 						return productFactorListAsTree(prod);
 					}
 					break;
