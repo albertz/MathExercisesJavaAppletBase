@@ -894,7 +894,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     	OperatorTree ot = this;
         OperatorTree nextDiv;
 	    int counter = 0;
-	    final int COUNTER_LIMIT = 10000;
+	    final int COUNTER_LIMIT = 1000;
     	while((nextDiv = ot.nextDivision()) != null) {
     		ot = ot.multiply(nextDiv);
 		    counter++;
