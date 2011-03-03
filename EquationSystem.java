@@ -648,8 +648,14 @@ public class EquationSystem {
 		for(String var : commonVars) {					
 			OperatorTree.ExtractedVar extract1 = fixedEq.extractVar(var);
 			OperatorTree.ExtractedVar extract2 = otherEq.extractVar(var);
-			if(extract1 == null) continue; // can happen if we have higher order polynoms
-			if(extract2 == null) continue; // can happen if we have higher order polynoms
+			if(extract1 == null) { // can happen if we have higher order polynoms
+				if(debugVerbose >= 3) System.out.print("cannot extract " + var + " in " + fixedEq);
+				continue;
+			}
+			if(extract2 == null) { // can happen if we have higher order polynoms
+				if(debugVerbose >= 3) System.out.print("cannot extract " + var + " in " + otherEq);
+				continue;
+			}
 
 			OperatorTree fac = extract1.varMult.divide(extract2.varMult).minusOne();
 			if(debugVerbose >= 2) System.out.print("var: " + var + " in " + otherEq);
