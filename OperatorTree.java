@@ -878,9 +878,14 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 	
 	OperatorTree nextDivision() {
+	    // NOTE: must match haveDenominatorInSubtree traversal
 		if(entities.isEmpty()) return null;
-		if(op.equals("/")) return entities.get(entities.size()-1).asTree();
-		if(!op.isEmpty() && (op.length() != 1 || "+-∙/".indexOf(op) < 0)) return null;
+		if(op.equals("/") && entities.size() >= 2) return entities.get(entities.size()-1).asTree();
+		if(entities.size() == 1 && !isFunctionCall()) {
+			if(entities.get(0) instanceof OTRawString) return null;
+			return entities.get(0).asTree().nextDivision();
+		}
+		if(op.length() != 1 || "+-∙/".indexOf(op) < 0) return null;
 		for(OTEntity e : entities) {
 			if(e instanceof OTSubtree) {
 				OperatorTree next = ((OTSubtree) e).content.nextDivision();
@@ -909,11 +914,19 @@ class OperatorTree implements Comparable<OperatorTree> {
     }
     
     boolean haveDenominatorInSubtree(OperatorTree denom) {
+	    // NOTE: must match nextDivision traversal
     	if(matchDenominatorInDiv(denom)) return true;
-    	for(OTEntity e : entities) {
-    		if(e instanceof OTSubtree && e.asTree().haveDenominatorInSubtree(denom))
-    			return true;
-    	}
+	    if(entities.size() == 1 && !isFunctionCall()) {
+		    if(entities.get(0) instanceof OTRawString) return false;
+		    return entities.get(0).asTree().haveDenominatorInSubtree(denom);
+	    }
+	    if(op.length() != 1 || "+-∙/".indexOf(op) < 0) return false;
+	    for(OTEntity e : entities) {
+		    if(e instanceof OTSubtree) {
+			    if(((OTSubtree) e).content.haveDenominatorInSubtree(denom))
+				    return true;
+		    }
+	    }
     	return false;
     }
     
