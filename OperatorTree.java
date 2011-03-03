@@ -598,7 +598,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 	
 	OperatorTree asSum() {
-		if((op.equals("+") || op.equals("-")) && !canBeInterpretedAsUnaryPrefixed()) return this;
+		if(op.equals("+")) return this;
 		return Sum(Utils.listFromArgs(asEntity()));
 	}
 	
@@ -701,6 +701,110 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(!sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
 			return sum.minusOne();
 		return sum;
+	}
+
+	Collection<OperatorTree> sumEntries() {
+		if(op.equals("+") && !entities.isEmpty()) return Utils.map(entities, OTUtils.entityToTreeFunc);
+		return Utils.listFromArgs(this);
+	}
+
+	Collection<OperatorTree> prodEntries() {
+		if(op.equals("∙") && !entities.isEmpty()) return Utils.map(entities, OTUtils.entityToTreeFunc);
+		return Utils.listFromArgs(this);
+	}
+
+	OperatorTree mergedEquation() {
+		if(!op.equals("=")) return this;
+		if(entities.size() != 2) return this;
+		return MergedEquation(entities.get(0).asTree(), entities.get(1).asTree());
+	}
+
+	OperatorTree normalized() {
+		return
+		 transformMinusToPlus()
+		.simplify()
+		.transformMinusPushedDown()
+		.multiplyAllDivisions()
+		.pushdownAllMultiplications()
+		.transformMinusPushedDown()
+		.normedSum();
+	}
+
+	OperatorTree divideIfReducing(OperatorTree ot, boolean requireRemove) {
+		if(op.equals("+")) {
+			OperatorTree sum = new OperatorTree("+");
+			for(OTEntity p : entities) {
+				OperatorTree t = p.asTree().divideIfReducing(ot, requireRemove);
+				if(t == null) return null;
+				sum.entities.add(t.asEntity());
+			}
+			return sum;
+		}
+
+		else { // take as product
+			Utils.Pair<Integer,List<OperatorTree>> prod = normedProductFactorList();
+			for(Iterator<OperatorTree> pit = prod.second.iterator(); pit.hasNext(); ) {
+				Utils.Pair<OperatorTree,Integer> p = pit.next().normedPot();
+				if(p.first.equals(ot)) {
+					if(p.second > 1 && !requireRemove) {
+						p.second--;
+						return productFactorListAsTree(prod);
+					}
+					if(p.second == 1) {
+						pit.remove();
+						return productFactorListAsTree(prod);
+					}
+					break;
+				}
+			}
+			return null; // var not included or not pot=1
+		}
+	}
+
+	OperatorTree reducedSum() {
+		// IMPORTANT: assumes that we can simply divide by all variables
+		// See comment in EquationSystem about the assumption that all vars!=0.
+		if(entities.size() <= 1) return this;
+
+		List<OperatorTree> firstProdEntries = new LinkedList<OperatorTree>(sumEntries().iterator().next().prodEntries());
+		OperatorTree sum = this;
+		for(OperatorTree p : firstProdEntries) {
+			Utils.Pair<OperatorTree,Integer> pot = p.normedPot();
+			// TODO: we could also just pass p here and do it right in divideIfReducing
+			for(int i = 0; i < pot.second; ++i) {
+				OperatorTree newSum = sum.divideIfReducing(pot.first, false);
+				if(newSum == null) break;
+				sum = newSum;
+			}
+		}
+		return sum;
+	}
+
+	static class ExtractedVar {
+		String var;
+		OperatorTree varMult = new OperatorTree("+");
+		OperatorTree independentPart = new OperatorTree("+");
+		@Override public String toString() {
+			return "{var=" + var + ", varMult=" + varMult + ", independentPart=" + independentPart + "}";
+		}
+	}
+
+	ExtractedVar extractVar(String var) {
+		// NOTE: This could also be used for any OperatorTree, not just a variable.
+		// If needed, just rename this and the ExtractedVar class.
+		ExtractedVar extracted = new ExtractedVar();
+		extracted.var = var;
+		for(OperatorTree p : sumEntries()) {
+			if(p.isZero()) continue;
+			OperatorTree newP = p.divideIfReducing(Variable(var), true);
+			if(newP != null)
+				extracted.varMult.entities.add(newP.asEntity());
+			else
+				extracted.independentPart.entities.add(p.asEntity());
+		}
+		if(!extracted.varMult.entities.isEmpty())
+			return extracted;
+		return null;
 	}
 
 	OperatorTree firstProductInSum() { // expecting that we are a sum

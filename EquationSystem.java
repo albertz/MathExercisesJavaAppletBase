@@ -445,8 +445,6 @@ public class EquationSystem {
 					throw new ParseError("'" + ot.op + "' not supported in " + ot, "'" + ot.op + "' nicht unterstützt in " + ot);
 			}
 			@Override String baseOp() { return "+"; }
-			boolean isTautology() { return normalize().isZero(); }
-			Equation asEquation() { return new Equation(asOperatorTree(), OperatorTree.Zero()); }
 		}
 
 		OperatorTree left, right;
@@ -462,24 +460,25 @@ public class EquationSystem {
 		Sum normalizedSum__throwExc() throws ParseError {
 			return new Sum(left, right).normalize();			
 		}
-		Sum normalizedSum() {
-			try {
-				return normalizedSum__throwExc();
-			} catch (ParseError e) {
-				// this should not happen; we should have checked that in the constructor
-				e.printStackTrace();
-				return null;
-			}			
+		OperatorTree normalizedSum() {
+			return OperatorTree.MergedEquation(left, right)
+					.transformMinusToPlus()
+					.simplify()
+					.transformMinusPushedDown()
+					.multiplyAllDivisions()
+					.pushdownAllMultiplications()
+					.transformMinusPushedDown()
+					.normedSum();
 		}
-		Equation normalize() { return normalizedSum().asEquation(); }
+		Equation normalize() { return new Equation(normalizedSum(), OperatorTree.Zero()); }
 		boolean isTautology() { return normalizedSum().isZero(); }
-		boolean equalNorm(Equation other) {
+		/*boolean equalNorm(Equation other) {
 			Sum myNorm = normalizedSum();
 			Sum otherNorm = other.normalizedSum();
 			if(myNorm.equals(otherNorm)) return true;
 			if(myNorm.equals(otherNorm.minusOne())) return true;
 			return false;
-		}
+		} */
 		Iterable<String> vars() { return Utils.concatCollectionView(left.vars(), right.vars()); }
 		Equation() { left = new OperatorTree(); right = new OperatorTree(); }
 		Equation(OperatorTree left, OperatorTree right) { this.left = left; this.right = right; }
@@ -531,14 +530,14 @@ public class EquationSystem {
 				variableSymbols);
 	}
 
-	Iterable<Equation.Sum> normalizedSums() {
-		return Utils.map(equations, new Utils.Function<Equation,Equation.Sum>() {
-			public Equation.Sum eval(Equation obj) { return obj.normalizedSum(); }
+	Iterable<OperatorTree> normalizedSums() {
+		return Utils.map(equations, new Utils.Function<Equation,OperatorTree>() {
+			public OperatorTree eval(Equation obj) { return obj.normalizedSum(); }
 		});
 	}
-	Iterable<Equation.Sum> normalizedAndReducedSums() {
-		return Utils.map(normalizedSums(), new Utils.Function<Equation.Sum,Equation.Sum>() {
-			public Equation.Sum eval(Equation.Sum obj) { return obj.reduce(); }
+	Iterable<OperatorTree> normalizedAndReducedSums() {
+		return Utils.map(normalizedSums(), new Utils.Function<OperatorTree,OperatorTree>() {
+			public OperatorTree eval(OperatorTree obj) { return obj.reducedSum(); }
 		});
 	}
 
@@ -569,8 +568,8 @@ public class EquationSystem {
 	}
 	
 	boolean containsNormed(Equation eq) {
-		Equation.Sum eqSum = eq.normalizedSum();
-		for(Equation.Sum s : normalizedSums()) {
+		OperatorTree eqSum = eq.normalizedSum();
+		for(OperatorTree s : normalizedSums()) {
 			if(eqSum.equals(s) || eqSum.minusOne().equals(s))
 				return true;
 		}
@@ -580,97 +579,91 @@ public class EquationSystem {
 	// IMPORTANT:
 	// This resolution algorithm currently assumes that we have all variables != 0.
 	// This is often the case for electronic circuits (because otherwise we would have short circuits etc).
-	// If it is ever needed to handle the more general case, probably the function to fix would be calcAllOneSideConclusions.
+	// If it is ever needed to handle the more general case, the functions to fix would be:
+	//  - calcAllOneSideConclusions
+	//  - OperatorTree.reducedSum
 	
 	private static int debugVerbose = 0;
 	private final static int DEPTH_LIMIT = 4;
 	
-	private static boolean _canConcludeTo(Collection<Equation.Sum> baseEquations, Equation.Sum eq, Set<Equation.Sum> usedEquationList, int depth) {
-		if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eq);
+	private static boolean _canConcludeTo(Collection<OperatorTree> baseEquationSums, OperatorTree eqSum, Set<OperatorTree> usedEquationSumList, int depth) {
+		if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eqSum);
 
-		Set<Equation.Sum> equations = new TreeSet<Equation.Sum>(baseEquations);
-		if(equations.contains(eq)) {
+		Set<OperatorTree> equationSums = new TreeSet<OperatorTree>(baseEquationSums);
+		if(equationSums.contains(eqSum)) {
 			if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
 			return true;
 		}
 
 		if(depth > DEPTH_LIMIT) return false;		
 
-		for(Equation.Sum myEq : baseEquations) {
-			Collection<Equation.Sum> allConclusions = calcAllOneSideConclusions(eq, myEq);
-			if(allConclusions.isEmpty()) {
+		for(OperatorTree myEq : baseEquationSums) {
+			Collection<OperatorTree> allConclusionSums = calcAllOneSideConclusions(eqSum, myEq);
+			if(allConclusionSums.isEmpty()) {
 				if(debugVerbose >= 3) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
 				continue;
 			}
 			
-			equations.remove(myEq);
-			for(Equation.Sum resultingEq : allConclusions) {
-				if(usedEquationList.contains(resultingEq)) continue;
-				usedEquationList.add(resultingEq);
+			equationSums.remove(myEq);
+			for(OperatorTree resultingEqSum : allConclusionSums) {
+				if(usedEquationSumList.contains(resultingEqSum)) continue;
+				usedEquationSumList.add(resultingEqSum);
 				
-				if(resultingEq.isTautology()) {
-					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEq);
+				if(resultingEqSum.isZero()) {
+					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEqSum);
 					return true;
 				}
 				
-				if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEq);
-				if(_canConcludeTo(equations, resultingEq, usedEquationList, depth + 1)) {
+				if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEqSum);
+				if(_canConcludeTo(equationSums, resultingEqSum, usedEquationSumList, depth + 1)) {
 					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
 					return true;
 				}
 			}
-			equations.add(myEq);
+			equationSums.add(myEq);
 		}
 		if(debugVerbose >= 2) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
 		return false;
 	}
 
 	boolean canConcludeTo(Equation eq) {
-		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<Equation.Sum>(), 0);
+		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<OperatorTree>(), 0);
 //		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>(), 0);
 	}
 	
-	private static Set<String> commonVars(Equation.Sum eq1, Equation.Sum eq2) {
+	private static Set<String> commonVars(OperatorTree eq1, OperatorTree eq2) {
 		Set<String> commonVars = new HashSet<String>(Utils.collFromIter(eq1.vars()));
 		commonVars.retainAll(new HashSet<String>(Utils.collFromIter(eq2.vars())));
 		return commonVars;
 	}
 
-	private static Set<Equation.Sum> calcAllOneSideConclusions(Equation.Sum fixedEq, Equation.Sum otherEq) {
-		Set<Equation.Sum> results = new TreeSet<Equation.Sum>();
+	private static Set<OperatorTree> calcAllOneSideConclusions(OperatorTree fixedEq, OperatorTree otherEq) {
+		Set<OperatorTree> results = new TreeSet<OperatorTree>();
 		
-		if(fixedEq.isTautology()) return results;
-		if(otherEq.isTautology()) return results;
+		if(fixedEq.isZero()) return results;
+		if(otherEq.isZero()) return results;
 
 		Set<String> commonVars = commonVars(fixedEq, otherEq);
 		
 		for(String var : commonVars) {					
-			Equation.Sum.ExtractedVar extract1 = fixedEq.extractVar(var);
-			Equation.Sum.ExtractedVar extract2 = otherEq.extractVar(var);
+			OperatorTree.ExtractedVar extract1 = fixedEq.extractVar(var);
+			OperatorTree.ExtractedVar extract2 = otherEq.extractVar(var);
 			if(extract1 == null) continue; // can happen if we have higher order polynoms
 			if(extract2 == null) continue; // can happen if we have higher order polynoms
 
-			OperatorTree fac = extract1.varMult.asOperatorTree().divide(extract2.varMult.asOperatorTree()).minusOne();
+			OperatorTree fac = extract1.varMult.divide(extract2.varMult).minusOne();
 			if(debugVerbose >= 2) System.out.print("var: " + var + " in " + otherEq);
 			if(debugVerbose >= 2) System.out.print(", fac: " + fac.debugStringDouble());
 			fac = fac.mergeDivisions().simplifyDivision();
 			if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
-			OperatorTree newSum = otherEq.asOperatorTree().multiply(fac);
+			OperatorTree newSum = otherEq.multiply(fac);
 			if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + var + ": " + extract1 + " and " + extract2);
 			// NOTE: here would probably the starting place to allow vars=0.
 			//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
 			
-			OperatorTree resultingEquation = fixedEq.asOperatorTree().sum(newSum);
-			Equation.Sum resultingSum;
-			try {
-				resultingSum = new Equation.Sum(resultingEquation, OperatorTree.Zero());
-			} catch (Equation.ParseError e) {
-				System.err.println("something strange happend; resultingEquation: " + resultingEquation);
-				e.printStackTrace(); // should not happen
-				continue;
-			}
-			if(debugVerbose >= 3) System.out.println(".. result: " + resultingEquation + " // " + resultingSum + " // " + resultingSum.normalize());
-			results.add(resultingSum.normalize());
+			OperatorTree resultingEquSum = fixedEq.sum(newSum).normalized();
+			if(debugVerbose >= 3) System.out.println(".. result: " + resultingEquSum);
+			results.add(resultingEquSum);
 		}
 		
 		return results;
@@ -766,7 +759,7 @@ public class EquationSystem {
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}
 
-	static void assertEqual(Equation.Sum a, String b) {
+	static void assertEqual(OperatorTree a, String b) {
 		if(!a.toString().equals(b))
 			throw new AssertionError("not equal: " + a + " and " + b);
 	}
