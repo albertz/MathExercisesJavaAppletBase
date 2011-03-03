@@ -53,6 +53,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 	Integer asNumber() {
 		if(isFunctionCall()) return null;
+		if(entities.isEmpty() && op.isEmpty()) return 0;
 		if(entities.size() == 1) {
 			OTEntity e = entities.get(0);
 			if(e instanceof OTSubtree)
