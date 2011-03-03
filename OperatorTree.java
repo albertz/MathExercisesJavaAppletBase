@@ -3,6 +3,8 @@
  */
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
+import com.sun.org.apache.bcel.internal.generic.IfInstruction;
+
 import java.math.BigInteger;
 import java.util.*;
 
@@ -560,58 +562,6 @@ class OperatorTree implements Comparable<OperatorTree> {
 			return ot;
 		}
 	}
-	
-	OperatorTree canRemoveFactor(OperatorTree fac) {
-		if(equals(fac)) return One();
-		if(minusOne().equals(fac)) return Number(-1);
-		if(!isFunctionCall() && entities.size() == 1) {
-			if(entities.get(0) instanceof OTSubtree)
-				return ((OTSubtree) entities.get(0)).content.canRemoveFactor(fac);
-			return null;
-		}
-
-		if(!op.isEmpty() && (op.length() != 1 || "+-∙/".indexOf(op) < 0))
-			return null;
-
-		OperatorTree ot = new OperatorTree(op);
-		boolean needOne;
-		if(op.equals("∙")) needOne = true;
-		else if(op.equals("/")) {
-			if(entities.isEmpty()) return null;
-			OperatorTree sub = entities.get(0).asTree().canRemoveFactor(fac);
-			if(sub == null) return null;
-			ot.entities.add(sub.asEntity());
-			for(int i = 1; i < entities.size(); ++i) ot.entities.add(entities.get(i));
-			return ot;
-		}
-		else needOne = false;
-
-		boolean haveOne = false;
-		int numfac = 1;
-		for(OTEntity e : entities) {
-			if(needOne && haveOne) {
-				ot.entities.add(e);
-				continue;
-			}
-			OperatorTree sub = e.asTree().canRemoveFactor(fac);
-			if(sub == null) {
-				if(!needOne) return null; // we need all but this one does not have the factor
-				ot.entities.add(e);
-				continue;
-			}
-			haveOne = true;
-			if(op.equals("∙") && sub.asNumber() != null)
-				numfac *= sub.asNumber();
-			else
-				ot.entities.add(sub.asEntity());
-		}
-		if(needOne && !haveOne && !entities.isEmpty()) return null;
-		if(op.equals("∙") && numfac != 1) {
-			if(!ot.entities.isEmpty()) ot.entities.set(0, ot.entities.get(0).asTree().multiply(Number(numfac)).asEntity());
-			else ot = Number(numfac);
-		}
-		return ot;
-	}
 
 	OperatorTree asSum() {
 		if(op.equals("+")) return this;
@@ -779,6 +729,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 
 	OperatorTree divideIfReducing(OperatorTree ot, boolean requireRemove) {
+		if(equals(ot)) return One();
+		if(minusOne().equals(ot)) return Number(-1);
+
 		if(op.equals("+")) {
 			OperatorTree sum = new OperatorTree("+");
 			for(OTEntity p : entities) {
@@ -879,18 +832,24 @@ class OperatorTree implements Comparable<OperatorTree> {
 			denom.entities.set(0, productFactorListAsTree(denomProd).asEntity());
 
 			//System.out.println("div: " + nomProd + " / " + denomProd);
-			for(OperatorTree e : new ArrayList<OperatorTree>(Utils.concatCollectionView(denomProd.second, Utils.listFromArgs(denom, Number(denomProd.first))))) {
-				OperatorTree newNom = nom.canRemoveFactor(e);
-				OperatorTree newDenom = denom.canRemoveFactor(e);
-				//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
-				//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
-				
-				if(newNom != null && newDenom != null) {
-					nom = newNom.asSum(); denom = newDenom.asSum();
-					nomProd = nom.firstProductInSum().normedProductFactorList();
-					denomProd = denom.firstProductInSum().normedProductFactorList();
-					if(nomProd == null || denomProd == null) break;
+			for(OperatorTree ot : new ArrayList<OperatorTree>(Utils.concatCollectionView(denomProd.second, Utils.listFromArgs(denom, Number(denomProd.first))))) {
+				if(ot.isNumber(1) || ot.isNumber(-1)) continue;
+
+				Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
+				while(true) {
+					OperatorTree newNom = nom.divideIfReducing(pot.first, false);
+					OperatorTree newDenom = denom.divideIfReducing(pot.first, false);
+					//System.out.println("removing " + pot.first.debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
+					//System.out.println("removing " + pot.first.debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
+
+					if(newNom != null && newDenom != null) {
+						nom = newNom.asSum(); denom = newDenom.asSum();
+						nomProd = nom.firstProductInSum().normedProductFactorList();
+						denomProd = denom.firstProductInSum().normedProductFactorList();
+					}
+					else break;
 				}
+				if(nomProd == null || denomProd == null) break;
 			}
 			
 			return nom.divide(denom);
