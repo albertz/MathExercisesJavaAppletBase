@@ -207,8 +207,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 	
 	@Override public String toString() {
-		if(debugOperatorTreeDump)
-    		return "[" + op + "] " + Utils.concat(entities, ", ");    			
+		if(debugOperatorTreeDump) {
+			if(canBeInterpretedAsUnaryPrefixed())
+				return "<" + op + ">" + unaryPrefixedContent();
+    		return "[" + op + "] " + Utils.concat(entities, ", ");
+		}
 		if(canBeInterpretedAsUnaryPrefixed())
 			// this is a special case used for unary ops (or ops which look like those)
 			return op + unaryPrefixedContent().toString(); // always put brackets if it is a subtree
