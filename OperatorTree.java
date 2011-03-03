@@ -138,24 +138,69 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return new OperatorTree(prefixOp, Utils.listFromArgs(new OTSubtree(new OperatorTree()), asEntity()));
 	}
 
-    boolean isNegative() {
+	Integer signum() {
+		if(isNumber()) {
+			Integer n = asNumber();
+			if(n < 0) return -1;
+			if(n == 0) return 0;
+			if(n > 0) return 1;
+		}
+
 		if(entities.size() == 1) {
 			OTEntity e = entities.get(0);
-			if(e instanceof OTRawString) return false;
-			return ((OTSubtree) e).content.isNegative();
+			if(e instanceof OTRawString) return 1; // var. it's not a number because we checked that above
+			return ((OTSubtree) e).content.signum();
 		}
-		
-		if(op.equals("∙") || op.equals("/")) {
-			boolean neg = false;
-			for(OTEntity e : entities)
-				neg ^= e.asTree().isNegative();
-			return neg;
-		}
-		
-		if(canBeInterpretedAsUnaryPrefixed() && op.equals("-"))
-			return !unaryPrefixedContent().asTree().isNegative();
 
-		return false;
+		if(canBeInterpretedAsUnaryPrefixed() && op.equals("-")) {
+			Integer s = unaryPrefixedContent().asTree().signum();
+			if(s == null) return null;
+			return -s;
+		}
+
+		if(op.equals("+") || op.equals("-")) {
+			Integer s = null;
+			for(OTEntity e : entities) {
+				Integer eSignum = e.asTree().signum();
+				if(eSignum == null) return null;
+				if(op.equals("-")) eSignum *= -1;
+				if(s == null) {
+					if(eSignum != 0)
+						s = eSignum;
+				}
+				else {
+					if(s.intValue() != eSignum.intValue())
+						return null;
+				}
+			}
+			if(s == null) return 0;
+			return s;
+		}
+
+		if(op.equals("∙") || op.equals("/")) {
+			Integer s = 1;
+			for(OTEntity e : entities) {
+				Integer eSignum = e.asTree().signum();
+				if(eSignum == null) return null;
+				s *= eSignum;
+				if(s == 0) return s;
+			}
+			return s;
+		}
+
+		if(op.equals("^")) {
+			Utils.Pair<OperatorTree,Integer> pot = normedPot();
+			if(pot.second == 0) return 1;
+			if(pot.second > 0) return pot.first.signum();
+			return null;
+		}
+
+		return null;
+	}
+
+    boolean isNegative() {
+	    Integer s = signum();
+	    return s != null && s < 0;
 	}
 	
 	@Override public String toString() {
@@ -631,6 +676,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 			Utils.Pair<OperatorTree,Integer> pot = normedPot();
 			return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.<OperatorTree>listFromArgs(Power(pot)));
 		}
+		if(op.equals("-") && canBeInterpretedAsUnaryPrefixed()) {
+			Utils.Pair<Integer,List<OperatorTree>> ret = unaryPrefixedContent().asTree().normedProductFactorList();
+			ret.first *= -1;
+			return ret;
+		}
 		if(!op.equals("∙")) return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.listFromArgs(this));
 
 		Integer fac = 1;
@@ -643,6 +693,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 				if(fac == 0)
 					return new Utils.Pair<Integer,List<OperatorTree>>(0, Utils.<OperatorTree>listFromArgs());
 				continue;
+			}
+
+			if(eOt.isNegative()) {
+				eOt = eOt.minusOne();
+				fac *= -1;
 			}
 
 			Utils.Pair<OperatorTree,Integer> pot = eOt.normedPot();
