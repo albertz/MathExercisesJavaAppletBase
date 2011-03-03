@@ -69,7 +69,10 @@ class OperatorTree implements Comparable<OperatorTree> {
         	return new OTRawString(var).asTree();        		
     	}
     }
-	static OperatorTree Number(int num) { return new OTRawString("" + num).asTree(); }
+	static OperatorTree Number(int num) {
+		if(num >= 0) return new OTRawString("" + num).asTree();
+		else return Number(-num).minusOne();
+	}
 	Integer asNumber() {
 		if(isZero()) return 0;
 		if(isOne()) return 1;
