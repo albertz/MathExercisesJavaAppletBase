@@ -198,11 +198,11 @@ public class EquationSystem {
 			OperatorTree.ExtractedVar extract1 = fixedEq.extractVar(var);
 			OperatorTree.ExtractedVar extract2 = otherEq.extractVar(var);
 			if(extract1 == null) { // can happen if we have higher order polynoms
-				if(debugVerbose >= 3) System.out.print("cannot extract " + var + " in " + fixedEq);
+				if(debugVerbose >= 3) System.out.println("cannot extract " + var + " in " + fixedEq);
 				continue;
 			}
 			if(extract2 == null) { // can happen if we have higher order polynoms
-				if(debugVerbose >= 3) System.out.print("cannot extract " + var + " in " + otherEq);
+				if(debugVerbose >= 3) System.out.println("cannot extract " + var + " in " + otherEq);
 				continue;
 			}
 
