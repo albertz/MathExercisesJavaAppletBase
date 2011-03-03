@@ -27,6 +27,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 	static OperatorTree Sum(List<OTEntity> entities) { return new OperatorTree("+", entities); }
 	static OperatorTree Product(List<OTEntity> entities) { return new OperatorTree("∙", entities); }
 	static OperatorTree Power(OperatorTree base, OperatorTree exp) { return new OperatorTree("^", Utils.listFromArgs(base.asEntity(), exp.asEntity())); }
+	static OperatorTree Power(Utils.Pair<OperatorTree,Integer> pot) {
+		if(pot.second == 1) return pot.first;
+		return Power(pot.first, Number(pot.second));
+	}
 
     static OperatorTree Zero() { return Number(0); }        
     boolean isZero() {
@@ -625,7 +629,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(isNumber()) return new Utils.Pair<Integer,List<OperatorTree>>(asNumber(), Utils.<OperatorTree>listFromArgs());
 		if(op.equals("^")) {
 			Utils.Pair<OperatorTree,Integer> pot = normedPot();
-			return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.<OperatorTree>listFromArgs(Power(pot.first, Number(pot.second))));
+			return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.<OperatorTree>listFromArgs(Power(pot)));
 		}
 		if(!op.equals("∙")) return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.listFromArgs(this));
 
@@ -651,7 +655,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 		Utils.Pair<Integer,List<OperatorTree>> ret = new Utils.Pair<Integer,List<OperatorTree>>(fac, new LinkedList<OperatorTree>());
 		for(OperatorTree ot : facs.keySet()) {
 			Integer power = facs.get(ot);
-			if(power != 0)
+			if(power == 1)
+				ret.second.add(ot);
+			else if(power != 0)
 				ret.second.add(Power(ot, Number(power)));
 		}
 		return ret;
@@ -663,7 +669,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(prod.first == 1 && prod.second.size() == 1) return prod.second.get(0);
 
 		OperatorTree ot = new OperatorTree("∙");
-		ot.entities.add(Number(prod.first).asEntity());
+		if(prod.first != 1)
+			ot.entities.add(Number(prod.first).asEntity());
 		for(OperatorTree e : prod.second)
 			ot.entities.add(e.asEntity());
 		return ot;
