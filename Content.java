@@ -41,7 +41,7 @@ public class Content {
 		circuit.constructOnPGraph_Final(graph);
 		
 		EquationSystem eqSys = new EquationSystem();
-		eqSys.addAuto("D(f) = -r∙f∙(1 - f/k)");
+		eqSys.addAuto("D(f) = r∙f∙(1 - f/k)");
 		eqSys.addAuto("D(1/f) = -D(f)/f^2");
 		equationInput.setEquationSystem(eqSys, "D(1/f)", Utils.listFromArgs("r", "f", "k"));
 		equationInput.clear();
