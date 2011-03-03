@@ -673,6 +673,14 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return rest;
 	}
 
+	static private void __mergeProductFactor(SortedMap<OperatorTree,Integer> facs, OperatorTree ot) {
+		Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
+		Integer power = facs.get(pot.first);
+		if(power == null) power = 1;
+		else power += pot.second;
+		facs.put(pot.first, power);
+	}
+
 	Utils.Pair<Integer,List<OperatorTree>> normedProductFactorList() {
 		if(isNumber()) return new Utils.Pair<Integer,List<OperatorTree>>(asNumber(), Utils.<OperatorTree>listFromArgs());
 		if(op.equals("^")) {
@@ -703,11 +711,17 @@ class OperatorTree implements Comparable<OperatorTree> {
 				fac *= -1;
 			}
 
-			Utils.Pair<OperatorTree,Integer> pot = eOt.normedPot();
-			Integer power = facs.get(pot.first);
-			if(power == null) power = 1;
-			else power += pot.second;
-			facs.put(pot.first, power);
+			if(eOt.op.equals("∙")) {
+				Utils.Pair<Integer,List<OperatorTree>> prod = eOt.normedProductFactorList();
+				fac *= prod.first;
+				if(fac == 0)
+					return new Utils.Pair<Integer,List<OperatorTree>>(0, Utils.<OperatorTree>listFromArgs());
+				for(OperatorTree ot : prod.second)
+					__mergeProductFactor(facs, ot);
+				continue;
+			}
+
+			__mergeProductFactor(facs, eOt);
 		}
 
 		Utils.Pair<Integer,List<OperatorTree>> ret = new Utils.Pair<Integer,List<OperatorTree>>(fac, new LinkedList<OperatorTree>());
