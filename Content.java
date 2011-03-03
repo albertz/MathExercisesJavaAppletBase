@@ -41,12 +41,9 @@ public class Content {
 		circuit.constructOnPGraph_Final(graph);
 		
 		EquationSystem eqSys = new EquationSystem();
-		eqSys.addAuto("Q = C1 * U1");
-		eqSys.addAuto("Q = C2 * U2");
-		eqSys.addAuto("Q = C3 * U3");
-		eqSys.addAuto("Q = C * U");
-		eqSys.addAuto("U = U1 + U2 + U3");
-		equationInput.setEquationSystem(eqSys, "C", Utils.listFromArgs("C1", "C2", "C3"));
+		eqSys.addAuto("D(f) = -r∙f∙(1 - f/k)");
+		eqSys.addAuto("D(1/f) = -D(f)/f^2");
+		equationInput.setEquationSystem(eqSys, "D(1/f)", Utils.listFromArgs("r", "f", "k"));
 		equationInput.clear();
 	}
 	
