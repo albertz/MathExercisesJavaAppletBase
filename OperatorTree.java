@@ -222,10 +222,8 @@ class OperatorTree implements Comparable<OperatorTree> {
     String debugStringDouble() { return toString(false) + " // " + toString(true); }
     
 	public int compareTo(OperatorTree o) {
-		if(entities.size() != 1 || isFunctionCall()) {
-			int c = op.compareTo(o.op);
-			if(c != 0) return c;
-		}
+		int c = op.compareTo(o.op);
+		if(c != 0) return c;
 		return Utils.<OTEntity,Collection<OTEntity>>collectionComparator().compare(entities, o.entities);
 	}
 	@Override public int hashCode() {
