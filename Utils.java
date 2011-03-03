@@ -1,7 +1,5 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import sun.java2d.SunGraphicsEnvironment;
-
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Comparator;
@@ -139,6 +137,7 @@ public class Utils {
 	
 	static abstract class LightSet<E> extends LightCollection<E> implements Set<E> {}
 	
+	@SuppressWarnings({"UnusedDeclaration"})
 	static <E> Collection<E> extendedCollectionView(final Collection<E> base, final Collection<E> extension) {
 		return new Utils.LightCollection<E>() {
 			@Override public boolean add(E e) { return extension.add(e); }
@@ -433,6 +432,7 @@ public class Utils {
 		}
 	}
 
+	@SuppressWarnings({"UnusedDeclaration"})
 	static <T1,T2> Comparator<Pair<T1,T2>> pairComparator(final Comparator<? super T1> comp1, final Comparator<? super T2> comp2) {
 		return new Comparator<Pair<T1,T2>>() {
 			public int compare(Pair<T1,T2> o1, Pair<T1,T2> o2) {
@@ -451,6 +451,7 @@ public class Utils {
 		};
 	}
 
+	@SuppressWarnings({"UnusedDeclaration"})
 	static <T extends Comparable<T>> Comparator<T> comparatorFromCompareable() {
 		return new Comparator<T>() {
 			public int compare(T o1, T o2) { return o1.compareTo(o2); }

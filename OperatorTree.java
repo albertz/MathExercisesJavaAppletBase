@@ -732,6 +732,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return Utils.listFromArgs(this);
 	}
 
+	@SuppressWarnings({"UnusedDeclaration"})
 	OperatorTree mergedEquation() {
 		if(!op.equals("=")) return this;
 		if(entities.size() != 2) return this;
