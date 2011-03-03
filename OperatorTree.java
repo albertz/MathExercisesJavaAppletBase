@@ -612,38 +612,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 		return ot;
 	}
-	
-	static Utils.Pair<Integer,Integer> simplifyDivisionFactor(List<OTEntity> nomProd, List<OTEntity> denomProd) {
-		Utils.Pair<Integer,Integer> nomDenomFacs = new Utils.Pair<Integer,Integer>(1,1);
-		int fac = 1;
-		for(int i = 0; i < nomProd.size(); ++i) {
-			OTEntity e = nomProd.get(i);
-			if(e.asTree().isNegative()) {
-				nomProd.set(i, e.asTree().minusOne().asEntity());
-				fac *= -1;
-				nomDenomFacs.first *= -1;
-				e = nomProd.get(i);
-			}
-			nomProd.set(i, e.asTree().simplify().asEntity());
-		}
-		for(int i = 0; i < denomProd.size(); ++i) {
-			OTEntity e = denomProd.get(i);
-			if(e.asTree().isNegative()) {
-				denomProd.set(i, e.asTree().minusOne().asEntity());
-				fac *= -1;
-				nomDenomFacs.second *= -1;
-				e = denomProd.get(i);
-			}
-			denomProd.set(i, e.asTree().simplify().asEntity());
-		}
-		if(fac == -1) {
-			if(nomProd.isEmpty()) nomProd.add(Number(-1).asEntity());
-			else nomProd.set(0, nomProd.get(0).asTree().minusOne().asEntity());
-			nomDenomFacs.first *= -1;
-		}
-		return nomDenomFacs;
-	}
-	
+
 	OperatorTree asSum() {
 		if(op.equals("+")) return this;
 		return Sum(Utils.listFromArgs(asEntity()));
@@ -894,34 +863,32 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
 	OperatorTree simplifyDivision() {
 		if(op.equals("/") && entities.size() == 2) {
-			OperatorTree nom = entities.get(0).asTree().asSum().copy(), denom = entities.get(1).asTree().asSum().copy();
-			OperatorTree nomProd = nom.firstProductInSum();
-			if(nomProd == null) return this; // somehow illformed -> cannot simplify
-			OperatorTree denomProd = denom.firstProductInSum();
-			if(denomProd == null) return this; // cannot simplify because it is undefined (division by zero)
-			Utils.Pair<Integer,Integer> nomDenomFac = simplifyDivisionFactor(nomProd.entities, denomProd.entities);
-			nom.entities.set(0, nomProd.asEntity());
-			denom.entities.set(0, denomProd.asEntity());
-			if(nomDenomFac.first != 1) {
+			OperatorTree nom = entities.get(0).asTree().normedSum().asSum().copy(), denom = entities.get(1).asTree().normedSum().asSum().copy();
+			if(nom.entities.isEmpty() || denom.entities.isEmpty()) return this;
+			Utils.Pair<Integer,List<OperatorTree>> nomProd = nom.firstProductInSum().normedProductFactorList();
+			Utils.Pair<Integer,List<OperatorTree>> denomProd = denom.firstProductInSum().normedProductFactorList();
+			if(denomProd.first < 0) {
+				nomProd.first *= -1;
+				denomProd.first *= -1;
 				for(int i = 1; i < nom.entities.size(); ++i)
-					nom.entities.set(i, nom.entities.get(i).asTree().multiply(Number(nomDenomFac.first)).asEntity());
-			}
-			if(nomDenomFac.second != 1) {
+					nom.entities.set(i, nom.entities.get(i).asTree().minusOne().asEntity());
 				for(int i = 1; i < denom.entities.size(); ++i)
-					denom.entities.set(i, denom.entities.get(i).asTree().multiply(Number(nomDenomFac.second)).asEntity());
+					denom.entities.set(i, denom.entities.get(i).asTree().minusOne().asEntity());
 			}
-			
+			nom.entities.set(0, productFactorListAsTree(nomProd).asEntity());
+			denom.entities.set(0, productFactorListAsTree(denomProd).asEntity());
+
 			//System.out.println("div: " + nomProd + " / " + denomProd);
-			for(OTEntity e : new ArrayList<OTEntity>(Utils.concatCollectionView(denomProd.entities, Utils.listFromArgs(denom.asEntity())))) {
-				OperatorTree newNom = nom.canRemoveFactor(e.asTree());
-				OperatorTree newDenom = denom.canRemoveFactor(e.asTree());
+			for(OperatorTree e : new ArrayList<OperatorTree>(Utils.concatCollectionView(denomProd.second, Utils.listFromArgs(denom, Number(denomProd.first))))) {
+				OperatorTree newNom = nom.canRemoveFactor(e);
+				OperatorTree newDenom = denom.canRemoveFactor(e);
 				//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
 				//System.out.println("removing " + e.asTree().debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
 				
 				if(newNom != null && newDenom != null) {
 					nom = newNom.asSum(); denom = newDenom.asSum();
-					nomProd = nom.firstProductInSum();
-					denomProd = denom.firstProductInSum();
+					nomProd = nom.firstProductInSum().normedProductFactorList();
+					denomProd = denom.firstProductInSum().normedProductFactorList();
 					if(nomProd == null || denomProd == null) break;
 				}
 			}
