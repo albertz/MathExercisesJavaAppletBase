@@ -111,7 +111,9 @@ public class OTParser {
 
 	static OperatorTree parse(String str) { return parse(str, null); }
 
-	static OperatorTree parse(String str, String defaultAnonBinOp) { return parse(str.replace('*', '∙').replace(',', '.'), OperatorTree.knownOps, defaultAnonBinOp); }
+	static OperatorTree parse(String str, String defaultAnonBinOp) {
+		return parse(str.replace('*', '∙').replace(',', '.').replace('−','-'),
+				OperatorTree.knownOps, defaultAnonBinOp); }
 
 	static OperatorTree parse(String str, String binOps, String defaultAnonBinOp) {
 		return parse( undefinedOpTreeFromParseTree(new ParseTree(str)), parseOpList(binOps), defaultAnonBinOp );
