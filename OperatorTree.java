@@ -221,10 +221,13 @@ class OperatorTree implements Comparable<OperatorTree> {
     }
     
     String debugStringDouble() { return toString(false) + " // " + toString(true); }
-    
+
+	boolean canIgnoreOp() { return entities.size() == 1 && !isFunctionCall(); }
 	public int compareTo(OperatorTree o) {
-		int c = op.compareTo(o.op);
-		if(c != 0) return c;
+		if(!canIgnoreOp() || !o.canIgnoreOp()) {
+			int c = op.compareTo(o.op);
+			if(c != 0) return c;
+		}
 		return Utils.<OTEntity,Collection<OTEntity>>collectionComparator().compare(entities, o.entities);
 	}
 	@Override public int hashCode() {
@@ -895,7 +898,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			OperatorTree nomProd = nom.firstProductInSum();
 			if(nomProd == null) return this; // somehow illformed -> cannot simplify
 			OperatorTree denomProd = denom.firstProductInSum();
-			if(denomProd == null) return this; // cannot simplify because it is undefined (division by zero)				
+			if(denomProd == null) return this; // cannot simplify because it is undefined (division by zero)
 			Utils.Pair<Integer,Integer> nomDenomFac = simplifyDivisionFactor(nomProd.entities, denomProd.entities);
 			nom.entities.set(0, nomProd.asEntity());
 			denom.entities.set(0, denomProd.asEntity());
