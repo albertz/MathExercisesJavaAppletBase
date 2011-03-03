@@ -727,10 +727,16 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(prod.first == 1 && prod.second.size() == 1) return prod.second.get(0);
 
 		OperatorTree ot = new OperatorTree("∙");
-		if(prod.first != 1)
+		if(prod.first != 1 && prod.first != -1)
 			ot.entities.add(Number(prod.first).asEntity());
-		for(OperatorTree e : prod.second)
-			ot.entities.add(e.asEntity());
+		boolean first = true;
+		for(OperatorTree e : prod.second) {
+			if(first && prod.first == -1)
+				ot.entities.add(e.minusOne().asEntity());
+			else
+				ot.entities.add(e.asEntity());
+			first = false;
+		}
 		return ot;
 	}
 
