@@ -735,6 +735,7 @@ public class Utils {
 		debugUtilsParsingOpTree("a + +b");
 		debugUtilsParsingOpTree("a * b ^ c * d = a * b ^ -c * d");
 		debugUtilsParsingOpTree("a * b ^ 2 * d = a * b ^ -2 * d");
+		debugUtilsParsingOpTree("D(1/f) = -D(f)/f^2");
 	}
     
     
