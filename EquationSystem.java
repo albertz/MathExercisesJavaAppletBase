@@ -358,14 +358,14 @@ public class EquationSystem {
 			//debugEquationParsing("I1 ∙ I4 ∙ R1 ∙ R4 + I1 ∙ I4 ∙ R1 ^ 2 + I4 ^ 2 ∙ R1 ∙ R4 + I4 ^ 2 ∙ R4 ^ 2 + -(U3 ^ 2) + I1 ∙ R1 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + I1 ∙ R4 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + -U3 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) = 0");
 			debugSimplifications();
 
-			sys.addAuto("Df = -r∙f∙(1 - f/k)");
+			sys.addAuto("Df = r∙f∙(1 - f/k)");
 			sys.addAuto("D1f = -Df/f^2");
-			sys.assertCanConcludeTo("D1f = −r/f + r/k");
+			sys.assertCanConcludeTo("D1f = -r/f + r/k");
 			sys.equations.clear();
 
-			sys.addAuto("D(f) = -r∙f∙(1 - f/k)");
+			sys.addAuto("D(f) = r∙f∙(1 - f/k)");
 			sys.addAuto("D(1/f) = -D(f)/f^2");
-			sys.assertCanConcludeTo("D(1/f) = −r/f + r/k");
+			sys.assertCanConcludeTo("D(1/f) = -r/f + r/k");
 			sys.equations.clear();
 
 			sys.add("Q = C1 * U1");
