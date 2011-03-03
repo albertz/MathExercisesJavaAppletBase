@@ -140,7 +140,7 @@ public class EquationSystem {
 				}						
 				List<Pot> facs = new LinkedList<Pot>();
 				public int compareTo(Prod o) {
-					int r = Utils.<Pot>orderOnCollection().compare(facs, o.facs);
+					int r = Utils.<Pot,Collection<Pot>>collectionComparator().compare(facs, o.facs);
 					if(r != 0) return r;
 					if(fac < o.fac) return -1;
 					if(fac > o.fac) return 1;
@@ -285,7 +285,7 @@ public class EquationSystem {
 			}
 			List<Prod> entries = new LinkedList<Prod>();
 			@Override public String toString() { return Utils.concat(entries, " + "); }
-			public int compareTo(Sum o) { return Utils.<Prod>orderOnCollection().compare(entries, o.entries); }
+			public int compareTo(Sum o) { return Utils.<Prod,Collection<Prod>>collectionComparator().compare(entries, o.entries); }
 			@Override public boolean equals(Object obj) {
 				if(!(obj instanceof Sum)) return false;
 				return compareTo((Sum) obj) == 0;

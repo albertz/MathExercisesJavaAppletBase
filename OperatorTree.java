@@ -4,13 +4,7 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 class OperatorTree implements Comparable<OperatorTree> {
@@ -26,9 +20,14 @@ class OperatorTree implements Comparable<OperatorTree> {
 	static OperatorTree MergedEquation(OperatorTree left, OperatorTree right) {
 		return new OperatorTree("+", Utils.listFromArgs(left.asEntity(), right.minusOne().asEntity()));
 	}    	
+	OperatorTree subtree(int start, int end) {
+		return new OperatorTree(op, entities.subList(start, end));
+	}
+
 	static OperatorTree Sum(List<OTEntity> entities) { return new OperatorTree("+", entities); }
 	static OperatorTree Product(List<OTEntity> entities) { return new OperatorTree("∙", entities); }
-	
+	static OperatorTree Power(OperatorTree base, OperatorTree exp) { return new OperatorTree("^", Utils.listFromArgs(base.asEntity(), exp.asEntity())); }
+
     static OperatorTree Zero() { return Number(0); }        
     boolean isZero() {
     	if(op.equals("∙") && entities.isEmpty()) return false;
@@ -111,7 +110,10 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(x == null) return false;
     	return x == num;
     }
-	
+	boolean isNumber() {
+		return asNumber() != null;
+	}
+
     boolean isFunctionCall() {
     	// right now, everything which is not empty and not a known operation is a function
     	if(op.length() == 0) return false;
@@ -187,8 +189,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			int c = op.compareTo(o.op);
 			if(c != 0) return c;
 		}
-		Comparator<Collection<OTEntity>> comp = Utils.orderOnCollection();
-		return comp.compare(entities, o.entities);
+		return Utils.<OTEntity,Collection<OTEntity>>collectionComparator().compare(entities, o.entities);
 	}
 	@Override public int hashCode() {
 		int result = 1;
@@ -605,7 +606,103 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(op.equals("∙")) return this;
 		return Product(Utils.listFromArgs(asEntity()));
 	}
-	
+
+	Utils.Pair<OperatorTree,Integer> normedPot() {
+		if(!op.equals("^") || entities.size() <= 1) return new Utils.Pair<OperatorTree,Integer>(this,1);
+
+		Integer power = entities.get(entities.size()-1).asTree().asNumber();
+		if(power == null) return new Utils.Pair<OperatorTree,Integer>(this,1);
+		if(power == 0) return new Utils.Pair<OperatorTree,Integer>(One(),1);
+		if(entities.size() == 2) return new Utils.Pair<OperatorTree,Integer>(entities.get(0).asTree(),power);
+
+		Utils.Pair<OperatorTree,Integer> rest = subtree(0, entities.size()-1).normedPot();
+		rest.second *= power;
+		if(rest.first.isOne() || rest.first.isZero()) rest.second = 1;
+		return rest;
+	}
+
+	Utils.Pair<Integer,List<OperatorTree>> normedProductFactorList() {
+		if(isNumber()) return new Utils.Pair<Integer,List<OperatorTree>>(asNumber(), Utils.<OperatorTree>listFromArgs());
+		if(op.equals("^")) {
+			Utils.Pair<OperatorTree,Integer> pot = normedPot();
+			return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.<OperatorTree>listFromArgs(Power(pot.first, Number(pot.second))));
+		}
+		if(!op.equals("∙")) return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.listFromArgs(this));
+
+		Integer fac = 1;
+		SortedMap<OperatorTree,Integer> facs = new java.util.TreeMap<OperatorTree,Integer>();
+
+		for(OTEntity e : entities) {
+			OperatorTree eOt = e.asTree();
+			if(eOt.isNumber()) {
+				fac *= eOt.asNumber();
+				if(fac == 0)
+					return new Utils.Pair<Integer,List<OperatorTree>>(0, Utils.<OperatorTree>listFromArgs());
+				continue;
+			}
+
+			Utils.Pair<OperatorTree,Integer> pot = eOt.normedPot();
+			Integer power = facs.get(pot.first);
+			if(power == null) power = 1;
+			else power += pot.second;
+			facs.put(pot.first, power);
+		}
+
+		Utils.Pair<Integer,List<OperatorTree>> ret = new Utils.Pair<Integer,List<OperatorTree>>(fac, new LinkedList<OperatorTree>());
+		for(OperatorTree ot : facs.keySet()) {
+			Integer power = facs.get(ot);
+			if(power != 0)
+				ret.second.add(Power(ot, Number(power)));
+		}
+		return ret;
+	}
+
+	static OperatorTree productFactorListAsTree(Utils.Pair<Integer,List<OperatorTree>> prod) {
+		if(prod.first == 0) return Zero();
+		if(prod.second.isEmpty()) return Number(prod.first);
+		if(prod.first == 1 && prod.second.size() == 1) return prod.second.get(0);
+
+		OperatorTree ot = new OperatorTree("∙");
+		ot.entities.add(Number(prod.first).asEntity());
+		for(OperatorTree e : prod.second)
+			ot.entities.add(e.asEntity());
+		return ot;
+	}
+
+	OperatorTree normedSum() {
+		if(isNumber()) return Number(asNumber());
+		if(op.equals("∙") || op.equals("^")) return productFactorListAsTree(normedProductFactorList());
+		if(!op.equals("+")) return this;
+
+		List<Utils.Pair<Integer,List<OperatorTree>>> newEntries = new LinkedList<Utils.Pair<Integer,List<OperatorTree>>>();
+		for(OTEntity prod : entities)
+			newEntries.add(prod.asTree().asProduct().normedProductFactorList());
+		Collections.sort(newEntries, Utils.<Integer,List<OperatorTree>>pairComparator(Utils.<Integer>comparatorFromCompareable(), Utils.<OperatorTree,List<OperatorTree>>collectionComparator()));
+		Utils.Pair<Integer,List<OperatorTree>> lastProd = null;
+
+		OperatorTree sum = new OperatorTree("+");
+		for(Utils.Pair<Integer,List<OperatorTree>> prod : newEntries) {
+			Integer fac = prod.first;
+			List<OperatorTree> facs = prod.second;
+			if(lastProd != null && lastProd.second.equals(facs)) {
+				lastProd.first += fac;
+				sum.entities.set(sum.entities.size()-1, productFactorListAsTree(lastProd).asEntity());
+			} else {
+				lastProd = prod;
+				sum.entities.add(productFactorListAsTree(prod).asEntity());
+			}
+		}
+		for(Iterator<OTEntity> pit = sum.entities.iterator(); pit.hasNext();) {
+			if(pit.next().asTree().isZero())
+				pit.remove();
+		}
+		Collections.sort(sum.entities);
+
+		if(!sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
+			return sum.minusOne();
+		return sum;
+	}
+
 	OperatorTree firstProductInSum() { // expecting that we are a sum
 		if(entities.isEmpty()) return null;
 		if(op.equals("+") || op.equals("-")) return entities.get(0).asTree().asProduct();

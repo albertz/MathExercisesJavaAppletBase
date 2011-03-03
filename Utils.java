@@ -1,5 +1,7 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
+import sun.java2d.SunGraphicsEnvironment;
+
 import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Comparator;
@@ -419,7 +421,7 @@ public class Utils {
 		return l;
 	}
 	
-	static class Pair <T1,T2> {
+	static class Pair<T1,T2> {
 		T1 first;
 		T2 second;
 		public Pair(T1 first, T2 second) {
@@ -427,7 +429,23 @@ public class Utils {
 			this.second = second;
 		}
 	}
-	
+
+	static <T1,T2> Comparator<Pair<T1,T2>> pairComparator(final Comparator<? super T1> comp1, final Comparator<? super T2> comp2) {
+		return new Comparator<Pair<T1,T2>>() {
+			public int compare(Pair<T1,T2> o1, Pair<T1,T2> o2) {
+				int c = comp1.compare(o1.first, o2.first);
+				if(c != 0) return c;
+				return comp2.compare(o1.second, o2.second);
+			}
+		};
+	}
+
+	static <T extends Comparable<T>> Comparator<T> comparatorFromCompareable() {
+		return new Comparator<T>() {
+			public int compare(T o1, T o2) { return o1.compareTo(o2); }
+		};
+	}
+
 	@SuppressWarnings({"UnusedDeclaration"})
     static <T> Iterable<Pair<T,T>> allPairs(Iterable<T> coll) { return allPairs(coll, coll, true, true); }
 	@SuppressWarnings({"UnusedDeclaration"})
@@ -590,9 +608,9 @@ public class Utils {
 		};
     }
     
-    static <T extends Comparable<T>> Comparator<Collection<T>> orderOnCollection() {
-    	return new Comparator<Collection<T>>() {
-    		public int compare(Collection<T> o1, Collection<T> o2) {
+    static <T extends Comparable<T>, T2 extends Collection<T>> Comparator<T2> collectionComparator() {
+    	return new Comparator<T2>() {
+    		public int compare(T2 o1, T2 o2) {
     	        Iterator<T> i1 = o1.iterator();
     	        Iterator<T> i2 = o2.iterator();
     	        while(i1.hasNext() && i2.hasNext()) {
