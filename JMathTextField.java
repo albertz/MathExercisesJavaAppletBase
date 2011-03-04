@@ -83,8 +83,8 @@ public class JMathTextField extends JTextField {
 					}
 				}
 				
-				if(replLen == 0 && string.matches("\\+|-|\\*|/|^|=")) {
-					if(s.substring(replOffset).matches(" *(((\\+|-|∙|/|^|=|\\)).*)|)")) {
+				if(replLen == 0 && string.matches("\\+|-|\\*|/|\\^|=")) {
+					if(s.substring(replOffset).matches(" *(((\\+|-|∙|/|\\^|=|\\)).*)|)")) {
 						string = string + "_";
 						insertedDummyChar = true;
 					} else if(s.substring(replOffset).matches(" .*")) {
