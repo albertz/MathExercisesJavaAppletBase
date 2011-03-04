@@ -14,10 +14,6 @@ public class JMathTextField extends JTextField {
 	private OperatorTree operatorTree = new OperatorTree();
 	public OperatorTree getOperatorTree() { return operatorTree; }
 
-	public void updateByOpTree() {
-		setText(operatorTree.toString());
-	}
-	
 	protected void updateByOpTree(javax.swing.text.DocumentFilter.FilterBypass fb) {
 		String oldStr = JMathTextField.this.getText();
 		String newStr = operatorTree.toString();
