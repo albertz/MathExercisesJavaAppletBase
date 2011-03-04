@@ -843,6 +843,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			else c = c.gcd(BigInteger.valueOf(pot.second));
 			if(c.equals(BigInteger.ONE)) return 1;
 		}
+		if(c == null) return 1;
 		return c.intValue();
 	}
 
