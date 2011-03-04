@@ -132,6 +132,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 			if(n > 0) return 1;
 		}
 
+		// NOTE: We treat function calls, similar as variables, as positive.
+		// If this should be changed at some point, note that isNegative() is
+		// used in normedProductFactorList() which should really work this way.
+		if(isFunctionCall()) return 1;
+
 		if(!isFunctionCall() && entities.size() == 1) {
 			OTEntity e = entities.get(0);
 			if(e instanceof OTRawString) return 1; // var. it's not a number because we checked that above
@@ -689,7 +694,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return ot;
 	}
 
-	OperatorTree normedSum() {
+	OperatorTree normedSum() { return normedSum(true); }
+	OperatorTree normedSum(boolean makePositive) {
 		if(isNumber()) return Number(asNumber());
 		if(op.equals("∙") || op.equals("^")) return productFactorListAsTree(normedProductFactorList());
 		if(!op.equals("+")) return this;
@@ -717,7 +723,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 				pit.remove();
 		}
 
-		if(!sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
+		if(makePositive && !sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
 			return sum.minusOne();
 		return sum;
 	}
@@ -836,7 +842,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 	
 	OperatorTree simplifyDivision() {
 		if(op.equals("/") && entities.size() == 2) {
-			OperatorTree nom = entities.get(0).asTree().normedSum().asSum().copy(), denom = entities.get(1).asTree().normedSum().asSum().copy();
+			OperatorTree nom = entities.get(0).asTree().normedSum(false).asSum().copy(), denom = entities.get(1).asTree().normedSum(false).asSum().copy();
 			if(nom.entities.isEmpty() || denom.entities.isEmpty()) return this;
 			Utils.Pair<Integer,List<OperatorTree>> nomProd = nom.firstProductInSum().normedProductFactorList();
 			Utils.Pair<Integer,List<OperatorTree>> denomProd = denom.firstProductInSum().normedProductFactorList();
