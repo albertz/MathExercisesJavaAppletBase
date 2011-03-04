@@ -1,10 +1,7 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.Set;
-import java.util.TreeSet;
+
+import java.util.*;
 
 
 public class EquationSystem {
@@ -135,25 +132,24 @@ public class EquationSystem {
 	private static int debugVerbose = 0;
 	private final static int DEPTH_LIMIT = 4;
 	
-	private static boolean _canConcludeTo(Collection<OperatorTree> baseEquationSums, OperatorTree eqSum, Set<OperatorTree> usedEquationSumList, int depth) {
+	private static boolean _canConcludeTo(Set<OperatorTree> baseEquationSums, OperatorTree eqSum, Set<OperatorTree> usedEquationSumList, int depth) {
 		if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eqSum);
 
-		Set<OperatorTree> equationSums = new TreeSet<OperatorTree>(baseEquationSums);
-		if(equationSums.contains(eqSum)) {
+		if(baseEquationSums.contains(eqSum)) {
 			if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: eq already included");
 			return true;
 		}
 
 		if(depth > DEPTH_LIMIT) return false;		
 
-		for(OperatorTree myEq : baseEquationSums) {
+		for(OperatorTree myEq : new ArrayList<OperatorTree>(baseEquationSums)) {
 			Collection<OperatorTree> allConclusionSums = calcAllOneSideConclusions(eqSum, myEq);
 			if(allConclusionSums.isEmpty()) {
 				if(debugVerbose >= 3) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
 				continue;
 			}
 			
-			equationSums.remove(myEq);
+			baseEquationSums.remove(myEq);
 			for(OperatorTree resultingEqSum : allConclusionSums) {
 				if(usedEquationSumList.contains(resultingEqSum)) continue;
 				usedEquationSumList.add(resultingEqSum);
@@ -164,20 +160,21 @@ public class EquationSystem {
 				}
 				
 				if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEqSum);
-				if(_canConcludeTo(equationSums, resultingEqSum, usedEquationSumList, depth + 1)) {
+				if(_canConcludeTo(baseEquationSums, resultingEqSum, usedEquationSumList, depth + 1)) {
 					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
 					return true;
 				}
 			}
-			equationSums.add(myEq);
+			baseEquationSums.add(myEq);
 		}
 		if(debugVerbose >= 2) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
 		return false;
 	}
 
 	boolean canConcludeTo(Equation eq) {
-		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<OperatorTree>(), 0);
-//		return _canConcludeTo(new TreeSet<Equation.Sum>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reduce(), new TreeSet<Equation.Sum>(), 0);
+		// Use TreeSet for baseEquationSums so that we get some deterministic/natural behavior.
+//		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<OperatorTree>(), 0);
+		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reducedSum(), new TreeSet<OperatorTree>(), 0);
 	}
 	
 	private static Set<OperatorTree> commonBaseFactors(OperatorTree eq1, OperatorTree eq2) {
@@ -193,7 +190,7 @@ public class EquationSystem {
 		if(otherEq.isZero()) return results;
 
 		Set<OperatorTree> baseFactors = commonBaseFactors(fixedEq, otherEq);
-		
+
 		for(OperatorTree baseFactor : baseFactors) {
 			OperatorTree.ExtractedFactor extract1 = fixedEq.extractFactor(baseFactor);
 			OperatorTree.ExtractedFactor extract2 = otherEq.extractFactor(baseFactor);
@@ -217,6 +214,7 @@ public class EquationSystem {
 			//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
 			
 			OperatorTree resultingEquSum = fixedEq.sum(newSum).normalized();
+			resultingEquSum = resultingEquSum.reducedSum();
 			if(debugVerbose >= 3) System.out.println(".. result: " + resultingEquSum);
 			results.add(resultingEquSum);
 		}
@@ -232,6 +230,7 @@ public class EquationSystem {
 	}
 
 	void assertCanConcludeTo(String eqStr) throws Equation.ParseError {
+		//debugVerbose = 1;
 		Equation eq = new Equation(eqStr, variableSymbols);
 		if(!canConcludeTo(eq)) {
 			System.out.println("Error: assertCanConcludeTo failed for: " + eqStr + " // " + eq.normalizedSum());
@@ -373,14 +372,14 @@ public class EquationSystem {
 			sys.add("Q = C3 * U3");
 			sys.add("Q = C * U");
 			sys.add("U = U1 + U2 + U3");
-			sys.assertAndAdd("U1 = Q / C1");
-			sys.assertAndAdd("U2 = Q / C2");
-			sys.assertAndAdd("U3 = Q / C3");
-			sys.assertAndAdd("U = Q / C");
-			sys.assertAndAdd("Q / C = U1 + U2 + U3");
-			sys.assertAndAdd("Q / C = Q / C1 + U2 + U3");
-			sys.assertAndAdd("Q / C = Q / C1 + Q / C2 + U3");
-			sys.assertAndAdd("Q / C = Q / C1 + Q / C2 + Q / C3");
+			sys.assertCanConcludeTo("U1 = Q / C1");
+			sys.assertCanConcludeTo("U2 = Q / C2");
+			sys.assertCanConcludeTo("U3 = Q / C3");
+			sys.assertCanConcludeTo("U = Q / C");
+			sys.assertCanConcludeTo("Q / C = U1 + U2 + U3");
+			sys.assertCanConcludeTo("Q / C = Q / C1 + U2 + U3");
+			sys.assertCanConcludeTo("Q / C = Q / C1 + Q / C2 + U3");
+			sys.assertCanConcludeTo("Q / C = Q / C1 + Q / C2 + Q / C3");
 			sys.assertCanConcludeTo("1 / C = 1 / C1 + 1 / C2 + 1 / C3");
 			sys.equations.clear();
 
@@ -447,24 +446,24 @@ public class EquationSystem {
 			sys.add("U3 = R2 * I2");
 			sys.add("U3 = R4 * I4 + R1 * I1");
 			sys.add("I4 = I1");
-			sys.assertAndAdd("U3 = I1 * (R1 + R4)");
-			sys.assertAndAdd("I2 = U3 / R2");
-			sys.assertAndAdd("I1 = U3 / (R1 + R4)");
-			sys.assertAndAdd("I2 / I1 = (U3 / R2) / (U3 / (R1 + R4))");
-			sys.assertAndAdd("I2 / I1 = (R1 + R4) / R2");
+			sys.assertCanConcludeTo("U3 = I1 * (R1 + R4)");
+			sys.assertCanConcludeTo("I2 = U3 / R2");
+			sys.assertCanConcludeTo("I1 = U3 / (R1 + R4)");
+			sys.assertCanConcludeTo("I2 / I1 = (U3 / R2) / (U3 / (R1 + R4))");
+			sys.assertCanConcludeTo("I2 / I1 = (R1 + R4) / R2");
 			sys.add("I1 + I2 = I3");
-			sys.assertAndAdd("U3 = R2 * (I3 - I1)");
-			sys.assertAndAdd("U3/I3 = R2 - R2 * I1 / I3");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + I2 / I1)");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + (U3 / R2) / I1)");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * I1))");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * U3 / (R1 + R4)))");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 / (1 + (R1 + R4) / R2)");
-			sys.assertAndAdd("U3 / I3 = R2 - R2 * R2 / (R2 + R1 + R4)");
-			sys.assertAndAdd("U3 / I3 = (R2*R2 + R2*R1 + R2*R4 - R2*R2) / (R2 + R1 + R4)");
-			sys.assertAndAdd("U3 / I3 = (R2*R1 + R2*R4) / (R2 + R1 + R4)");
-			sys.assertAndAdd("U3 / I3 = (R2 * (R1 + R4)) / (R2 + (R1 + R4))");
+			sys.assertCanConcludeTo("U3 = R2 * (I3 - I1)");
+			sys.assertCanConcludeTo("U3/I3 = R2 - R2 * I1 / I3");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 / (1 + I2 / I1)");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 / (1 + (U3 / R2) / I1)");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * I1))");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 / (1 + U3 / (R2 * U3 / (R1 + R4)))");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 / (1 + (R1 + R4) / R2)");
+			sys.assertCanConcludeTo("U3 / I3 = R2 - R2 * R2 / (R2 + R1 + R4)");
+			sys.assertCanConcludeTo("U3 / I3 = (R2*R2 + R2*R1 + R2*R4 - R2*R2) / (R2 + R1 + R4)");
+			sys.assertCanConcludeTo("U3 / I3 = (R2*R1 + R2*R4) / (R2 + R1 + R4)");
+			sys.assertCanConcludeTo("U3 / I3 = (R2 * (R1 + R4)) / (R2 + (R1 + R4))");
 			sys.equations.clear();
 
 			// same thing as above. just a test if we can conclude it directly. 
