@@ -809,6 +809,44 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return sum;
 	}
 
+	static int commonPowerInProductFactorList(Utils.Pair<Integer,List<OperatorTree>> prod) {
+		BigInteger c = null;
+		for(OperatorTree ot : prod.second) {
+			Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
+			if(c == null) c = BigInteger.valueOf(pot.second);
+			else c = c.gcd(BigInteger.valueOf(pot.second));
+			if(c.equals(BigInteger.ONE)) return 1;
+		}
+		return c.intValue();
+	}
+
+	OperatorTree reducedPotInSum() {
+		// IMPORTANT: Assumes that all variables are >=0 and thus that we can reduce any powers. E.g. A^2=B^2 -> A=B
+
+		Collection<OperatorTree> entries = sumEntries();
+		if(entries.size() != 2) return this;
+		Iterator<OperatorTree> entriesIter = entries.iterator();
+
+		Utils.Pair<Integer,List<OperatorTree>> prod1 = entriesIter.next().normedProductFactorList();
+		Utils.Pair<Integer,List<OperatorTree>> prod2 = entriesIter.next().normedProductFactorList();
+		if(prod1.first * prod2.first != -1) return this; // we require that we can write this as 'A = B'
+
+		int c1 = commonPowerInProductFactorList(prod1), c2 = commonPowerInProductFactorList(prod2);
+		int c = BigInteger.valueOf(c1).gcd(BigInteger.valueOf(c2)).intValue();
+		if(c <= 1) return this;
+
+		// we can divide each power by c
+		for(List<OperatorTree> prodList : Utils.listFromArgs(prod1.second,prod2.second)) {
+			for(int i = 0; i < prodList.size(); ++i) {
+				Utils.Pair<OperatorTree,Integer> pot = prodList.get(i).normedPot();
+				pot.second /= c;
+				prodList.set(i, Power(pot));
+			}
+		}
+
+		return Sum(Utils.listFromArgs(productFactorListAsTree(prod1).asEntity(), productFactorListAsTree(prod2).asEntity()));
+	}
+
 	static class ExtractedFactor {
 		OperatorTree fac;
 		OperatorTree varMult = new OperatorTree("+");
