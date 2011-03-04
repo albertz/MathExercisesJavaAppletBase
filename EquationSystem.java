@@ -380,7 +380,7 @@ public class EquationSystem {
 		assertEqual(OTParser.parse("(-f ∙ D(1 / f) + -r) / (f ∙ r + -D f)").simplifyDivision(), OTParser.parse("(-f ∙ D(1 / f) + -r) / (f ∙ r + -D f)"));
 	}
 	
-	@SuppressWarnings({"ConstantConditions"})
+	@SuppressWarnings({"ConstantConditions", "UnusedDeclaration"})
 	static void debug() {
 		EquationSystem sys = new EquationSystem();
 		for(int i = 1; i <= 10; ++i) sys.registerVariableSymbol("x" + i);		
