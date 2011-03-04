@@ -637,7 +637,14 @@ public class Utils {
     	    }
 		};
     }
-    
+
+	static String reveresedString(String s) {
+		char[] chars = new char[s.length()];
+		for(int i = 0; i < s.length(); ++i)
+			chars[i] = s.charAt(s.length() - i - 1);
+		return String.copyValueOf(chars);
+	}
+
 	static class StringIterator implements Iterator<Character> {
 		String str; int pos = 0;
 		StringIterator(String str) { this.str = str; }
