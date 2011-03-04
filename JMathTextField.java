@@ -55,7 +55,7 @@ public class JMathTextField extends JTextField {
 				boolean insertedBrackets = false;
 				String marked = s.substring(replOffset, replOffset + replLen);
 
-				if(string.matches(" |\\)") && replOffset + 1 < s.length() && s.substring(replOffset, replOffset + 1).equals(string)) {
+				if(string.matches(" |\\)") && replOffset + 1 <= s.length() && s.substring(replOffset, replOffset + 1).equals(string)) {
 					JMathTextField.this.setCaretPosition(replOffset + 1);
 					return;
 				}
