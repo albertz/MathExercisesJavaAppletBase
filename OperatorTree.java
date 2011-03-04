@@ -134,6 +134,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 		// used in normedProductFactorList() which should really work this way.
 		if(isFunctionCall()) return 1;
 
+		if(entities.isEmpty()) return null; // not a number. i.e. unknown what we are
+
 		if(entities.size() == 1) {
 			OTEntity e = entities.get(0);
 			if(e instanceof OTRawString) return 1; // var. it's not a number because we checked that above
