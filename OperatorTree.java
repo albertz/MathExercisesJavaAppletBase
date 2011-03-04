@@ -264,9 +264,7 @@ class OperatorTree implements Comparable<OperatorTree> {
     	});
 	}
 
-	Collection<OperatorTree> baseFactors() {
-		if(isFunctionCall()) return Utils.listFromArgs(this);
-
+	Collection<OperatorTree> allFactors(boolean includingSelf) {
 		Iterable<Iterable<OperatorTree>> subs = Utils.map(entities, new Utils.Function<OTEntity,Iterable<OperatorTree>>() {
 			public Iterable<OperatorTree> eval(OTEntity obj) {
 				if(obj instanceof OTRawString) {
@@ -279,14 +277,42 @@ class OperatorTree implements Comparable<OperatorTree> {
 					return Utils.listFromArgs(Variable(s));
 				}
 				else { // obj instanceof OTSubtree
-					return ((OTSubtree) obj).content.baseFactors();
+					return ((OTSubtree) obj).content.allFactors(true);
 				}
 			}
 		});
 
+		if(includingSelf && isFunctionCall())
+			return Utils.concatCollectionView(Utils.listFromArgs(this), Utils.concatCollectionView(subs));
 		return Utils.concatCollectionView(subs);
 	}
-	
+
+	Collection<OperatorTree> baseFactors() {
+		Set<OperatorTree> facs = new TreeSet<OperatorTree>(allFactors(true));
+		facs.removeAll(baseFactorBlackList());
+		return facs;
+	}
+
+	Set<OperatorTree> baseFactorBlackList() {
+		if(isFunctionCall()) return new HashSet<OperatorTree>(allFactors(false));
+
+		if(entities.size() > 1 && (op.length() != 1 || "+-∙/".indexOf(op) < 0))
+			return new HashSet<OperatorTree>(allFactors(false));
+
+		Iterable<Iterable<OperatorTree>> subs = Utils.map(entities, new Utils.Function<OTEntity,Iterable<OperatorTree>>() {
+			public Iterable<OperatorTree> eval(OTEntity obj) {
+				if(obj instanceof OTRawString) {
+					return Utils.listFromArgs();
+				}
+				else { // obj instanceof OTSubtree
+					return ((OTSubtree) obj).content.baseFactorBlackList();
+				}
+			}
+		});
+
+		return new HashSet<OperatorTree>(Utils.concatCollectionView(subs));
+	}
+
 	Iterable<String> ops() {
 		return new Iterable<String>() {
 			public Iterator<String> iterator() {
