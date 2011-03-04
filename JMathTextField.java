@@ -47,25 +47,25 @@ public class JMathTextField extends JTextField {
 				replace(fb, offset, length, "", null);
 			}
 			@Override
-			public void replace(FilterBypass fb, int offset, int length,
+			public void replace(FilterBypass fb, int replOffset, int replLen,
 					String string, AttributeSet attrs)
 					throws BadLocationException {
 				String s = JMathTextField.this.getText();
 				boolean insertedDummyChar = false;
 				boolean insertedBrackets = false;
-				String marked = s.substring(offset, offset + length);
+				String marked = s.substring(replOffset, replOffset + replLen);
 
-				if(string.matches(" |\\)") && offset + 1 < s.length() && s.substring(offset, offset + 1).equals(string)) {
-					JMathTextField.this.setCaretPosition(offset + 1);
+				if(string.matches(" |\\)") && replOffset + 1 < s.length() && s.substring(replOffset, replOffset + 1).equals(string)) {
+					JMathTextField.this.setCaretPosition(replOffset + 1);
 					return;
 				}
 				
 				string = string.replace(" ", "");
 				if(string.isEmpty() && marked.equals("(")) {
 					int count = 1;
-					while(offset + length < s.length()) {
-						length++;
-						marked = s.substring(offset, offset + length);
+					while(replOffset + replLen < s.length()) {
+						replLen++;
+						marked = s.substring(replOffset, replOffset + replLen);
 						if(marked.charAt(0) == '(') count++;
 						else if(marked.charAt(0) == ')') count--;
 						if(count == 0) break;
@@ -73,27 +73,27 @@ public class JMathTextField extends JTextField {
 				}
 				else if(string.isEmpty() && marked.equals(")")) {
 					int count = -1;
-					while(offset > 0) {
-						offset--;
-						length++;
-						marked = s.substring(offset, offset + length);
+					while(replOffset > 0) {
+						replOffset--;
+						replLen++;
+						marked = s.substring(replOffset, replOffset + replLen);
 						if(marked.charAt(0) == '(') count++;
 						else if(marked.charAt(0) == ')') count--;
 						if(count == 0) break;
 					}
 				}
 				
-				if(length == 0 && string.matches("\\+|-|\\*|/|=")) {
-					if(s.substring(offset).matches(" *(((\\+|-|∙|/|=|\\)).*)|)")) {
+				if(replLen == 0 && string.matches("\\+|-|\\*|/|^|=")) {
+					if(s.substring(replOffset).matches(" *(((\\+|-|∙|/|^|=|\\)).*)|)")) {
 						string = string + "_";
 						insertedDummyChar = true;
-					} else if(s.substring(offset).matches(" .*")) {
+					} else if(s.substring(replOffset).matches(" .*")) {
 						string = "_" + string;
 						insertedDummyChar = true;
 					}
 				}
 				else if(string.matches("\\(")) {
-					if(length == 0 || marked.equals("_")) {
+					if(replLen == 0 || marked.equals("_")) {
 						string = "(_)";
 						insertedDummyChar = true;
 					}
@@ -106,12 +106,12 @@ public class JMathTextField extends JTextField {
 					return; // ignore that
 				
 				// situation: A = B, press DEL -> make it A = _
-				if(string.isEmpty() && offset > 0 && length == 1 && s.substring(offset - 1, offset).equals(" ") && !marked.equals("_")) {
+				if(string.isEmpty() && replOffset > 0 && replLen == 1 && s.substring(replOffset - 1, replOffset).equals(" ") && !marked.equals("_")) {
 					string = "_";
 					insertedDummyChar = true;
 				}
 				
-				setNewString(fb, s.substring(0, offset) + string + s.substring(offset + length));
+				setNewString(fb, s.substring(0, replOffset) + string + s.substring(replOffset + replLen));
 				
 				if(insertedDummyChar) {
 					int p = JMathTextField.this.getText().indexOf('_');
