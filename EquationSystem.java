@@ -131,7 +131,22 @@ public class EquationSystem {
 	
 	private static int debugVerbose = 0;
 	private final static int DEPTH_LIMIT = 4;
-	
+
+	boolean canConcludeTo(Equation eq) {
+		// Use TreeSet for baseEquationSums so that we get some deterministic/natural behavior.
+//		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<OperatorTree>(), 0);
+		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reducedSum(), new TreeSet<OperatorTree>(), 0);
+	}
+
+	private static Set<OperatorTree> filterEquWithFactor(Set<OperatorTree> equs, OperatorTree fac) {
+		Set<OperatorTree> filtered = new TreeSet<OperatorTree>();
+		for(OperatorTree eq : equs) {
+			if(eq.baseFactors().contains(fac))
+				filtered.add(eq);
+		}
+		return filtered;
+	}
+
 	private static boolean _canConcludeTo(Set<OperatorTree> baseEquationSums, OperatorTree eqSum, Set<OperatorTree> usedEquationSumList, int depth) {
 		if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "canConcludeTo: " + eqSum);
 
@@ -140,47 +155,93 @@ public class EquationSystem {
 			return true;
 		}
 
-		if(depth > DEPTH_LIMIT) return false;		
+		if(depth > DEPTH_LIMIT) return false;
 
-		for(OperatorTree myEq : new ArrayList<OperatorTree>(baseEquationSums)) {
-			Collection<OperatorTree> allConclusionSums = calcAllOneSideConclusions(eqSum, myEq);
+		for(OperatorTree fac : new TreeSet<OperatorTree>(eqSum.baseFactors())) {
+			Set<OperatorTree> equsWithFactor = filterEquWithFactor(baseEquationSums, fac);
+			// Note: Earlier, we checked for equsWithFactor.isEmpty() and failed if true. But there are cases were we can still succeed so we don't.
+			if(equsWithFactor.size() == 1) {
+				// We can first use that single equation sum in any case with this factor. If it fails, we cannot conclude that equation.
+				OperatorTree baseEq = equsWithFactor.iterator().next();
+				OperatorTree resultingEqSum = _conclusion(eqSum, baseEq, fac);
+				if(resultingEqSum != null) {
+					if(resultingEqSum.isZero()) {
+						if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: short-cut " + fac + " conclusion with " + baseEq + " gives tautology " + resultingEqSum);
+						return true;
+					}
+					usedEquationSumList.add(resultingEqSum);
+					baseEquationSums.remove(baseEq);
+					// And just check the reduced system. Also, don't inc the depth in this case (just a small opti).
+					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "short-cut " + fac + " conclusion with " + baseEq + " : " + resultingEqSum);
+					return _canConcludeTo(baseEquationSums, resultingEqSum, usedEquationSumList, depth);
+				}
+			}
+		}
+
+		for(OperatorTree baseEq : new ArrayList<OperatorTree>(baseEquationSums)) {
+			Collection<OperatorTree> allConclusionSums = calcAllOneSideConclusions(eqSum, baseEq);
 			if(allConclusionSums.isEmpty()) {
-				if(debugVerbose >= 3) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + myEq);				
+				if(debugVerbose >= 3) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "no conclusions with " + baseEq);
 				continue;
 			}
 			
-			baseEquationSums.remove(myEq);
+			baseEquationSums.remove(baseEq);
 			for(OperatorTree resultingEqSum : allConclusionSums) {
 				if(usedEquationSumList.contains(resultingEqSum)) continue;
 				usedEquationSumList.add(resultingEqSum);
 				
 				if(resultingEqSum.isZero()) {
-					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + myEq + " gives tautology " + resultingEqSum);
+					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES: conclusion with " + baseEq + " gives tautology " + resultingEqSum);
 					return true;
 				}
 				
-				if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + myEq + " : " + resultingEqSum);
+				if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "conclusion with " + baseEq + " : " + resultingEqSum);
 				if(_canConcludeTo(baseEquationSums, resultingEqSum, usedEquationSumList, depth + 1)) {
 					if(debugVerbose >= 1) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "YES");
 					return true;
 				}
 			}
-			baseEquationSums.add(myEq);
+			baseEquationSums.add(baseEq);
 		}
 		if(debugVerbose >= 2) System.out.println(Utils.multiplyString(" ", Utils.countStackFrames("_canConcludeTo")) + "NO");		
 		return false;
 	}
 
-	boolean canConcludeTo(Equation eq) {
-		// Use TreeSet for baseEquationSums so that we get some deterministic/natural behavior.
-//		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum(), new TreeSet<OperatorTree>(), 0);
-		return _canConcludeTo(new TreeSet<OperatorTree>(Utils.collFromIter(normalizedAndReducedSums())), eq.normalizedSum().reducedSum(), new TreeSet<OperatorTree>(), 0);
-	}
-	
+
+
 	private static Set<OperatorTree> commonBaseFactors(OperatorTree eq1, OperatorTree eq2) {
 		Set<OperatorTree> commonVars = new HashSet<OperatorTree>(eq1.baseFactors());
 		commonVars.retainAll(new HashSet<OperatorTree>(eq2.baseFactors()));
 		return commonVars;
+	}
+
+	private static OperatorTree _conclusion(OperatorTree fixedEq, OperatorTree otherEq, OperatorTree baseFactor) {
+		OperatorTree.ExtractedFactor extract1 = fixedEq.extractFactor(baseFactor);
+		OperatorTree.ExtractedFactor extract2 = otherEq.extractFactor(baseFactor);
+		if(extract1 == null) { // can happen if we have higher order polynoms
+			if(debugVerbose >= 3) System.out.println("cannot extract " + baseFactor + " in " + fixedEq);
+			return null;
+		}
+		if(extract2 == null) { // can happen if we have higher order polynoms
+			if(debugVerbose >= 3) System.out.println("cannot extract " + baseFactor + " in " + otherEq);
+			return null;
+		}
+
+		OperatorTree fac = extract1.varMult.divide(extract2.varMult).minusOne();
+		if(debugVerbose >= 2) System.out.print("var: " + baseFactor + " in " + otherEq);
+		if(debugVerbose >= 2) System.out.print(", fac: " + fac.debugStringDouble());
+		fac = fac.mergeDivisions().simplifyDivision();
+		if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
+		OperatorTree newSum = otherEq.multiply(fac);
+		if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + baseFactor + ": " + extract1 + " and " + extract2);
+		// NOTE: here would probably the starting place to allow vars=0.
+		//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
+
+		OperatorTree resultingEquSum = fixedEq.sum(newSum).normalized();
+		resultingEquSum = resultingEquSum.reducedSum();
+		//resultingEquSum = resultingEquSum.reducedPotInSum();
+		if(debugVerbose >= 3) System.out.println(".. result: " + resultingEquSum);
+		return resultingEquSum;
 	}
 
 	private static Set<OperatorTree> calcAllOneSideConclusions(OperatorTree fixedEq, OperatorTree otherEq) {
@@ -189,34 +250,10 @@ public class EquationSystem {
 		if(fixedEq.isZero()) return results;
 		if(otherEq.isZero()) return results;
 
-		Set<OperatorTree> baseFactors = commonBaseFactors(fixedEq, otherEq);
-
-		for(OperatorTree baseFactor : baseFactors) {
-			OperatorTree.ExtractedFactor extract1 = fixedEq.extractFactor(baseFactor);
-			OperatorTree.ExtractedFactor extract2 = otherEq.extractFactor(baseFactor);
-			if(extract1 == null) { // can happen if we have higher order polynoms
-				if(debugVerbose >= 3) System.out.println("cannot extract " + baseFactor + " in " + fixedEq);
-				continue;
-			}
-			if(extract2 == null) { // can happen if we have higher order polynoms
-				if(debugVerbose >= 3) System.out.println("cannot extract " + baseFactor + " in " + otherEq);
-				continue;
-			}
-
-			OperatorTree fac = extract1.varMult.divide(extract2.varMult).minusOne();
-			if(debugVerbose >= 2) System.out.print("var: " + baseFactor + " in " + otherEq);
-			if(debugVerbose >= 2) System.out.print(", fac: " + fac.debugStringDouble());
-			fac = fac.mergeDivisions().simplifyDivision();
-			if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
-			OperatorTree newSum = otherEq.multiply(fac);
-			if(debugVerbose >= 2) System.out.println("-> " + newSum + "; in " + fixedEq + " and " + otherEq + ": extracting " + baseFactor + ": " + extract1 + " and " + extract2);
-			// NOTE: here would probably the starting place to allow vars=0.
-			//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
-			
-			OperatorTree resultingEquSum = fixedEq.sum(newSum).normalized();
-			resultingEquSum = resultingEquSum.reducedSum();
-			if(debugVerbose >= 3) System.out.println(".. result: " + resultingEquSum);
-			results.add(resultingEquSum);
+		for(OperatorTree baseFactor : commonBaseFactors(fixedEq, otherEq)) {
+			OperatorTree resultingEquSum = _conclusion(fixedEq, otherEq, baseFactor);
+			if(resultingEquSum != null)
+				results.add(resultingEquSum);
 		}
 		
 		return results;
@@ -305,6 +342,9 @@ public class EquationSystem {
 		ot = ot.normedSum();
 		System.out.println("  normedSum: " + ot.debugStringDouble());
 
+		ot = ot.reducedSum(); // not part of OT.normalized() but interesting because we use it in many places
+		System.out.println("  (*) reducedSum: " + ot.debugStringDouble());
+
 		System.out.println("}");
 	}
 	
@@ -337,6 +377,7 @@ public class EquationSystem {
 		assertEqual(OTParser.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1").mergeDivisions().simplifyDivision(), OTParser.parse("-I1 ∙ R1 + -I1 ∙ R4 + I2 ∙ R2 + -1"));
 		assertEqual(OTParser.parse("-I2 ∙ (U3 / -I2)").mergeDivisions().simplifyDivision(), OTParser.parse("U3"));		
 		assertEqual(OTParser.parse("(R1 ∙ R2 ∙ U3 + R2 ∙ R4 ∙ U3) / (-R2 ∙ U3)").simplifyDivision(), OTParser.parse("-R1 + -R4"));
+		assertEqual(OTParser.parse("(-f ∙ D(1 / f) + -r) / (f ∙ r + -D f)").simplifyDivision(), OTParser.parse("(-f ∙ D(1 / f) + -r) / (f ∙ r + -D f)"));
 	}
 	
 	@SuppressWarnings({"ConstantConditions"})
@@ -355,6 +396,8 @@ public class EquationSystem {
 			//debugEquationParsing("U3 / I3 = R2 - R2 * I1 / (I1 + I2)");
 			//debugEquationParsing("U1 / I1 = 1 / (1 / R2 + 1 / R3)");
 			//debugEquationParsing("I1 ∙ I4 ∙ R1 ∙ R4 + I1 ∙ I4 ∙ R1 ^ 2 + I4 ^ 2 ∙ R1 ∙ R4 + I4 ^ 2 ∙ R4 ^ 2 + -(U3 ^ 2) + I1 ∙ R1 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + I1 ∙ R4 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + -U3 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) = 0");
+			//debugEquationParsing("0 = f ∙ k ∙ -D f ∙ D(1 / f) + f ∙ k ∙ D f ∙ D(1 / f) + -f ∙ r ∙ -D f + k ∙ r ∙ -D f + k ∙ r ∙ D f + f ^ 3 ∙ r ∙ D(1 / f)");
+			//debugEquationParsing("f ∙ k ∙ r ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + -k ∙ D f ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + -(f ^ 2) ∙ r ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + " + "-(f ∙ k ∙ D(1 / f) + -f ∙ r + k ∙ r)" + " = 0");
 			debugSimplifications();
 
 			sys.addAuto("Df = r∙f∙(1 - f/k)");
@@ -418,6 +461,11 @@ public class EquationSystem {
 			sys.add("x1 = x2 ∙ x3 - x4 - x5");
 			sys.add("x6 = x2");
 			sys.assertCanConcludeTo("x1 / x6 = x3 - x4 / x6 - x5 / x6");
+			sys.equations.clear();
+
+			sys.add("U3 = R2 ∙ I2");
+			sys.add("I3 = I4 + I2");
+			sys.assertCanConcludeTo("U3 / I3 = R2 ∙ I2 / (I4 + I2)");
 			sys.equations.clear();
 
 			sys.add("U3 = R2 ∙ I2");
