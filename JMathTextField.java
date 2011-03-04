@@ -110,14 +110,16 @@ public class JMathTextField extends JTextField {
 					}
 				}
 				else if(string.matches("\\(")) {
-					if(replLen == 0 || replStr.equals("_")) {
+					if(s.isEmpty() || replStr.equals("_")) {
 						string = "(_)";
 						insertedDummyChar = true;
 					}
-					else {
+					else if(!replStr.isEmpty()) {
 						string = "(" + replStr + ")";
 						insertedBrackets = true;
 					}
+					else
+						return; // ignore this
 				}
 				else if(string.matches("\\)"))
 					return; // ignore that
