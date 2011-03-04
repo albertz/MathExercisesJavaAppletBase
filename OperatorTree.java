@@ -847,6 +847,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return c.intValue();
 	}
 
+	@SuppressWarnings({"UnusedDeclaration"})
 	OperatorTree reducedPotInSum() {
 		// IMPORTANT: Assumes that all variables are >=0 and thus that we can reduce any powers. E.g. A^2=B^2 -> A=B
 
