@@ -6,10 +6,22 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter;
 import javax.swing.text.PlainDocument;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 
 public class JMathTextField extends JTextField {
 
 	private static final long serialVersionUID = 3991754180692357067L;
+
+	{
+		this.addFocusListener(new FocusListener() {
+			public void focusGained(FocusEvent e) {
+				moveCaretPosition(0);
+				setCaretPosition(getText().length());
+			}
+			public void focusLost(FocusEvent e) {}
+		});
+	}
 
 	private OperatorTree operatorTree = new OperatorTree();
 	public OperatorTree getOperatorTree() { return operatorTree; }
@@ -135,5 +147,5 @@ public class JMathTextField extends JTextField {
 		
 		return d;
 	}
-	
+
 }
