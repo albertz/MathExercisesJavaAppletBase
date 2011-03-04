@@ -1,6 +1,3 @@
-/**
- * 
- */
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
 import javax.swing.JTextField;
