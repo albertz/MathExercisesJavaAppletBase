@@ -49,7 +49,7 @@ public class Content {
 	
 	public void run() {
 		//Utils.debugUtilsParsingOpTree();
-		EquationSystem.debug();
+		//EquationSystem.debug();
 
 		graph = new PGraph(applet, 400, 400);
 		circuit = new ElectronicCircuit();
