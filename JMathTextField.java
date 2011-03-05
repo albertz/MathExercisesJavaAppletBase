@@ -125,7 +125,7 @@ public class JMathTextField extends JTextField {
 					}
 				}
 				else if(string.matches("\\(")) {
-					if(s.isEmpty() || replStr.equals("_")) {
+					if(Utils.reveresedString(s.substring(0,replOffset)).matches("( )*([^\\+\\-∙/\\^= ].*|)") || replStr.equals("_")) {
 						string = "(_)";
 						insertedDummyChar = true;
 					}
