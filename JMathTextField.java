@@ -1,13 +1,9 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
 import javax.swing.JTextField;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
-import javax.swing.text.DocumentFilter;
-import javax.swing.text.PlainDocument;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
+import javax.swing.text.*;
+import java.awt.*;
+import java.awt.event.*;
 
 public class JMathTextField extends JTextField {
 
@@ -20,6 +16,25 @@ public class JMathTextField extends JTextField {
 				setCaretPosition(getText().length());
 			}
 			public void focusLost(FocusEvent e) {}
+		});
+
+		this.addInputMethodListener(new InputMethodListener() {
+			public void inputMethodTextChanged(final InputMethodEvent event) {
+				System.out.println(event);
+				event.consume();
+				JMathTextField.this.getInputContext().endComposition();
+				if(event.getText() == null) return;
+				if(event.getCommittedCharacterCount() > 0) return;
+				final char c = event.getText().last();
+				if(c == '^') {
+					final KeyEvent ke = new KeyEvent(
+							JMathTextField.this, KeyEvent.KEY_TYPED,
+							EventQueue.getMostRecentEventTime(),
+							0, KeyEvent.VK_UNDEFINED, c);
+					JMathTextField.this.processKeyEvent(ke);
+				}
+			}
+			public void caretPositionChanged(InputMethodEvent event) {}
 		});
 	}
 
