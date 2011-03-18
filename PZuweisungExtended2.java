@@ -60,8 +60,7 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 				res = new Point((int)x + p.x + w / 2, (int)y + p.y + h / 2);
 				
 				distance = true;
-				for(Iterator<Point> i = keepDistance.iterator(); i.hasNext(); ) {
-					Point p = i.next();
+				for(Point p : keepDistance) {
 					if(p.distance(res) < d) {
 						distance = false;
 						break;
@@ -115,7 +114,7 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 	public Point selectedDotA = null; 
 	public Point overDotA = null, overDotB = null;
 	public List<String> dotANames = null;
-	public List<String> dotBNames = Arrays.asList(new String[]{"A","B","C","D"});
+	public List<String> dotBNames = Arrays.asList("A","B","C","D");
 	public boolean dotANames_showalways = true;
 	public boolean dotBNames_showalways = true;
 	
@@ -180,15 +179,14 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 			g.setColor(c);
 		}
 
-		for(Iterator<Connection> i = cons.iterator(); i.hasNext(); ) {
-			Connection con = (Connection) i.next();
+		for(Connection con : cons) {
 			if(selectedDotA != null && overDotB != null
 					&& con.src.distance(selectedDotA) == 0
 					&& con.dst.distance(overDotB) != 0) {
 				// ignore
 			} else if(
 					(overDotA != null && con.src.distance(overDotA) == 0) ||
-					(overDotB != null && con.dst.distance(overDotB) == 0)
+							(overDotB != null && con.dst.distance(overDotB) == 0)
 					) {
 				Color c = g.getColor();
 				g.setColor(Color.CYAN);
@@ -201,9 +199,9 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 	
 	public void addSurjectivConnections() {
 		Iterator<?> j = dotsB.iterator();
-		for(Iterator<?> i = dotsA.iterator(); i.hasNext(); ) {
+		for(Object aDotsA : dotsA) {
 			Connection con = new Connection();
-			con.src = (Point) i.next();
+			con.src = (Point) aDotsA;
 			if(!j.hasNext())
 				j = dotsB.iterator();
 			con.dst = (Point) j.next();
@@ -230,8 +228,7 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 	}
 	
 	public boolean existsConnection(Point a, Point b) {
-		for(Iterator<Connection> i = connections.iterator(); i.hasNext(); ) {
-			Connection p = (Connection) i.next();
+		for(Connection p : connections) {
 			if(p.src.distance(a) == 0 && p.dst.distance(b) == 0)
 				return true;
 		}
@@ -243,18 +240,16 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 		List<Point> dotsB1 = new LinkedList<Point>();
 		List<Point> dotsB2 = new LinkedList<Point>();
 		boolean correct = false;
-		for(Iterator<Connection> i = connections.iterator(); i.hasNext(); ) {
-			Connection con = (Connection) i.next();
+		for(Connection con : connections) {
 			dotsAcopy.remove(getPointIndex(dotsAcopy, con.src));
-			
+
 			if(!correct) {
 				boolean inDotsB1 = getPointIndex(dotsB1, con.dst) >= 0;
 				boolean inDotsB2 = getPointIndex(dotsB2, con.dst) >= 0;
 				if(oval1a.isInside(con.src)) {
 					if(inDotsB2) correct = true;
 					else dotsB1.add(con.dst);
-				}
-				else { // in oval1b
+				} else { // in oval1b
 					if(inDotsB1) correct = true;
 					else dotsB2.add(con.dst);
 				}
@@ -269,18 +264,16 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 		List<Point> dotsB1 = new LinkedList<Point>();
 		List<Point> dotsB2 = new LinkedList<Point>();
 		boolean correct = false;
-		for(Iterator<Connection> i = connections.iterator(); i.hasNext(); ) {
-			Connection con = (Connection) i.next();
+		for(Connection con : connections) {
 			dotsAcopy.remove(getPointIndex(dotsAcopy, con.src));
-			
+
 			if(!correct) {
 				boolean inDotsB1 = getPointIndex(dotsB1, con.dst) >= 0;
 				boolean inDotsB2 = getPointIndex(dotsB2, con.dst) >= 0;
 				if(oval1a.isInside(con.src)) {
 					if(inDotsB2) correct = true;
 					else dotsB1.add(con.dst);
-				}
-				else { // in oval1b
+				} else { // in oval1b
 					if(inDotsB1) correct = true;
 					else dotsB2.add(con.dst);
 				}
@@ -324,30 +317,26 @@ class PZuweisungExtended2 implements VTImage.PainterAndListener, Applet.CorrectC
 	protected void makeCopyOfPoints(Collection<Point> col) {
 		Collection<Point> col_copy = new LinkedList<Point>(col);
 		col.clear();
-		for(Iterator<Point> i = col_copy.iterator(); i.hasNext(); ) {
-			Point p = (Point) i.next();
+		for(Point p : col_copy) {
 			col.add((Point) p.clone());
 		}
 	}
 	
-	protected void fixXPos(Collection<?> col, int d) {
-		for(Iterator<?> i = col.iterator(); i.hasNext(); ) {
-			Point p = (Point) i.next();
+	protected void fixXPos(Collection<Point> col, int d) {
+		for(Point p : col) {
 			p.x += d;
 		}
 	}
 	
-	protected Point getPointByPos(Collection<?> col, Point pos) {
-		for(Iterator<?> i = col.iterator(); i.hasNext(); ) {
-			Point p = (Point) i.next();
+	protected Point getPointByPos(Collection<Point> col, Point pos) {
+		for(Point p : col) {
 			if(p.distance(pos) < 10) return p;
 		}
 		return null;
 	}
 	
 	protected Connection getConnectionBySrc(Point src, Collection<Connection> cons) {
-		for(Iterator<Connection> i = cons.iterator(); i.hasNext(); ) {
-			Connection con = (Connection) i.next();
+		for(Connection con : cons) {
 			if(con.src.distance(src) == 0) return con;
 		}
 		return null;
