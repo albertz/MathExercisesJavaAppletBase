@@ -1,4 +1,4 @@
-package applets.Termumformungen$in$der$Technik_03_Logistik;
+package applets.Termumformungen$in$der$Technik_04_Plattenkondensator;
 
 
 abstract class OTEntity implements Comparable<OTEntity> {

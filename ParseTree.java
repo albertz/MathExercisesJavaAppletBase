@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Termumformungen$in$der$Technik_03_Logistik;
+package applets.Termumformungen$in$der$Technik_04_Plattenkondensator;
 
 import java.util.HashMap;
 import java.util.HashSet;
