@@ -54,8 +54,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 				res = new Point((int)x + p.x + w / 2, (int)y + p.y + h / 2);
 				
 				distance = true;
-				for(Iterator<Point> i = keepDistance.iterator(); i.hasNext(); ) {
-					Point p = i.next();
+				for(Point p : keepDistance) {
 					if(p.distance(res) < d) {
 						distance = false;
 						break;
@@ -154,15 +153,14 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 			g.setColor(c);
 		}
 
-		for(Iterator<Connection> i = cons.iterator(); i.hasNext(); ) {
-			Connection con = i.next();
+		for(Connection con : cons) {
 			if(selectedDotA != null && overDotB != null
 					&& con.src.distance(selectedDotA) == 0
 					&& con.dst.distance(overDotB) != 0) {
 				// ignore
 			} else if(
 					(overDotA != null && con.src.distance(overDotA) == 0) ||
-					(overDotB != null && con.dst.distance(overDotB) == 0)
+							(overDotB != null && con.dst.distance(overDotB) == 0)
 					) {
 				Color c = g.getColor();
 				g.setColor(Color.CYAN);
@@ -175,12 +173,12 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	
 	public void addSurjectivConnections() {
 		Iterator<Point> j = dotsB.iterator();
-		for(Iterator<Point> i = dotsA.iterator(); i.hasNext(); ) {
+		for(Point aDotsA : dotsA) {
 			Connection con = new Connection();
-			con.src = i.next();
+			con.src = aDotsA;
 			if(!j.hasNext())
 				j = dotsB.iterator();
-			con.dst = (Point) j.next();
+			con.dst = j.next();
 			connections.add(con);
 		}
 	}
@@ -204,8 +202,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	}
 	
 	public boolean existsConnection(Point a, Point b) {
-		for(Iterator<Connection> i = connections.iterator(); i.hasNext(); ) {
-			Connection p = i.next();
+		for(Connection p : connections) {
 			if(p.src.distance(a) == 0 && p.dst.distance(b) == 0)
 				return true;
 		}
@@ -214,8 +211,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	
 	public boolean isCorrect() {
 		Collection<Point> dotsA_copy = new LinkedList<Point>(dotsA);
-		for(Iterator<Connection> i = connections.iterator(); i.hasNext(); ) {
-			Connection p = i.next();
+		for(Connection p : connections) {
 			Point a = (Point) p.dst.clone();
 			Point b = (Point) p.src.clone();
 			a.x += oval1.p.x - oval2.p.x;
@@ -229,8 +225,7 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	
 	public String getResultMsg() {
 		Collection<Point> dotsA_copy = new LinkedList<Point>(dotsA);
-		for(Iterator<Connection> i = connections.iterator(); i.hasNext(); ) {
-			Connection p = i.next();
+		for(Connection p : connections) {
 			Point a = (Point) p.dst.clone();
 			Point b = (Point) p.src.clone();
 			a.x += oval1.p.x - oval2.p.x;
@@ -292,9 +287,8 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 		connections.clear();
 		
 		if(withConn) {
-			for(Iterator<Connection> i = src.connections.iterator(); i.hasNext(); ) {
-				Connection con = i.next();
-				int dst_i = getPointIndex(src.dotsA, con.src); 
+			for(Connection con : src.connections) {
+				int dst_i = getPointIndex(src.dotsA, con.src);
 				int src_i = getPointIndex(src.dotsB, con.dst);
 				Connection new_con = new Connection();
 				new_con.src = getPointByIndex(dotsA, src_i);
@@ -309,30 +303,26 @@ class PZuweisung implements VTImage.PainterAndListener, Applet.CorrectCheck {
 	protected void makeCopyOfPoints(Collection<Point> col) {
 		Collection<Point> col_copy = new LinkedList<Point>(col);
 		col.clear();
-		for(Iterator<Point> i = col_copy.iterator(); i.hasNext(); ) {
-			Point p = i.next();
+		for(Point p : col_copy) {
 			col.add((Point) p.clone());
 		}
 	}
 	
 	protected void fixXPos(Collection<Point> col, int d) {
-		for(Iterator<Point> i = col.iterator(); i.hasNext(); ) {
-			Point p = i.next();
+		for(Point p : col) {
 			p.x += d;
 		}
 	}
 	
 	protected Point getPointByPos(Collection<Point> col, Point pos) {
-		for(Iterator<Point> i = col.iterator(); i.hasNext(); ) {
-			Point p = i.next();
+		for(Point p : col) {
 			if(p.distance(pos) < 10) return p;
 		}
 		return null;
 	}
 	
 	protected Connection getConnectionBySrc(Point src, Collection<Connection> cons) {
-		for(Iterator<Connection> i = cons.iterator(); i.hasNext(); ) {
-			Connection con = i.next();
+		for(Connection con : cons) {
 			if(con.src.distance(src) == 0) return con;
 		}
 		return null;
