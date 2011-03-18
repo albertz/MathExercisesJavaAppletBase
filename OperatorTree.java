@@ -939,8 +939,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 				while(true) {
 					OperatorTree newNom = nom.divideIfReducing(pot.first, false);
 					OperatorTree newDenom = denom.divideIfReducing(pot.first, false);
-					System.out.println("removing " + pot.first.debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
-					System.out.println("removing " + pot.first.debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
+					//System.out.println("removing " + pot.first.debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
+					//System.out.println("removing " + pot.first.debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
 
 					if(newNom != null && newDenom != null) {
 						nom = newNom.asSum(); denom = newDenom.asSum();
