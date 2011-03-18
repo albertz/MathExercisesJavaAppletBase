@@ -1,16 +1,30 @@
-Platten
+Die Elektronen werden mit der Spannung \m{U} beschleunigt.
+Dadurch erhalten Sie die elektrische Energie \m{Eel = U ∙ e}.
+Diese Energie wird in kinetische Energie umgesetzt.
+Es bezeichne \m{v} die Geschwindigkeit der Elektronen nach verlassen der Glühkathode,
+dann gilt
 
-\hint{Sie können also annehmen, dass \m{D(f) = -r∙f∙(1 - f/k)} gilt.}
-\hint{Benutzen Sie \m{D(1/f) = -D(f)/f^2}.}
-\hint{Zeigen Sie nun, dass \m{D(1/f) = -r/f + r/k} gilt.}
+   \m{1/2 ∙ m ∙ v^2 = Ekin = Eel = U ∙ e}
+
+Im Magnetfeld \m{B} zwingt die Lorentzkraft \m{FL} die Elektronen auf eine Kreisbahn.
+Sie wirkt als Zentripetalkraft \m{FZ}, daher gilt
+
+   \m{e ∙ v ∙ B = FL = FZ = m ∙ v^2 / r}
+
+Leiten Sie nun \m{e/m} her.
+
+\hint{Stellen Sie die erste Gleichung nach \m{v^2} um.}
+\hint{Vereinfachen und quadrieren Sie die 2. Gleichung.}
 
 \equinput[
-	x = vx * t
-	x^2 = vx^2 * t^2
-	1/2 * m * vx^2 = UA * e
-	ay = e/m * Uy/d
-	y = 1/2 * ay * t^2
-	? y : Uy, UA, d, x
+	1/2 ∙ m ∙ v^2 = Ekin
+	Eel = U ∙ e
+	Ekin = Eel
+	e ∙ v ∙ B = FL
+	FZ = m ∙ v^2 / r
+	FL = FZ
+	e^2 ∙ B^2 ∙ r^2 = m^2 ∙ v^2
+	? e/m : U, B, r
 ]
 
-\%{ y = (Uy ∙ x ^ 2) / (UA * 4 ∙ d) }
+\%{ e/m = 2 * U / (B^2 * r^2) }
