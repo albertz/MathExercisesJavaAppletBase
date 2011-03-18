@@ -16,8 +16,11 @@ class JSimpleLabel extends JComponent {
 	Integer fixedWidth = null;
 	
 	JSimpleLabel() {}
+	@SuppressWarnings({"UnusedDeclaration"})
 	JSimpleLabel(String text) { this.text = text; setFont(Applet.defaultFont); }
+	@SuppressWarnings({"UnusedDeclaration"})
 	JSimpleLabel(String text, int fixedWidth) { this.text = text; this.fixedWidth = fixedWidth; setFont(Applet.defaultFont); }
+	@SuppressWarnings({"UnusedDeclaration"})
 	JSimpleLabel(String text, int fixedWidth, Font font) { this.text = text; this.fixedWidth = fixedWidth; setFont(font); }
 	
 	private abstract class WalkStringCallback {
