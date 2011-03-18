@@ -5,17 +5,12 @@ Platten
 \hint{Zeigen Sie nun, dass \m{D(1/f) = -r/f + r/k} gilt.}
 
 \equinput[
-	ay = e/m * Uy/d
-	y = 1/2 * ay * t^2
-	? y : e, m, Uy, d, t
-]
-
-\equinput[
 	x = vx * t
+	x^2 = vx^2 * t^2
 	1/2 * m * vx^2 = UA * e
 	ay = e/m * Uy/d
 	y = 1/2 * ay * t^2
-	? y : Uy, d, x
+	? y : Uy, UA, d, x
 ]
 
-\%{ y = (Uy ∙ x ^ 2) / (4 ∙ d) }
+\%{ y = (Uy ∙ x ^ 2) / (UA * 4 ∙ d) }
