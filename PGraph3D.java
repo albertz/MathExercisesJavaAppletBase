@@ -1,9 +1,6 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Graphics;
-import java.awt.Polygon;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -155,13 +152,15 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public DynVector3D someOrthogonal() {
 			final DynVector3D t = this;
 			return new DynVector3D() {
+				@SuppressWarnings({"ConstantConditions"})
+				@Override
 				public double get(int i) throws Exception {
 					for(int j = 0; j < 3; ++j) {
 						try {
 							Vector3D v = t.crossProduct(Plane.basePlanes[j].normal).fixed();
 							if(v.abs().get() > EPS) return v.get(i);
 						}
-						catch(Exception e) {}
+						catch(Exception ignored) {}
 					}
 					throw new Exception("DynVector3D.someOrthogonal: no solution");
 				}
@@ -205,14 +204,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 	}
 	
-	static public class pair < First > {
-		public First x;
-		public First y;
-		public pair() {}
-		public pair(First _x, First _y) { x = _x; y = _y; }
+	static public class Pair<Type> {
+		public Type a;
+		public Type b;
+		public Pair() {}
+		public Pair(Type _a, Type _b) { a = _a; b = _b; }
 
 		public String toString() {
-			return "<" + x.toString() + "," + y.toString() + ">";
+			return "<" + a.toString() + "," + b.toString() + ">";
 		}
 	}
 	
@@ -220,10 +219,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		public double x[] = new double[3];
 		public Vector3D() {}
 		public Vector3D(double a, double b, double c) { x[0] = a; x[1] = b; x[2] = c; }
-		public Vector3D(double[] ds) { for(int i = 0; i < 3; ++i) x[i] = (double) ds[i]; }
+		public Vector3D(double[] ds) { System.arraycopy(ds, 0, x, 0, 3); }
 
 		public double get(int i) { return x[i % 3]; }
-		public void set(Vector3D v) { for(int i = 0; i < 3; ++i) x[i] = v.x[i]; }
+		public void set(Vector3D v) { System.arraycopy(v.x, 0, x, 0, 3); }
 	}
 		
 	static public class Point3D extends Vector3D {
@@ -232,10 +231,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	}
 	
 	static public class Float extends DynFloat {
-		public double x;
+		public double v;
 		public Float() {}
-		public Float(double x_) { x = x_; }
-		public double get() { return x; }
+		public Float(double _v) { v = _v; }
+		public double get() { return v; }
 	}
 	
 	public class Viewport {
@@ -266,7 +265,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		public double maxSize() {
-			return (double) ((Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.x);
+			return (Math.max(W, H) * 0.5 / viewport.scaleFactor) / viewport.eyeDistanceFactor.v;
 		}
 		
 		public PGraph3D base() {
@@ -319,8 +318,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			void draw() {
 				try {
 					Polygon tpoly = new Polygon();
-					for(int i = 0; i < p.length; ++i) {
-						java.awt.Point tp = translate(p[i]);
+					for(Point3D aP : p) {
+						java.awt.Point tp = translate(aP);
 						tpoly.addPoint(tp.x, tp.y);
 					}
 					g.fillPolygon(tpoly);
@@ -328,14 +327,14 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					e1.printStackTrace();
 				}
 			}
+			@SuppressWarnings({"UnusedDeclaration"})
 			Plane plane() {
 				return new Plane(p[0], p[0].diff(p[1]), p[0].diff(p[2]));
 			}
 			Point3D middle() {
 				if(p.length == 0) return new Point3D();
 				DynVector3D sum = new Vector3D();
-				for(int i = 0; i < p.length; ++i)
-					sum = sum.sum(p[i]);
+				for(Point3D aP : p) sum = sum.sum(aP);
 				return sum.product(new Float(1.0 / p.length)).fixed();
 			}
 		}
@@ -460,9 +459,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			//Point3D relativeEye = eyePoint.diff(eyePlanePoint).fixed();
 			
 			try {
-				double linP = eyePlane.normal.dotProduct(relativeP).get();
-				//double linEye = eyePlane.normal.dotProduct(relativeEye).get();
-				return linP;
+				return eyePlane.normal.dotProduct(relativeP).get();
 				
 			} catch (Exception e1) {
 				e1.printStackTrace();
@@ -478,11 +475,13 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return eyePlane.intersectionPoint(eyeLine).point.fixed();
 		}
 
+		@SuppressWarnings({"UnnecessaryLocalVariable"})
 		public Vector3D getRelAxeY() {
 			Vector3D yAxe = xAxeDir.crossProduct(eyePlane.normal).norminated().fixed();
 			return yAxe;
 		}
 		
+		@SuppressWarnings({"UnnecessaryLocalVariable"})
 		public Vector3D getRelAxeX() {
 			Vector3D yAxe = getRelAxeY();
 			Vector3D xAxe = eyePlane.normal.crossProduct(yAxe).norminated().fixed();
@@ -547,8 +546,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				
 		private double getPointsDistance(Point3D[] ps) {
 			double nearest = 10000000000.0;
-			for(int i = 0; i < ps.length; ++i) {
-				double dist = getEyePlane_PointDistance(ps[i]);
+			for(Point3D p : ps) {
+				double dist = getEyePlane_PointDistance(p);
 				nearest = Math.min(nearest, dist);
 			}
 			return nearest;
@@ -580,7 +579,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				drawLine(endp, p1.diff(endp).fixed(), false);
 				drawLine(endp, p2.diff(endp).fixed(), false);
 			}
-			catch(NullPointerException e) {}			
+			catch(NullPointerException ignored) {}
 		}
 		
 		public void drawArrow(Point3D p, Vector3D v) {
@@ -641,7 +640,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				v.setColor(color);
 				v.drawLine( point.fixed(), vector.fixed(), infinite );
 			}
-		};
+		}
 		
 		public DynVector3D dynPoint() {
 			return new DynVector3D() {
@@ -689,19 +688,21 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			
 			Point p = new Point();
 			p.point = new DynVector3D() {
+				@SuppressWarnings({"ConstantConditions"})
+				@Override
 				public double get(int i) throws Exception {
 					Exception exp = null;
 					for(int k = 0; k < 3; ++k) {
 						try {
-							final pair<DynFloat> ts = ms[k].solve(new pair<DynFloat>(new Float(pointDiff.get(k)), new Float(pointDiff.get(k + 1))));
-							double tx = ts.x.get();
-							double ty = ts.y.get();
+							final Pair<DynFloat> ts = ms[k].solve(new Pair<DynFloat>(new Float(pointDiff.get(k)), new Float(pointDiff.get(k + 1))));
+							double tx = ts.a.get();
+							double ty = ts.b.get();
 							
 							// we must check now
 							double check = vector.get(k + 2) * tx - l.vector.get(k + 2) * ty - (l.point.get(k + 2) - point.get(k + 2));
 							if(Math.abs(check) > EPS) throw new Exception("no solution, check = " + check);
 						
-							return t.point.sum( t.vector.product(ts.x) ).get(i);
+							return t.point.sum( t.vector.product(ts.a) ).get(i);
 						}
 						catch(Exception elocal) {
 							if(exp == null) exp = elocal;
@@ -801,21 +802,21 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			};
 		}
 		
-		public pair<DynFloat> solve(final pair<DynFloat> v) {
+		public Pair<DynFloat> solve(final Pair<DynFloat> v) {
 			// using Cramer's rule
 			final DynMatrix2D t = this;
-			pair<DynFloat> p = new pair<DynFloat>();
-			p.x = new DynFloat() {
+			Pair<DynFloat> p = new Pair<DynFloat>();
+			p.a = new DynFloat() {
 				public double get() throws Exception {
-					double top = v.x.get() * t.get(1,1) - t.get(0,1) * v.y.get();
+					double top = v.a.get() * t.get(1,1) - t.get(0,1) * v.b.get();
 					double bottom = t.det().get();
 					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for x");
 				}
 			};
-			p.y = new DynFloat() {
+			p.b = new DynFloat() {
 				public double get() throws Exception {
-					double top = t.get(0,0) * v.y.get() - v.x.get() * t.get(1,0);
+					double top = t.get(0,0) * v.b.get() - v.a.get() * t.get(1,0);
 					double bottom = t.det().get();
 					if(Math.abs(bottom) > EPS) return top / bottom;
 					throw new Exception("Matrix::solve: no solution for y");
@@ -886,6 +887,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		static public Plane zPlane = new Plane(new Float(0), new Vector3D(0,0,1));
 		static public Plane[] basePlanes = new Plane[] { xPlane, yPlane, zPlane };
 		
+		@SuppressWarnings({"UnusedDeclaration"})
 		Plane setColor(Color c) {
 			color = c;
 			return this;
@@ -943,9 +945,9 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					return normals[i].dotProduct( normals[j] ).get();
 				}
 			};
-			pair<DynFloat> heights = new pair<DynFloat>(height, other.height);
-			final pair<DynFloat> c = nn.solve(heights);
-			l.point = normal.product(c.x).sum( other.normal.product(c.y) );
+			Pair<DynFloat> heights = new Pair<DynFloat>(height, other.height);
+			final Pair<DynFloat> c = nn.solve(heights);
+			l.point = normal.product(c.a).sum( other.normal.product(c.b) );
 			return l;
 		}
 		
@@ -958,9 +960,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 						if(Math.abs(hnp) < EPS) throw new Exception("Plane::intersectionPoint of line: line is on plane");
 						else throw new Exception("Plane::intersectionPoint of line: there is no intersection point");
 					}
-					double t = hnp / nv; //nv / hnp;
-					return t;
-				}	
+					return hnp / nv; //nv / hnp;
+				}
 			};
 		}
 		
@@ -995,6 +996,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 		}
 
+		@SuppressWarnings({"UnusedDeclaration"})
 		public String toString_x_p_n_equ_zero() {
 			try {
 				return "((x,y,z) - " + point.toString() + ") * " + normal.toString() + " = 0";
@@ -1003,6 +1005,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 		}
 
+		@SuppressWarnings({"UnusedDeclaration"})
 		public String toStringParameterForm() {
 			try {
 				DynVector3D v1 = normal.someOrthogonal();
@@ -1057,6 +1060,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			return res;
 		}
 
+		@SuppressWarnings({"PointlessArithmeticExpression"})
 		private double diag(int i, boolean pos) {
 			int f = pos ? 1 : -1;
 			return v[i%3].x[0] * v[(i+1*f+3)%3].x[1] * v[(i+2*f+3)%3].x[2];
@@ -1093,6 +1097,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			}
 		}
 		
+		@SuppressWarnings({"UnusedDeclaration"})
 		Vector3DUpdater setAllowZero(boolean v) { allowZero = v; return this; }
 	}
 
@@ -1101,18 +1106,18 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		DynFloat updater;
 		public FloatUpdater(Float p, DynFloat u) {
 			point = p; updater = u; 
-			try { p.x = u.get(); } catch (Exception e) {} 
+			try { p.v = u.get(); } catch (Exception ignored) {}
 		}
 		public FloatUpdater(Float p, DynFloat u, boolean immediateSet) {
 			point = p; updater = u;
 			if(immediateSet)
-				try { p.x = u.get(); } catch (Exception e) {}
+				try { p.v = u.get(); } catch (Exception ignored) {}
 		}
 		
 		public void doFrameUpdate(Vector3D diff) {
 			try {
-				point.x = updater.get();
-			} catch (Exception e) {}
+				point.v = updater.get();
+			} catch (Exception ignored) {}
 		}
 	}
 
@@ -1148,6 +1153,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		
 		public void mouseClicked() {}
 		
+		@SuppressWarnings({"UnusedDeclaration"})
 		MoveablePoint setSnapGrid(double sg) { snapGrid = sg; return this; }
 	}
 
@@ -1285,6 +1291,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 
 	boolean onlyXY = false;
 	
+	@SuppressWarnings({"UnusedDeclaration"})
 	void setOnlyXY(boolean v) {
 		onlyXY = v;
 		if(v) {
@@ -1319,7 +1326,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		// means we are rotating right now
 		if(oldMousePoint != null) {
 			g.setColor(Color.orange);
-			String dist = "bad";
+			String dist;
 			dist = "" + Math.round(viewport.getEyePlane_PointDistance(new Point3D())*10.0)/10.0;
 			try {
 				dist += ";" + Math.round(viewport.getEyePlane_PointDistance(new Point3D(new Vector3D(10,10,10)))*10.0)/10.0;
@@ -1457,8 +1464,8 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		double x = (p.x - W/2) / viewport.scaleFactor;
 		double z = -(p.y - H/2) / viewport.scaleFactor;
 		
-		x /= viewport.eyeDistanceFactor.x;
-		z /= viewport.eyeDistanceFactor.x;
+		x /= viewport.eyeDistanceFactor.v;
+		z /= viewport.eyeDistanceFactor.v;
 		
 		double maxsize = viewport.maxSize();
 
@@ -1469,7 +1476,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		}
 		
 		double y = maxsize*maxsize - x*x - z*z;
-		if(y < 0) y = 0; else y = (double) Math.sqrt(y);
+		if(y < 0) y = 0; else y = Math.sqrt(y);
 		
 		Point3D globePos = new Point3D();
 		globePos.x[0] = x;
@@ -1484,6 +1491,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 	java.awt.Point oldMousePoint = null;
 	MoveablePoint movedPoint = null;
 	
+	@SuppressWarnings({"ConstantConditions"})
 	public MoveablePoint moveablePointAt(final java.awt.Point p) {
 		SortedSet<MoveablePoint> pts = new TreeSet<MoveablePoint>(new Comparator<MoveablePoint>() {
 			public int compare(MoveablePoint o1, MoveablePoint o2) {
@@ -1493,7 +1501,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 					double d2 = p.distance( viewport.translate(o2.point.fixed()) );
 					if(d2 < d1) return -1;
 					if(d2 > d1) return 1;
-				} catch(Exception e) {}
+				} catch(Exception ignored) {}
 				return 0;
 			}
 		});
@@ -1503,7 +1511,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				try {
 					if( p.distance( viewport.translate(mp.point.fixed()) ) < 6 )
 						pts.add(mp);
-				} catch (Exception e) {}
+				} catch (Exception ignored) {}
 			}
 		}
 		if(pts.size() > 0)
@@ -1543,6 +1551,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 		applet.repaint();
 	}
 	
+	@SuppressWarnings({"UnnecessaryLocalVariable"})
 	static Matrix3D getRotateMatrix(Vector3D rotateAxe, double cos_a, double sin_a) {
 		double[] v = rotateAxe.x;
 		Matrix3D rotateM = new Matrix3D(new double[] {
@@ -1576,10 +1585,10 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 				}
 			};
 			
-			pair<DynFloat> cossin_a = m.solve( new pair<DynFloat>(new Float(-x), new Float(-z)) );
+			Pair<DynFloat> cossin_a = m.solve( new Pair<DynFloat>(new Float(-x), new Float(-z)) );
 
-			sin_a = cossin_a.y.get();
-			cos_a = 1.0f - cossin_a.x.get();
+			sin_a = cossin_a.b.get();
+			cos_a = 1.0f - cossin_a.a.get();
 		} catch (Exception e1) {
 			// should not happen
 			e1.printStackTrace();
@@ -1594,7 +1603,7 @@ public class PGraph3D implements VTImage.PainterAndListener, Applet.CorrectCheck
 			else {
 				sin_a = 1f;				
 			}
-			cos_a = (double) Math.sqrt(1 - sin_a*sin_a);
+			cos_a = Math.sqrt(1 - sin_a*sin_a);
 		}
 		
 		if(swapRotate)
