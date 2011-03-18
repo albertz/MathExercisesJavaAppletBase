@@ -1,37 +1,62 @@
-Nach einem globalen Minimum der Funktion \m{m} ist gesucht.
-Die Funktion \m{m} ist gegeben durch
+Betrachten Sie einen eindimensionalen, elastischen Stoß zweier Kugeln
+der Massen \m{m1} und \m{m2}, die sich mit konstanten Geschwindigkeiten
+\m{v1i} und \m{v2i} aufeinander zu bewegen.
 
-   \m{m(x) = sqrt(x^2 + a^2) + sqrt((y-x)^2 + b^2)}
-   
-Geben Sie die erste Ableitung \m{m'(x)} an:
+Bestimmen Sie die Geschwindigkeiten \m{v1} und \m{v2} der beiden Kugeln nach dem Stoß.
 
+Der Gesamtimpuls beider Massen bleibt beim Stoß erhalten; es gilt
+
+   \m{ m1 ∙ v1i + m2 ∙ v2i = m1 ∙ v1 + m2 ∙ v2 } .
+
+Da ein elastischer Stoß betrachtet wird, bleibt auch die gesamte kinetische Energie
+der beiden Massen beim Stoß erhalten:
+
+   \m{ 1/2 ∙ m1 ∙ v1i^2 + 1/2 ∙ m2 ∙ v2i^2 = 1/2 ∙ m1 ∙ v1^2 + 1/2 ∙ m2 ∙ v2^2 } .
+
+Leiten Sie nun \m{v1} in Abhängigkeit von den Massen und den alten Geschwindigkeiten her:
 \equinput[
-	m'(x) = x / sqrt(x^2 + a^2) - 2 * (y - x) / sqrt( (y-x)^2 + b^2 )
-	m'(x) = x / sqrt(x^2 + a^2) - 2 * (y - x) / sqrt( y^2 + x^2 - 2*x*y + b^2 )
-	? m'(x) : x, a, y, b
+	m1 ∙ v1i + m2 ∙ v2i = m1 ∙ v1 + m2 ∙ v2
+	1/2 ∙ m1 ∙ v1i^2 + 1/2 ∙ m2 ∙ v2i^2 = 1/2 ∙ m1 ∙ v1^2 + 1/2 ∙ m2 ∙ v2^2
+	m1 * (v1i - v1) * (v1i + v1) = -m2 * (v2i - v2) * (v2i + v2)
+	v1i + v1 = v2i + v2
+	? v1 : m1, m2, v1i, v2i
+]
+\%{ v1 = v1i*(m1-m2)/(m1+m2) + v2i*2*m2/(m1+m2) }
+
+Leiten Sie nun \m{v2} in Abhängigkeit von den Massen und den alten Geschwindigkeiten her:
+\equinput[
+	m1 ∙ v1i + m2 ∙ v2i = m1 ∙ v1 + m2 ∙ v2
+	1/2 ∙ m1 ∙ v1i^2 + 1/2 ∙ m2 ∙ v2i^2 = 1/2 ∙ m1 ∙ v1^2 + 1/2 ∙ m2 ∙ v2^2
+	m1 * (v1i - v1) * (v1i + v1) = -m2 * (v2i - v2) * (v2i + v2)
+	v1i + v1 = v2i + v2
+	? v2 : m1, m2, v1i, v2i
+]
+\%{ v2 = v2i*(m2-m1)/(m1+m2) + v1i*2*m1/(m1+m2) }
+
+Was ergibt sich für \m{v1}, wenn \m{m1 = m2} ist?
+\equinput[
+	m1 = m2
+	v1 = v1i*(m1-m2)/(m1+m2) + v2i*2*m2/(m1+m2)
+	? v1 : v2i
 ]
 
-Ermitteln Sie nun die Nullstellen.
-
-Es zeigt sich, dass es nur eine gibt. Geben Sie die Nullstelle \m{x0} von \m{m'} an:
-
+Was ergibt sich für \m{v2}, wenn \m{m1 = m2} ist?
 \equinput[
-	x0 = a * y / (b + a)
-	? x0 : a, b, y
+	m1 = m2
+	v2 = v2i*(m2-m1)/(m1+m2) + v1i*2*m1/(m1+m2)
+	? v2 : v1i
 ]
 
-Geben Sie die 2. Ableitung \m{m''(x)} an:
-
+Was ergibt sich für \m{v1}, wenn \m{v1i = v2i} ist?
 \equinput[
-	m''(x) = 1/sqrt(x^2+a^2) + x/(2*sqrt(x^2+a^2)^3) + 1/sqrt((y-x)^2+b^2) + (y-x)/(2*sqrt((y-x)^2+b^2))
-	m''(x) = (1 + x/(2*(x^2+a^2)))/sqrt(x^2+a^2) + (1 + (y-x)/(2*((y-x)^2+b^2)))/sqrt((y-x)^2+b^2)
-	? m''(x) : x, y, a, b
+	v1i = v2i
+	v1 = v1i*(m1-m2)/(m1+m2) + v2i*2*m2/(m1+m2)
+	? v1 : v1i, v2i
 ]
 
-Sie können nun sehen, dass \m{m''(x0) > 0} gilt.
-
-Dieser Diskussion zu Folge besitzt \m{m''} ein globales Minimum auf \m{[0;y]},
-welches weder in \m{0} noch in \m{y} angenommen wird (aus anschaulichen Gründen).
-Somit muss das globale Minimum in \m{(0;y)} liegen und die Ableitung an dieser
-Stelle muss Null sein. Da \m{m'(x)=0} nur eine Lösung hat, entspricht die
-globale Minimalstelle genau dieser Lösung \m{x0}.
+Was ergibt sich für \m{v2}, wenn \m{v1i = v2i} ist?
+\equinput[
+	v1i = v2i
+	v2 = v2i*(m2-m1)/(m1+m2) + v1i*2*m1/(m1+m2)
+	? v2 : v1i, v2i
+]
