@@ -61,6 +61,7 @@ public class Applet extends JApplet {
 		content.postinit();
 	}
 
+	@SuppressWarnings({"ConstantConditions"})
 	public static void testLocalFonts() {
 		for(FileIterator i = new FileIterator(
 				new File("/usr/share/"),
@@ -130,12 +131,15 @@ public class Applet extends JApplet {
 	}
 
 	/**
-	 * fügt alle Dinge zum panel hinzu; siehe VisualThing für weitere Details
+	 * @param panel panel
+	 * @param things things
+	 * @return fügt alle Dinge zum panel hinzu; siehe VisualThing für weitere Details
 	 */
 	public static Point addVisualThings(JPanel panel, VisualThing[] things) {
 		return addVisualThings(panel, things, false);
 	}
 
+	@SuppressWarnings({"ConstantConditions"})
 	public static Point addVisualThings(JPanel panel, VisualThing[] things, boolean onlyCalcSize) {
 		final boolean debugPrint = false;
 		if(debugPrint) System.out.println("VTs {");
@@ -144,34 +148,34 @@ public class Applet extends JApplet {
 		List<Integer> xs = new LinkedList<Integer>();
 		Point max = new Point(0, 0);
 
-		for (int i = 0; i < things.length; i++) {
-			if (things[i].getStepY() != 0) {
-				curY = max.y + things[i].getStepY();
+		for(VisualThing thing : things) {
+			if(thing.getStepY() != 0) {
+				curY = max.y + thing.getStepY();
 				xs_old = xs;
 				xs = new LinkedList<Integer>();
 				curX = 0;
 			}
-			if (things[i].getStepX() < 0)
-				curX = (xs_old.get(-things[i].getStepX() - 1)).intValue();
+			if(thing.getStepX() < 0)
+				curX = xs_old.get(-thing.getStepX() - 1);
 			else
-				curX += things[i].getStepX();
-			xs.add(new Integer(curX));
+				curX += thing.getStepX();
+			xs.add(curX);
 
 			if(!onlyCalcSize) {
-				Component c = things[i].getComponent();
+				Component c = thing.getComponent();
 				if(c != null) {
 					if(c.getParent() != panel)
 						panel.add(c);
-					c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
+					c.setBounds(curX, curY, thing.getWidth(), thing.getHeight());
 					c.doLayout();
-					c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
-					if(debugPrint) System.out.println(things[i] + " bounds: " + c.getBounds());
+					c.setBounds(curX, curY, thing.getWidth(), thing.getHeight());
+					if(debugPrint) System.out.println(thing + " bounds: " + c.getBounds());
 				}
 			}
-			max.x = Math.max(max.x, curX + things[i].getWidth());
-			max.y = Math.max(max.y, curY + things[i].getHeight());
+			max.x = Math.max(max.x, curX + thing.getWidth());
+			max.y = Math.max(max.y, curY + thing.getHeight());
 
-			curX += things[i].getWidth();
+			curX += thing.getWidth();
 		}
 
 		if(debugPrint) System.out.println("}");
@@ -198,7 +202,8 @@ public class Applet extends JApplet {
 	}
 
 	/**
-	 * durchsucht alle Komponenten und gibt die erste zurück, deren Namen passt;
+	 * @param name name
+	 * @return durchsucht alle Komponenten und gibt die erste zurück, deren Namen passt;
 	 * ansonsten null
 	 */
 	public Component getComponentByName(final String name) {
@@ -264,12 +269,12 @@ public class Applet extends JApplet {
 
 	private void setResultLabel(int index, boolean correct) {
 		if (correct) {
-			((JLabel) getComponentByName("res" + index))
-					.setForeground(new Color(0,200,0));
+			getComponentByName("res" + index)
+					.setForeground(new Color(0, 200, 0));
 			((JLabel) getComponentByName("res" + index))
 					.setText("alles ist richtig!");
 		} else {
-			((JLabel) getComponentByName("res" + index))
+			getComponentByName("res" + index)
 					.setForeground(Color.RED);
 			((JLabel) getComponentByName("res" + index))
 					.setText("leider ist etwas falsch");
@@ -278,12 +283,12 @@ public class Applet extends JApplet {
 
 	private void setResultLabel(int index, boolean correct, String msg) {
 		if (correct) {
-			((JLabel) getComponentByName("res" + index))
-					.setForeground(new Color(0,200,0));
+			getComponentByName("res" + index)
+					.setForeground(new Color(0, 200, 0));
 			((JLabel) getComponentByName("res" + index))
 					.setText(msg);
 		} else {
-			((JLabel) getComponentByName("res" + index))
+			getComponentByName("res" + index)
 					.setForeground(Color.RED);
 			((JLabel) getComponentByName("res" + index))
 					.setText(msg);
@@ -311,6 +316,7 @@ public class Applet extends JApplet {
 		};
 	}
 
+	 @SuppressWarnings({"UnusedDeclaration"})
 	 Runnable createVisibler(final String name) {
 		return new Runnable() {
 			public void run() {
@@ -382,17 +388,18 @@ public class Applet extends JApplet {
 		}
 	};
 	
+	@SuppressWarnings({"ConstantConditions"})
 	public InputStream getResource(String fileName) throws Exception {
 		InputStream res = null;
 		
 		try {
 			res = getClass().getClassLoader().getResourceAsStream(fileName);
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
 		if(res != null) return res;
 
 		try {
 			res = new FileInputStream(fileName);
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
 		if(res != null) return res;
 
         String basepath = getClassPath();
@@ -402,13 +409,13 @@ public class Applet extends JApplet {
 		try {
 			String path = basepath + "../Lehreinheiten/" + getPackageNameBase() + "/Code/" + getPackageAsPath();
 			res = new FileInputStream(path + "/" + fileName);
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
 		if(res != null) return res;
 
 		try {
 			String path = basepath + "../Lehreinheiten/" + getPackageNameBase().replace('$', ' ') + "/Code/" + getPackageAsPath();
 			res = new FileInputStream(path + "/" + fileName);
-		} catch (Exception e) {}
+		} catch (Exception ignored) {}
 		if(res != null) return res;
 		
 		System.err.println("ERROR: FileNotFound: " + fileName + "; user.dir=" + System.getProperty("user.dir") + "; basepath=" + basepath);
