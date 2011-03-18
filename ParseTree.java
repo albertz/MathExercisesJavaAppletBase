@@ -120,8 +120,10 @@ class ParseTree {
 		}	
 		return l;
 	}
+	@SuppressWarnings({"UnusedDeclaration"})
 	List<ParseTree> split(String s) { Set<String> ss = new HashSet<String>(); ss.add(s); return split(ss); }
     
+	@SuppressWarnings({"UnusedDeclaration"})
 	static ParseTree merge(List<ParseTree> tl) {
 		ParseTree finalt = new ParseTree();
 		for(ParseTree t : tl) finalt.entities.addAll(t.entities);
