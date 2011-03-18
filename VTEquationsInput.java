@@ -53,7 +53,7 @@ public class VTEquationsInput extends VisualThing {
 			int height = 30;
 			int removeButtonWidth = 30;
 			textField.setBounds(0, 0, this.getWidth() - removeButtonWidth - 5, height);
-			removeButton.setBounds(this.getWidth() - removeButtonWidth, 0, removeButtonWidth, removeButtonWidth);
+			removeButton.setBounds(this.getWidth() - removeButtonWidth, 0, removeButtonWidth, height);
 			if(infoLabel.getText().isEmpty()) {
 				infoLabel.setVisible(false);
 			}
@@ -183,6 +183,7 @@ public class VTEquationsInput extends VisualThing {
 		
 		abstract boolean recheck(EquationPanel eqp);
 		
+		@SuppressWarnings({"ForLoopReplaceableByForEach"})
 		Iterator<EquationPanel> getNextAfter(EquationPanel eqp) {
 			for(Iterator<EquationPanel> eqpIter = equations.iterator(); eqpIter.hasNext();)
 				if(eqpIter.next() == eqp) return eqpIter;
@@ -194,10 +195,13 @@ public class VTEquationsInput extends VisualThing {
 			return recheckAll(eqpIter);
 		}
 		boolean recheckAll(Iterator<EquationPanel> eqpIter) { while(eqpIter.hasNext()) if(!recheck(eqpIter.next())) { resetRest(eqpIter); return false; } return true; }
+		@SuppressWarnings({"UnusedDeclaration"})
 		boolean recheckAll() { return recheckAll(equations.iterator()); }
 		void resetRest(Iterator<EquationPanel> eqpIter) { while(eqpIter.hasNext()) eqpIter.next().resetInput(); }
+		@SuppressWarnings({"UnusedDeclaration"})
 		void resetAll() { resetRest(equations.iterator()); }
 
+		@SuppressWarnings({"UnusedDeclaration"})
 		boolean haveEarlierSameEquation(EquationPanel eqp) {
 			for(EquationPanel p : equations) {
 				if(p == eqp) break;
@@ -209,7 +213,6 @@ public class VTEquationsInput extends VisualThing {
 		void onEquationUpdate(EquationPanel eqp) { recheckAllFrom(eqp); }
 		
 		@Override public void doLayout() {
-			int height = 0;
 			int y = 5;
 			for(EquationPanel eqp : equations) {
 				eqp.setBounds(1, y, this.getWidth() - 2, eqp.getPreferredSize().height);
@@ -218,7 +221,7 @@ public class VTEquationsInput extends VisualThing {
 				y += eqp.getHeight() + 5;
 			}
 			addNewEquationButton.setBounds(1, y, 30, 30);
-			height = y + addNewEquationButton.getHeight();
+			int height = y + addNewEquationButton.getHeight();
 			this.setPreferredSize(new Dimension(this.getWidth(), height));
 		}
 				
@@ -241,6 +244,7 @@ public class VTEquationsInput extends VisualThing {
 			addEquation();
 		}
 		
+		@SuppressWarnings({"UnusedParameters"})
 		EquationSystem eqSysForNewEquation(final EquationPanel eqp) {
 			/*			
 			Iterable<EquationPanel> restEquPanels = Utils.cuttedFromRight(this.equations,
@@ -326,6 +330,7 @@ public class VTEquationsInput extends VisualThing {
 			return true;
 		}
 		
+		@SuppressWarnings({"RedundantIfStatement"})
 		boolean isWanted(EquationSystem.Equation eq) {
 			/*System.out.println("wanted: " + wantedExpr);
 			System.out.println("allowed vars: " + Utils.concat(allowedVars, ","));
