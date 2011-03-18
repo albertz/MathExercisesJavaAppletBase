@@ -1,21 +1,21 @@
-In dieser Aufgabe sehen Sie eine schöne Eigenschaft der Lösungen
-der logistischen Gleichung.
-
-Es sei \m{f} eine Lösung der logistischen Gleichung \m{D(x) = r∙x∙(1 - x/k)}.
-(Dabei ist \m{D(x)} die Ableitung von \m{x} nach der ersten Variable.)
-
-Zeigen Sie, dass die Funktion \m{1/f} die Differentialgleichung
-
-  \m{D(x) = -r∙x + r/k}
-
-löst.
+Platten
 
 \hint{Sie können also annehmen, dass \m{D(f) = -r∙f∙(1 - f/k)} gilt.}
 \hint{Benutzen Sie \m{D(1/f) = -D(f)/f^2}.}
 \hint{Zeigen Sie nun, dass \m{D(1/f) = -r/f + r/k} gilt.}
 
 \equinput[
-	D(f) = r∙f∙(1 - f/k)
-	D(1/f) = -D(f)/f^2
-	? D(1/f) : r, f, k
+	ay = e/m * Uy/d
+	y = 1/2 * ay * t^2
+	? y : e, m, Uy, d, t
 ]
+
+\equinput[
+	x = vx * t
+	1/2 * m * vx^2 = UA * e
+	ay = e/m * Uy/d
+	y = 1/2 * ay * t^2
+	? y : Uy, d, x
+]
+
+\%{ y = (Uy ∙ x ^ 2) / (4 ∙ d) }

@@ -410,6 +410,14 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("D(1/f) = -r/f + r/k");
 			sys.equations.clear();
 
+			sys.addAuto("x = vx * t");
+			sys.addAuto("1/2 * m * vx^2 = UA * e");
+			sys.addAuto("ay = e/m * Uy/d");
+			sys.addAuto("y = 1/2 * ay * t^2");
+			sys.assertCanConcludeTo("y = 1/2 * e/m * Uy / d * t^2");
+			sys.assertCanConcludeTo("y = (Uy ∙ x ^ 2) / (4 ∙ d)");
+			sys.equations.clear();
+			
 			sys.add("Q = C1 * U1");
 			sys.add("Q = C2 * U2");
 			sys.add("Q = C3 * U3");
