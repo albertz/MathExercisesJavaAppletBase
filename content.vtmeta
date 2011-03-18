@@ -1,30 +1,37 @@
-Die Elektronen werden mit der Spannung \m{U} beschleunigt.
-Dadurch erhalten Sie die elektrische Energie \m{Eel = U ∙ e}.
-Diese Energie wird in kinetische Energie umgesetzt.
-Es bezeichne \m{v} die Geschwindigkeit der Elektronen nach verlassen der Glühkathode,
-dann gilt
+Nach einem globalen Minimum der Funktion \m{m} ist gesucht.
+Die Funktion \m{m} ist gegeben durch
 
-   \m{1/2 ∙ m ∙ v^2 = Ekin = Eel = U ∙ e}
-
-Im Magnetfeld \m{B} zwingt die Lorentzkraft \m{FL} die Elektronen auf eine Kreisbahn.
-Sie wirkt als Zentripetalkraft \m{FZ}, daher gilt
-
-   \m{e ∙ v ∙ B = FL = FZ = m ∙ v^2 / r}
-
-Leiten Sie nun \m{e/m} her.
-
-\hint{Stellen Sie die erste Gleichung nach \m{v^2} um.}
-\hint{Vereinfachen und quadrieren Sie die 2. Gleichung.}
+   \m{m(x) = sqrt(x^2 + a^2) + sqrt((y-x)^2 + b^2)}
+   
+Geben Sie die erste Ableitung \m{m'(x)} an:
 
 \equinput[
-	1/2 ∙ m ∙ v^2 = Ekin
-	Eel = U ∙ e
-	Ekin = Eel
-	e ∙ v ∙ B = FL
-	FZ = m ∙ v^2 / r
-	FL = FZ
-	e^2 ∙ B^2 ∙ r^2 = m^2 ∙ v^2
-	? e/m : U, B, r
+	m'(x) = x / sqrt(x^2 + a^2) - 2 * (y - x) / sqrt( (y-x)^2 + b^2 )
+	m'(x) = x / sqrt(x^2 + a^2) - 2 * (y - x) / sqrt( y^2 + x^2 - 2*x*y + b^2 )
+	? m'(x) : x, a, y, b
 ]
 
-\%{ e/m = 2 * U / (B^2 * r^2) }
+Ermitteln Sie nun die Nullstellen.
+
+Es zeigt sich, dass es nur eine gibt. Geben Sie die Nullstelle \m{x0} von \m{m'} an:
+
+\equinput[
+	x0 = a * y / (b + a)
+	? x0 : a, b, y
+]
+
+Geben Sie die 2. Ableitung \m{m''(x)} an:
+
+\equinput[
+	m''(x) = 1/sqrt(x^2+a^2) + x/(2*sqrt(x^2+a^2)^3) + 1/sqrt((y-x)^2+b^2) + (y-x)/(2*sqrt((y-x)^2+b^2))
+	m''(x) = (1 + x/(2*(x^2+a^2)))/sqrt(x^2+a^2) + (1 + (y-x)/(2*((y-x)^2+b^2)))/sqrt((y-x)^2+b^2)
+	? m''(x) : x, y, a, b
+]
+
+Sie können nun sehen, dass \m{m''(x0) > 0} gilt.
+
+Dieser Diskussion zu Folge besitzt \m{m''} ein globales Minimum auf \m{[0;y]},
+welches weder in \m{0} noch in \m{y} angenommen wird (aus anschaulichen Gründen).
+Somit muss das globale Minimum in \m{(0;y)} liegen und die Ableitung an dieser
+Stelle muss Null sein. Da \m{m'(x)=0} nur eine Lösung hat, entspricht die
+globale Minimalstelle genau dieser Lösung \m{x0}.
