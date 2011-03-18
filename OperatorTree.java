@@ -797,6 +797,15 @@ class OperatorTree implements Comparable<OperatorTree> {
 
 		else { // take as product
 			Utils.Pair<Integer,List<OperatorTree>> prod = normedProductFactorList();
+			
+			if(ot.isNumber()) {
+				if(prod.first % ot.asNumber() == 0) {
+					prod.first /= ot.asNumber();
+					return productFactorListAsTree(prod);
+				}
+				return null;
+			}
+			
 			for(int i = 0; i < prod.second.size(); ++i) {
 				Utils.Pair<OperatorTree,Integer> p = prod.second.get(i).normedPot();
 				if(p.first.equals(ot)) {
@@ -930,8 +939,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 				while(true) {
 					OperatorTree newNom = nom.divideIfReducing(pot.first, false);
 					OperatorTree newDenom = denom.divideIfReducing(pot.first, false);
-					//System.out.println("removing " + pot.first.debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
-					//System.out.println("removing " + pot.first.debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
+					System.out.println("removing " + pot.first.debugStringDouble() + " from " + nom.debugStringDouble() + ": " + newNom);
+					System.out.println("removing " + pot.first.debugStringDouble() + " from " + denom.debugStringDouble() + ": " + newDenom);
 
 					if(newNom != null && newDenom != null) {
 						nom = newNom.asSum(); denom = newDenom.asSum();
