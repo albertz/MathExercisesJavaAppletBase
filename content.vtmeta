@@ -1,62 +1,36 @@
-Betrachten Sie einen eindimensionalen, elastischen Stoß zweier Kugeln
-der Massen \m{m1} und \m{m2}, die sich mit konstanten Geschwindigkeiten
-\m{v1i} und \m{v2i} aufeinander zu bewegen.
+Zur Verfügung stehen eine 80%ige, eine 90%ige und eine 95%ige Ethanollösung.
 
-Bestimmen Sie die Geschwindigkeiten \m{v1} und \m{v2} der beiden Kugeln nach dem Stoß.
+Wie können hieraus 500ml 93%iges Ethanol hergestellt werden?
 
-Der Gesamtimpuls beider Massen bleibt beim Stoß erhalten; es gilt
+Es bezeichnen \m{x} die Menge der 80%igen, \m{y} die Menge der 90%igen
+und \m{z} die Menge der 95%igen Ethanollösung, die zur Herstellung
+der neuen Lösung verwendet werden.
 
-   \m{ m1 ∙ v1i + m2 ∙ v2i = m1 ∙ v1 + m2 ∙ v2 } .
-
-Da ein elastischer Stoß betrachtet wird, bleibt auch die gesamte kinetische Energie
-der beiden Massen beim Stoß erhalten:
-
-   \m{ 1/2 ∙ m1 ∙ v1i^2 + 1/2 ∙ m2 ∙ v2i^2 = 1/2 ∙ m1 ∙ v1^2 + 1/2 ∙ m2 ∙ v2^2 } .
-
-Leiten Sie nun \m{v1} in Abhängigkeit von den Massen und den alten Geschwindigkeiten her:
+Stellen Sie eine Gleichung auf, die die Gesamtsumme von \m{500} beschreibt:
 \equinput[
-	m1 ∙ v1i + m2 ∙ v2i = m1 ∙ v1 + m2 ∙ v2
-	1/2 ∙ m1 ∙ v1i^2 + 1/2 ∙ m2 ∙ v2i^2 = 1/2 ∙ m1 ∙ v1^2 + 1/2 ∙ m2 ∙ v2^2
-	m1 * (v1i - v1) * (v1i + v1) = -m2 * (v2i - v2) * (v2i + v2)
-	v1i + v1 = v2i + v2
-	? v1 : m1, m2, v1i, v2i
-]
-\%{ v1 = v1i*(m1-m2)/(m1+m2) + v2i*2*m2/(m1+m2) }
-
-Leiten Sie nun \m{v2} in Abhängigkeit von den Massen und den alten Geschwindigkeiten her:
-\equinput[
-	m1 ∙ v1i + m2 ∙ v2i = m1 ∙ v1 + m2 ∙ v2
-	1/2 ∙ m1 ∙ v1i^2 + 1/2 ∙ m2 ∙ v2i^2 = 1/2 ∙ m1 ∙ v1^2 + 1/2 ∙ m2 ∙ v2^2
-	m1 * (v1i - v1) * (v1i + v1) = -m2 * (v2i - v2) * (v2i + v2)
-	v1i + v1 = v2i + v2
-	? v2 : m1, m2, v1i, v2i
-]
-\%{ v2 = v2i*(m2-m1)/(m1+m2) + v1i*2*m1/(m1+m2) }
-
-Was ergibt sich für \m{v1}, wenn \m{m1 = m2} ist?
-\equinput[
-	m1 = m2
-	v1 = v1i*(m1-m2)/(m1+m2) + v2i*2*m2/(m1+m2)
-	? v1 : v2i
+	x + y + z = 500
+	? 500 : x,y,z
 ]
 
-Was ergibt sich für \m{v2}, wenn \m{m1 = m2} ist?
+Stellen Sie die weitere Gleichung auf, die sich ergibt.
+\hint{Verwenden Sie \m{x*80}, \m{y*90} und \m{z*95}.}
+(Im Moment können leider nur ganze Zahlen eingegeben werden.
+ Multiplizieren Sie also einfach entsprechend.)
 \equinput[
-	m1 = m2
-	v2 = v2i*(m2-m1)/(m1+m2) + v1i*2*m1/(m1+m2)
-	? v2 : v1i
+	80*x + 90*y + 95*z = 500*93
+	? 46500 : x,y,z
 ]
 
-Was ergibt sich für \m{v1}, wenn \m{v1i = v2i} ist?
+Geben Sie nun \m{y} in Abhängigkeit von \m{z} an:
 \equinput[
-	v1i = v2i
-	v1 = v1i*(m1-m2)/(m1+m2) + v2i*2*m2/(m1+m2)
-	? v1 : v1i, v2i
+	x + y + z = 500
+	80*x + 90*y + 95*z = 500*93
+	? y: z
 ]
 
-Was ergibt sich für \m{v2}, wenn \m{v1i = v2i} ist?
+Geben Sie nun \m{x} in Abhängigkeit von \m{z} an:
 \equinput[
-	v1i = v2i
-	v2 = v2i*(m2-m1)/(m1+m2) + v1i*2*m1/(m1+m2)
-	? v2 : v1i, v2i
+	x + y + z = 500
+	80*x + 90*y + 95*z = 500*93
+	? x: z
 ]
