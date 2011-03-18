@@ -1,7 +1,5 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
-import sun.tools.jstat.Operator;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.LinkedList;
