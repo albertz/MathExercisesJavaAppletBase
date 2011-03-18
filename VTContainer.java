@@ -77,13 +77,13 @@ public class VTContainer extends VisualThing {
 		// when we have not generated the panel yet,
 		// then calculate always a new size (because we are perhaps
 		// changing things until we realy create the component)
-		if(panel == null)
+		if(panel == null || size == null)
 			size = Applet.addVisualThings(panel, things, true);
 		return size.x;
 	}
 
 	public int getHeight() {
-		if(panel == null)
+		if(panel == null || size == null)
 			size = Applet.addVisualThings(panel, things, true);
 		return size.y;
 	}

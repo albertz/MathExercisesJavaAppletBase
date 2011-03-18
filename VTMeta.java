@@ -195,6 +195,9 @@ public class VTMeta extends VTContainer  {
 			//return baseparam;
 			//return new VTContainer(0, 0, new VisualThing[] { baseparam });
 		}
+		else if(tagname.compareTo("hint") == 0) {
+			return new VTHintContainer(0, 0, new VisualThing[] { baseparam });
+		}
 		else if(tagname.compareTo("object") == 0) {
 			return getExternThing(extparam);
 		}
