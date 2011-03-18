@@ -20,6 +20,7 @@ import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
+@SuppressWarnings({"UnusedDeclaration"})
 public class VTEquationsWithBasicsInput extends VisualThing {
 	
 	abstract class EquationPanel extends JPanel {
@@ -53,7 +54,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 			int height = 30;
 			int removeButtonWidth = 30;
 			textField.setBounds(0, 0, this.getWidth() - removeButtonWidth - 5, height);
-			removeButton.setBounds(this.getWidth() - removeButtonWidth, 0, removeButtonWidth, removeButtonWidth);
+			removeButton.setBounds(this.getWidth() - removeButtonWidth, 0, removeButtonWidth, height);
 			if(infoLabel.getText().isEmpty()) {
 				infoLabel.setVisible(false);
 			}
@@ -185,7 +186,8 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 		
 		abstract boolean recheck(EquationPanel eqp);
 		
-		Iterator<EquationPanel> getNextAfter(EquationPanel eqp) {			
+		@SuppressWarnings({"ForLoopReplaceableByForEach"})
+		Iterator<EquationPanel> getNextAfter(EquationPanel eqp) {
 			for(Iterator<EquationPanel> eqpIter = equations.iterator(); eqpIter.hasNext();)
 				if(eqpIter.next() == eqp) return eqpIter;
 			throw new AssertionError("equation panel not found");				
@@ -211,7 +213,6 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 		void onEquationUpdate(EquationPanel eqp) { recheckAllFrom(eqp); }
 		
 		@Override public void doLayout() {
-			int height = 0;
 			descriptionLabel.fixedWidth = this.getWidth() - 2 - 10;
 			int y = descriptionLabel.getPreferredSize().height + 5;
 			descriptionLabel.setBounds(1 + 5, 2, descriptionLabel.fixedWidth, y);
@@ -222,7 +223,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 				y += eqp.getHeight() + 5;
 			}
 			addNewEquationButton.setBounds(1, y, 30, 30);
-			height = y + addNewEquationButton.getHeight();
+			int height = y + addNewEquationButton.getHeight();
 			this.setPreferredSize(new Dimension(this.getWidth(), height));
 		}
 				
@@ -387,6 +388,7 @@ public class VTEquationsWithBasicsInput extends VisualThing {
 			return true;
 		}
 		
+		@SuppressWarnings({"RedundantIfStatement"})
 		boolean isWanted(EquationSystem.Equation eq) {
 			if(isWantedExpr(eq.left) && hasOnlyAllowedVars(eq.right)) return true;
 			if(isWantedExpr(eq.right) && hasOnlyAllowedVars(eq.left)) return true;
