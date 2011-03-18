@@ -91,16 +91,15 @@ public class VTMatrix extends VTContainer {
 
 	static private VisualThing[] stripThingsArray(VisualThing[] ts) {
 		List<VisualThing> things = new LinkedList<VisualThing>();
-		for(int i = 0; i < ts.length; ++i) {
-			if(ts[i] instanceof VTLabel) {
-				VTLabel l = (VTLabel) ts[i];
+		for(VisualThing t : ts) {
+			if(t instanceof VTLabel) {
+				VTLabel l = (VTLabel) t;
 				if(l.getName() != null || l.getText().trim().length() > 0)
 					things.add(l);
-			}
-			else
-				things.add(ts[i]);
+			} else
+				things.add(t);
 		}
-		return things.toArray(new VisualThing[] {});
+		return things.toArray(new VisualThing[things.size()]);
 	}
 	
 	static private VisualThing[] splitThing(VisualThing c) {
