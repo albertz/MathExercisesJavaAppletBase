@@ -7,17 +7,17 @@ import java.awt.Component;
  */
 public abstract class VisualThing {
 	/**
-	 * Breite vom Ding
+	 * @return Breite vom Ding
 	 */
 	public abstract int getWidth();
 	
 	/**
-	 * Höhe vom Ding
+	 * @return Höhe vom Ding
 	 */
 	public abstract int getHeight();
 
 	/**
-	 * wie weit nach rechts vom letzten Ding aus, also wo soll ich beginnen;
+	 * @return wie weit nach rechts vom letzten Ding aus, also wo soll ich beginnen;
 	 * ist der Wert negativ, so wirt er absolut als Index von der vorherigen
 	 * Reihe interpretiert, also z.B. -1 bezeichnet die X-Position des 1.
 	 * Items in der vorherigen Reihe
@@ -26,19 +26,19 @@ public abstract class VisualThing {
 	public abstract void setStepX(int v);
 
 	/**
-	 * wie getStepX, nur für Y; wenn >0, wird außerdem wieder ganz links
+	 * @return wie getStepX, nur für Y; wenn >0, wird außerdem wieder ganz links
 	 * begonnen
 	 */
 	public abstract int getStepY();
 	public abstract void setStepY(int v);
 
 	/**
-	 * und die eigentliche Komponente
+	 * @return und die eigentliche Komponente
 	 */
 	public abstract Component getComponent();
 	
 	/**
-	 * Debug-string
+	 * @return Debug-string
 	 */
 	public String getDebugString() {
 		return this.getClass().getName() + "("
@@ -48,7 +48,7 @@ public abstract class VisualThing {
 	}
 	
 	/**
-	 * Extra-info (like Label.txt) 
+	 * @return Extra-info (like Label.txt)
 	 */
 	public String getDebugStringExtra() {
 		return "";
