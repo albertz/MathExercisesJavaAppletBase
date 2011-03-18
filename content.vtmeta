@@ -14,4 +14,8 @@ löst.
 \hint{Benutzen Sie \m{D(1/f) = -D(f)/f^2}.}
 \hint{Zeigen Sie nun, dass \m{D(1/f) = -r/f + r/k} gilt.}
 
-\object[equ]
+\equinput[
+	D(f) = r∙f∙(1 - f/k)
+	D(1/f) = -D(f)/f^2
+	? D(1/f) : r, f, k
+]

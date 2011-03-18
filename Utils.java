@@ -61,7 +61,13 @@ public class Utils {
 			}
 		};
 	}
-	
+
+	static String trimStr(String str) {
+		return str
+				.replaceAll("^\\s+", "")
+				.replaceAll("\\s+$", "");
+	}
+
 	static Iterable<String> tokenizeString(String str) {
 		return tokenizeString(str, " \t\n\r\f");
 	}
@@ -572,6 +578,14 @@ public class Utils {
     static <Y, X extends Y> Function<X,Y> identifyFunc2() {
 		return new Function<X,Y>() {
 			public Y eval(X obj) { return obj; }
+		};
+	}
+
+	static Function<Object,String> toStringFunc() {
+		return new Function<Object,String>() {
+			public String eval(Object obj) {
+				return "" + obj;
+			}
 		};
 	}
 

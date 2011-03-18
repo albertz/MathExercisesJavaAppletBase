@@ -1,6 +1,9 @@
 package applets.Termumformungen$in$der$Technik_03_Logistik;
 
+import sun.tools.jstat.Operator;
+
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -197,6 +200,42 @@ public class VTMeta extends VTContainer  {
 		}
 		else if(tagname.compareTo("hint") == 0) {
 			return new VTHintContainer(0, 0, new VisualThing[] { baseparam });
+		}
+		else if(tagname.compareTo("equinput") == 0) {
+			VTEquationsInput equationInput = new VTEquationsInput(getExtParamVar(extparam, "name", true), 0, 0, applet.getWidth() - 40);
+			EquationSystem eqSys = new EquationSystem();
+			String finalEqu = null;
+			for(String l : extparam.split("\n")) {
+				l = Utils.trimStr(l);
+				if(l.isEmpty()) continue;
+
+				if(l.startsWith("?"))
+					finalEqu = Utils.trimStr(l.substring(1));
+				else
+					eqSys.addAuto(l);
+			}
+
+			if(finalEqu == null) {
+				System.err.println("in equinput: missing final equation (must start with '?')");
+				return null;
+			}
+
+			OperatorTree finalEquParsed = OTParser.parse(finalEqu, ": ,", null).mergeOps(",");
+			if(!finalEquParsed.op.equals(":") || finalEquParsed.entities.size() != 2) {
+				System.err.println("in equinput: final equation not in right format (? X : a,b,c)");
+				return null;
+			}
+
+			String finalEquLeft = finalEquParsed.entities.get(0).toString();
+			List<String> finalEquVars;
+			if(finalEquParsed.entities.get(1).asTree().op.equals(","))
+				finalEquVars = new ArrayList<String>(Utils.map(finalEquParsed.entities.get(1).asTree().entities, Utils.toStringFunc()));
+			else
+				finalEquVars = Utils.listFromArgs(finalEquParsed.entities.get(1).toString());
+
+			//System.out.println( finalEquLeft + " --- " + finalEquVars );
+			equationInput.setEquationSystem(eqSys, finalEquLeft, finalEquVars);
+			return equationInput;
 		}
 		else if(tagname.compareTo("object") == 0) {
 			return getExternThing(extparam);
@@ -449,8 +488,10 @@ public class VTMeta extends VTContainer  {
 				pos = newpos.value - 1; state = 10;
 				break;
 			case 12: // tagmode, extparam starting
-				curtag.extparam = getTextOutOfVisualThing(createSimpleContainer(getThingsByContentStr(content, pos, newpos)));
-				pos = newpos.value - 1; state = 10;
+				if(c == ']')
+					state = 10;
+				else
+					curtag.extparam += (char)c;
 				break;
 			case 13: // tagmode, lowerparam simple (directly after '_')
 				switch(c) {					
