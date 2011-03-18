@@ -19,9 +19,9 @@ public class VTLineCombiner extends VTContainer {
 	
 	protected void calcSize() {
 		size = new Point(0, 5);
-		for(int i = 0; i < things.length; i++) {
-			size.y = Math.max(size.y, things[i].getHeight());
-			size.x += things[i].getWidth() + things[i].getStepX();
+		for(VisualThing thing : things) {
+			size.y = Math.max(size.y, thing.getHeight());
+			size.x += thing.getWidth() + thing.getStepX();
 		}
 	}
 	
@@ -45,26 +45,26 @@ public class VTLineCombiner extends VTContainer {
 	}
 
 	public void revalidateThings() {
-		for (int i = 0; i < things.length; i++) {
-			Component c = things[i].getComponent();
+		for(VisualThing thing : things) {
+			Component c = thing.getComponent();
 			if(c != null) {
 				if(c.getParent() != panel)
 					panel.add(c);
-				c.setSize(things[i].getWidth(), things[i].getHeight());
+				c.setSize(thing.getWidth(), thing.getHeight());
 				c.doLayout();
 			}
 		}		
 		
 		calcSize();
-		int curX = 0, curY = 0;
+		int curX = 0;
 
-		for (int i = 0; i < things.length; i++) {
-			Component c = things[i].getComponent();
-			curY = (size.y - things[i].getHeight()) / 2;
-			curX += things[i].getStepX();
+		for(VisualThing thing : things) {
+			Component c = thing.getComponent();
+			int curY = (size.y - thing.getHeight()) / 2;
+			curX += thing.getStepX();
 			if(c != null)
-				c.setBounds(curX, curY, things[i].getWidth(), things[i].getHeight());
-			curX += things[i].getWidth();
+				c.setBounds(curX, curY, thing.getWidth(), thing.getHeight());
+			curX += thing.getWidth();
 		}
 	}
 	
