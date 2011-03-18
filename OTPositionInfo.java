@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Termumformungen$in$der$Technik_04_Plattenkondensator;
+package applets.Termumformungen$in$der$Technik_05_Fadenstrahlrohr;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
