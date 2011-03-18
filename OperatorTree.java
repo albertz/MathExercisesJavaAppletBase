@@ -625,7 +625,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 
 	Utils.Pair<OperatorTree,Integer> normedPot() {
-		if(!op.equals("^") || entities.size() <= 1) return new Utils.Pair<OperatorTree,Integer>(this,1);
+		if(!op.equals("^")) return new Utils.Pair<OperatorTree,Integer>(this,1);
+		if(entities.size() == 0) return new Utils.Pair<OperatorTree,Integer>(Number(1),1);
+		if(entities.size() == 1) return new Utils.Pair<OperatorTree,Integer>(entities.get(0).asTree(),1);
 
 		Integer power = entities.get(entities.size()-1).asTree().asNumber();
 		if(power == null) return new Utils.Pair<OperatorTree,Integer>(this,1);
