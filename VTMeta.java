@@ -371,6 +371,8 @@ public class VTMeta extends VTContainer  {
 		else if(tagname.compareTo("approx") == 0) {
 			return new VTLabel("≈", 0, 0);
 		}
+		else if(tagname.compareTo("%") == 0) // that is a comment
+			return null;
 		
 		System.err.println("handleTag: don't know tag " + tagname);
 		return null;
@@ -467,7 +469,7 @@ public class VTMeta extends VTContainer  {
 				}
 				if(state == 1) break;
 
-				if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9')
+				if(c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || (curtag.name.isEmpty() && c == '%'))
 					curtag.name += (char)c;
 				else switch(c) {
 				case '{': state = 11; break;
