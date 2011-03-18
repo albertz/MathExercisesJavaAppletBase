@@ -1,4 +1,4 @@
-package applets.Termumformungen$in$der$Technik_07_elastischerStoss;
+package applets.Termumformungen$in$der$Technik_08_Ethanolloesungen;
 
 import java.lang.reflect.Array;
 import java.util.Collection;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Termumformungen$in$der$Technik_07_elastischerStoss;
+package applets.Termumformungen$in$der$Technik_08_Ethanolloesungen;
 
 import java.awt.Component;
 import javax.swing.JTextField;
