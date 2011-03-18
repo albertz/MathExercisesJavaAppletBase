@@ -1,7 +1,7 @@
 /**
  * 
  */
-package applets.Termumformungen$in$der$Technik_05_Fadenstrahlrohr;
+package applets.Termumformungen$in$der$Technik_06_Reflexionspunkt;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
