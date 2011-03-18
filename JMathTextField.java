@@ -20,7 +20,7 @@ public class JMathTextField extends JTextField {
 
 		this.addInputMethodListener(new InputMethodListener() {
 			public void inputMethodTextChanged(final InputMethodEvent event) {
-				System.out.println(event);
+				//System.out.println(event);
 				event.consume();
 				JMathTextField.this.getInputContext().endComposition();
 				if(event.getText() == null) return;
