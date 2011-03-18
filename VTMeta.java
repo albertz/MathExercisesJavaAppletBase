@@ -26,9 +26,9 @@ public class VTMeta extends VTContainer  {
 	}
 
 	public Utils.Var getVar(String name) {
-		for(int i = 0; i < vars.size(); i++) {
-			if(vars.get(i).name.compareTo(name) == 0)
-				return vars.get(i);
+		for(Utils.Var var : vars) {
+			if(var.name.compareTo(name) == 0)
+				return var;
 		}
 		return null;
 	}
@@ -56,9 +56,9 @@ public class VTMeta extends VTContainer  {
 	
 	private VisualThing getExternThing(String name) {
 		if(extern == null) return null;
-		for(int i = 0; i < extern.length; i++) {
-			if(extern[i].getComponent().getName().compareTo(name) == 0)
-				return extern[i];
+		for(VisualThing anExtern : extern) {
+			if(anExtern.getComponent().getName().compareTo(name) == 0)
+				return anExtern;
 		}
 		System.err.println("getExternThing: '" + name + "' not found");
 		return null;
@@ -71,7 +71,7 @@ public class VTMeta extends VTContainer  {
 	public VisualThing[] getArrayByThingList(List<VisualThing> thing_list) {
 		VisualThing[] things = new VisualThing[thing_list.size()];
 		for(int i = 0; i < things.length; i++)
-			things[i] = (VisualThing) thing_list.get(i);
+			things[i] = thing_list.get(i);
 		return things;
 	}
 	
@@ -80,10 +80,10 @@ public class VTMeta extends VTContainer  {
 		List<VisualThing> things = getThingsByContentStr(content, 0, endpos);
 		if(endpos.value <= content.length())
 			System.err.println("getThingsByContentStr: not parsed until end");
-		for(int i = 0; i < things.size(); i++) {
+		/*for(VisualThing thing : things) {
 			// debug
-			//System.out.println(((VisualThing) things.get(i)).getDebugString());
-		}
+			System.out.println(thing.getDebugString());
+		}*/
 		return getArrayByThingList(things);
 	}
 	
@@ -124,11 +124,6 @@ public class VTMeta extends VTContainer  {
 			for(int i = 0; i < con.getThings().length; i++)
 				con.getThings()[i] = resetAllColors(con.getThings()[i], color);
 		}
-		else if(base instanceof VTLineCombiner) {
-			VTLineCombiner con = (VTLineCombiner) base;
-			for(int i = 0; i < con.things.length; ++i)
-				con.things[i] = resetAllColors(con.things[i], color);
-		}
 		else if(base instanceof VTMatrix.VTArc) {
 			((VTMatrix.VTArc) base).color = color;
 		}
@@ -138,6 +133,7 @@ public class VTMeta extends VTContainer  {
 		return base;
 	}
 	
+	@SuppressWarnings({"ConstantConditions"})
 	protected VisualThing handleTag(String tagname, VisualThing baseparam, String extparam, VisualThing lowerparam, VisualThing upperparam) {
 		if(tagname.compareTo("frac") == 0) {
 			return new VTFrac(0, 0, upperparam, lowerparam);
@@ -164,7 +160,7 @@ public class VTMeta extends VTContainer  {
 			Runnable action = null;
 			if(getExtParamVar(extparam, "type").compareToIgnoreCase("help") == 0) {
 				action = this.applet.createHelpButtonListener(index);
-				if(text == "") text = "Hilfe";
+				if(text.equals("")) text = "Hilfe";
 			}
 			else if(getExtParamVar(extparam, "type").compareToIgnoreCase("check") == 0) {
 				String source = getExtParamVar(extparam, "source");
@@ -173,7 +169,7 @@ public class VTMeta extends VTContainer  {
 				}
 				else
 					action = this.applet.createCheckButtonListener(index);
-				if(text == "") text = "überprüfen";
+				if(text.equals("")) text = "überprüfen";
 			}
 			else if(getExtParamVar(extparam, "type").compareToIgnoreCase("next") == 0) {
 				final int fixed_index = index;
@@ -214,7 +210,7 @@ public class VTMeta extends VTContainer  {
 				public void onNewParam(int index, String param, String value) {
 					getVar(param, true).value = value;
 				}
-			};
+			}
 			DefineParamWalker walker = new DefineParamWalker();
 			walkExtParams(extparam, walker);
 			return null;
@@ -354,14 +350,6 @@ public class VTMeta extends VTContainer  {
 	}
 	
 	protected class Tag {
-		/***
-		 * @param tag			Tagname
-		 * @param baseparam		all in {...}
-		 * @param extparam		all in [...]
-		 * @param lowerparam	all in _...
-		 * @param upperparam	all in ^...
-		 * @return	VisualThing
-		 */
 		public String name = "";
 		public VisualThing baseparam = null;
 		public String extparam = "";
@@ -390,6 +378,7 @@ public class VTMeta extends VTContainer  {
 		void onNewParam(int index, String param);
 	}
 
+	@SuppressWarnings({"ConstantConditions"})
 	public List<VisualThing> getThingsByContentStr(String content, int startpos, Utils.Ref<Integer> endpos) {
 		int state = 0;
 		int pos = startpos;
@@ -510,8 +499,8 @@ public class VTMeta extends VTContainer  {
 		
 		// we fill the last things in the automata automatically in lastlines at the end
 		if(lastlines.size() == 1) {
-			((VTLineCombiner) lastlines.get(0)).setStepX(0);
-			((VTLineCombiner) lastlines.get(0)).setStepY(0);
+			lastlines.get(0).setStepX(0);
+			lastlines.get(0).setStepY(0);
 		}
 		return lastlines;
 	}
@@ -530,7 +519,7 @@ public class VTMeta extends VTContainer  {
 		
 		String[] res = new String[items.size()];
 		for(int i = 0; i < res.length; i++)
-			res[i] = (String) items.get(i);
+			res[i] = items.get(i);
 		return res;
 	}
 
@@ -622,7 +611,7 @@ public class VTMeta extends VTContainer  {
 			public void onNewParam(int index, String p, String value) {
 				if(param.compareTo(p) == 0) ret = value;
 			}
-		};
+		}
 		Walker walker = new Walker();
 		walkExtParams(extparam, walker);
 		
