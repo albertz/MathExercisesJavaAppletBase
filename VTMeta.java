@@ -79,8 +79,10 @@ public class VTMeta extends VTContainer  {
 	public VisualThing[] getThingsByContentStr(String content) {
 		Utils.Ref<Integer> endpos = new Utils.Ref<Integer>(0);
 		List<VisualThing> things = getThingsByContentStr(content, 0, endpos);
-		if(endpos.value <= content.length())
+		if(endpos.value <= content.length()) {
 			System.err.println("getThingsByContentStr: not parsed until end");
+			System.err.println("stopped at: " + content.substring(endpos.value));
+		}
 		/*for(VisualThing thing : things) {
 			// debug
 			System.out.println(thing.getDebugString());
@@ -441,7 +443,7 @@ public class VTMeta extends VTContainer  {
 			case 1: // default
 				switch(c) {
 				case '\\': curtag.reset(); state = 10; break;
-				case -1: case '}': case ']': // these marks the end at all
+				case -1: case '}': // these marks the end at all
 					state = -1;
 					// no break here, pass down
 				case '\n': // new line
