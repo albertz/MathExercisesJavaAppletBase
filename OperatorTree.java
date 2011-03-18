@@ -547,8 +547,14 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(other.isNumber(-1)) return this.minusOne();
 		{
 			Integer thisNum = this.asNumber(), otherNum = other.asNumber();
-			if(thisNum != null && otherNum != null && thisNum % otherNum != 0)
-				return Number(thisNum / otherNum);
+			if(thisNum != null && otherNum != null) {
+				if(otherNum == 0)
+					return new OperatorTree("/", Utils.listFromArgs(Number(1).asEntity(), Number(0).asEntity()));
+				if(thisNum % otherNum == 0)
+					return Number(thisNum / otherNum);
+				int gcd = BigInteger.valueOf(thisNum).gcd(BigInteger.valueOf(otherNum)).intValue();
+				return new OperatorTree("/", Utils.listFromArgs(Number(thisNum / gcd).asEntity(), Number(otherNum / gcd).asEntity()));
+			}
 		}
 		if(op.equals("/")) {
 			if(entities.size() == 2)
