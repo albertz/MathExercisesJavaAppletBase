@@ -1,4 +1,4 @@
-package applets.Termumformungen$in$der$Technik_06_Reflexionspunkt;
+package applets.Termumformungen$in$der$Technik_07_elastischerStoss;
 
 import java.awt.Color;
 import java.awt.Cursor;
