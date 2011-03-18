@@ -54,6 +54,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 	
 	static public class Point {
 		double x, y;
+		@SuppressWarnings({"UnusedDeclaration"})
 		Point() {}
 		Point(double _x, double _y) { x = _x; y = _y; }
 		Point(java.awt.Point p) { x = p.x; y = p.y; }
@@ -63,6 +64,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		Point diff(Point p) { return new Point(x - p.x, y - p.y); }
 		Point diff(java.awt.Point p) { return new Point(x - p.x, y - p.y); }
 		Point mult(double f) { return new Point(x * f, y * f); }
+		@SuppressWarnings({"SuspiciousNameCombination"})
 		Point rot90() { return new Point(y, -x); }
 		Point normal() { if(abs() < 0.001) return this; return mult(1.0 / abs()); }
 		double abs() { return Math.sqrt(x*x + y*y); }
@@ -70,8 +72,9 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		double distance(java.awt.Point p) { return diff(p).abs(); }
 		
 		Point transform(PGraph g) { return new Point(g.transformX(x), g.transformY(y)); }
+		@SuppressWarnings({"UnusedDeclaration"})
 		Point retransform(PGraph g) { return new Point(g.retransformX(Math.round(x)), g.retransformY(Math.round(y))); }
-	};
+	}
 	
 	static public class GraphPoint {
 		public Point point;
@@ -86,7 +89,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 			this.asVector = asVector;
 			this.dragable = dragable;
 		}
-	};
+	}
 	
 	static abstract class GraphObject {
 		abstract void draw(PGraph p, Graphics g);
@@ -96,6 +99,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 	public List<GraphObject> graphObjects = new LinkedList<GraphObject>();
 	public ActionListener OnDragablePointMoved;
 	
+	@SuppressWarnings({"SuspiciousNameCombination"})
 	public void setXYValuesInversFrom(PGraph src) {
 		x_l = src.y_u;
 		x_r = src.y_o;
@@ -165,7 +169,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		simulationX2Ypos = 0;
 		try {
 			if(simulationX2Ytimer != null) simulationX2Ytimer.cancel();
-		} catch(IllegalArgumentException e) {}
+		} catch(IllegalArgumentException ignored) {}
 		applet.repaint();
 	}
 	
@@ -183,6 +187,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 	
 	
 	
+	@SuppressWarnings({"SuspiciousNameCombination"})
 	protected void drawSimulationX2Y(Graphics g, Function2D function) {
 		int s = (int)Math.signum(function.get(selectedX));
 		int f_x = transformY(function.get(selectedX));
@@ -201,6 +206,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		g.fillOval(x - 3, y - 3, 6, 6);
 	}
 	
+	@SuppressWarnings({"UnusedAssignment"})
 	protected void drawPolarcircles(Graphics g) {
 		g.setColor(new Color(100,100,100,100));
 		
@@ -226,6 +232,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		}
 	}
 
+	@SuppressWarnings({"UnusedAssignment"})
 	protected Collection<Point> gridPolarPoints() {
 		LinkedList<Point> points = new LinkedList<Point>();
 		
@@ -503,8 +510,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 //		state++; state %= 3;
 		if(draggedPoint == null) {
 			Point retransformedPoint = new Point(retransformX(e.getX()), retransformY(e.getY()));
-			GraphPoint p = findNearPoint(dragablePoints, retransformedPoint);
-			draggedPoint = p;
+			draggedPoint = findNearPoint(dragablePoints, retransformedPoint);
 		}
 		else {
 			draggedPoint = null;
@@ -521,6 +527,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 				applet.repaint();
 			} */
 			doSelectionXPos(e.getX(), false);
+			//noinspection LoopStatementThatDoesntLoop
 			for(Function2D function : functions) {
 				doSelectionYPos(transformY(function.get(selectedX)), false);
 				break;
@@ -529,6 +536,7 @@ class PGraph implements VTImage.PainterAndListener, Applet.CorrectCheck, Utils.S
 		
 		{
 			Point retransformedPoint = new Point(retransformX(e.getX()), retransformY(e.getY()));
+			//noinspection ConstantIfStatement
 			if(true /*e.getButton() == MouseEvent.BUTTON1*/ ) {
 				if(draggedPoint != null) {
 					Point p = retransformedPoint;
