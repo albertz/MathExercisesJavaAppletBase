@@ -305,7 +305,7 @@ public class VTEquationsInput extends VisualThing {
 		WantedResult(String wantedExprStr, Iterable<String> allowedVars) {
 			try {
 				this.wantedExprStr = wantedExprStr;
-				this.wantedExpr = OTParser.parse(wantedExprStr).simplify();
+				this.wantedExpr = OTParser.parse(wantedExprStr).normalized();
 				this.allowedVars = new TreeSet<String>(Utils.collFromIter(allowedVars));
 			}
 			catch(Throwable e) {
@@ -314,9 +314,9 @@ public class VTEquationsInput extends VisualThing {
 		}
 		
 		boolean isWantedExpr(OperatorTree expr) {
-			expr = expr.simplify();
+			expr = expr.normalized();
 			if(wantedExpr.equals(expr)) return true;
-			//System.out.println("not wanted. " + expr + " != " + wantedExpr);
+			System.out.println("not wanted. " + expr + " != " + wantedExpr);
 			return false;
 		}
 		
