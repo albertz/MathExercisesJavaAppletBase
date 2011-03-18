@@ -410,12 +410,20 @@ public class EquationSystem {
 			sys.assertCanConcludeTo("D(1/f) = -r/f + r/k");
 			sys.equations.clear();
 
-			sys.addAuto("x = vx * t");
+			// NOTE: currently, we cannot automatically use this simple form.
+			// we need support for basic higher polynoms. this maybe shouldn't
+			// be that complicated but it requires some deep changes here and there.
+			// and it wasn't worth it yet to be implemented.
+			//sys.addAuto("x = vx * t");
+			sys.addAuto("x^2 = vx^2 * t^2");
 			sys.addAuto("1/2 * m * vx^2 = UA * e");
 			sys.addAuto("ay = e/m * Uy/d");
 			sys.addAuto("y = 1/2 * ay * t^2");
 			sys.assertCanConcludeTo("y = 1/2 * e/m * Uy / d * t^2");
-			sys.assertCanConcludeTo("y = (Uy ∙ x ^ 2) / (4 ∙ d)");
+			sys.assertCanConcludeTo("t^2 = x^2 / vx^2");
+			sys.assertCanConcludeTo("vx^2 = 2 * UA * e / m");
+			sys.assertCanConcludeTo("t^2 = x^2 * m / (2 * UA * e)");
+			sys.assertCanConcludeTo("y = (Uy ∙ x ^ 2) / (UA * 4 ∙ d)");
 			sys.equations.clear();
 			
 			sys.add("Q = C1 * U1");
