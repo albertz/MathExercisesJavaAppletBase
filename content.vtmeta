@@ -14,8 +14,6 @@ Stellen Sie eine Gleichung auf, die die Gesamtsumme von \m{500} beschreibt:
 
 Stellen Sie die weitere Gleichung auf, die sich ergibt.
 \hint{Verwenden Sie \m{x*80}, \m{y*90} und \m{z*95}.}
-(Im Moment können leider nur ganze Zahlen eingegeben werden.
- Multiplizieren Sie also einfach entsprechend.)
 \equinput[
 	80*x + 90*y + 95*z = 500*93
 	? 1 : x,y,z
