@@ -721,7 +721,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 
 	OperatorTree normedSum() { return normedSum(true); }
 	OperatorTree normedSum(boolean alsoNormFactor) {
-		if(isNumber()) return Number(asNumber());
+		if(isNumber()) {
+			if(!alsoNormFactor) return Number(asNumber());
+			if(isZero()) return Zero();
+			return One(); // normed
+		}
 		if(op.equals("∙") || op.equals("^")) return productFactorListAsTree(normedProductFactorList());
 		if(!op.equals("+")) return this;
 
