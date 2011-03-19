@@ -229,7 +229,7 @@ public class EquationSystem {
 
 		OperatorTree fac = extract1.varMult.divide(extract2.varMult).minusOne();
 		if(debugVerbose >= 2) System.out.print("var: " + baseFactor + " in " + otherEq);
-		if(debugVerbose >= 2) System.out.print(", fac: " + fac.debugStringDouble());
+		if(debugVerbose >= 2) System.out.print(", fac: -" + extract1.varMult + "/" + extract2.varMult + " -> " + fac.debugStringDouble());
 		fac = fac.mergeDivisions().simplifyDivision();
 		if(debugVerbose >= 2) System.out.println(" -> " + fac.debugStringDouble());
 		OperatorTree newSum = otherEq.multiply(fac);
@@ -400,6 +400,12 @@ public class EquationSystem {
 			//debugEquationParsing("f ∙ k ∙ r ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + -k ∙ D f ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + -(f ^ 2) ∙ r ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + " + "-(f ∙ k ∙ D(1 / f) + -f ∙ r + k ∙ r)" + " = 0");
 			debugSimplifications();
 
+			sys.addAuto("x + y + z = 500");
+			sys.addAuto("80*x + 90*y + 95*z = 500*93");
+			sys.assertCanConcludeTo("10*y + 15*z = 6500");
+			sys.assertCanConcludeTo("y = 650 - 15/10 * z");
+			sys.equations.clear();
+			
 			sys.addAuto("Df = r∙f∙(1 - f/k)");
 			sys.addAuto("D1f = -Df/f^2");
 			sys.assertCanConcludeTo("D1f = -r/f + r/k");
