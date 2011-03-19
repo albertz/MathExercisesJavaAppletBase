@@ -24,8 +24,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 	static OperatorTree Sum(List<OTEntity> entities) { return new OperatorTree("+", entities); }
 	static OperatorTree Product(List<OTEntity> entities) { return new OperatorTree("∙", entities); }
 	static OperatorTree Power(OperatorTree base, OperatorTree exp) { return new OperatorTree("^", Utils.listFromArgs(base.asEntity(), exp.asEntity())); }
-	static OperatorTree Power(Utils.Pair<OperatorTree,Integer> pot) {
-		if(pot.second == 1) return pot.first;
+	static OperatorTree Power(Utils.Pair<OperatorTree,OTNumber> pot) {
+		if(pot.second.compareTo(OTNumber.ONE) == 0) return pot.first;
 		return Power(pot.first, Number(pot.second));
 	}
 
@@ -37,65 +37,61 @@ class OperatorTree implements Comparable<OperatorTree> {
     
     static OperatorTree Variable(String var) {
     	try {
-    		Integer.parseInt(var);
+    		new OTNumber(var);
     		throw new AssertionError("Variable '" + var + "' must not be interpretable as a number.");
     	}
     	catch(NumberFormatException e) {
         	return new OTRawString(var).asTree();        		
     	}
     }
-	static OperatorTree Number(int num) {
-		if(num >= 0) return new OTRawString("" + num).asTree();
-		else return Number(-num).minusOne();
+	static OperatorTree Number(long num) { return Number(OTNumber.valueOf(num)); }
+	static OperatorTree Number(OTNumber num) {
+		if(num.compareTo(OTNumber.ZERO) >= 0) return new OTRawString("" + num.toString()).asTree();
+		else return Number(num.negate()).minusOne();
 	}
-	Integer asNumber() {
+	OTNumber asNumber() {
 		if(isFunctionCall()) return null;
-		if(entities.isEmpty() && op.isEmpty()) return 0;
+		if(entities.isEmpty() && op.isEmpty()) return OTNumber.ZERO;
 		if(entities.size() == 1) {
 			OTEntity e = entities.get(0);
 			if(e instanceof OTSubtree)
 				return ((OTSubtree)e).content.asNumber();
 			String s = ((OTRawString)e).content;
-			try { return Integer.parseInt(s); }
+			try { return new OTNumber(s); }
 			catch(NumberFormatException exc) { return null; }
 		}
 
-		Integer x;
-		if(op.equals("+") || op.equals("-")) x = 0;
-		else if(op.equals("∙") || op.equals("/")) x = 1;
+		OTNumber x;
+		if(op.equals("+") || op.equals("-")) x = OTNumber.ZERO;
+		else if(op.equals("∙") || op.equals("/")) x = OTNumber.ONE;
 		else if(op.equals("^")) x = null;
 		else return null;
+		boolean isFirst = true;
 		for(OTEntity e : entities) {
-			Integer other = e.asTree().asNumber();
+			OTNumber other = e.asTree().asNumber();
 			if(other == null) return null;
+			if(isFirst && (op.equals("-") || op.equals("/"))) {
+				x = other;
+				isFirst = false;
+				continue;
+			}
 			try {
-    			if(op.equals("+")) x += other;
-    			else if(op.equals("-")) x -= other;
-    			else if(op.equals("∙")) x *= other;
-    			else if(op.equals("/")) {
-    				if(x % other == 0)
-    					x /= other;
-    				else
-    					return null; // this is not an integer, it's a rational number
-    			} else if(op.equals("^")) {
-				    if(x == null) x = other;
-				    else {
-						BigInteger result = BigInteger.valueOf(x).pow(other);
-						x = result.intValue();
-						if(!result.equals(BigInteger.valueOf(x))) // it means it is too big for int
-							throw new ArithmeticException();
-				    }
-			    }
-			} catch(ArithmeticException exc) { // e.g. div by zero 
+    			if(op.equals("+")) x = x.add(other);
+    			else if(op.equals("-")) x = x.subtract(other);
+    			else if(op.equals("∙")) x = x.multiply(other);
+    			else if(op.equals("/")) x = x.divide(other);
+    			else if(op.equals("^")) x = x.pow(other.intValueExact());
+			} catch(ArithmeticException exc) { // e.g. div by zero
 				return null;
 			}
+			isFirst = false;
 		}
 		return x;
 	}
-    boolean isNumber(int num) {
-    	Integer x = asNumber();
+    boolean isNumber(long num) {
+    	OTNumber x = asNumber();
     	if(x == null) return false;
-    	return x == num;
+    	return x.compareTo(OTNumber.valueOf(num)) == 0;
     }
 	boolean isNumber() {
 		return asNumber() != null;
@@ -123,10 +119,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 
 	Integer signum() {
 		if(isNumber()) {
-			Integer n = asNumber();
-			if(n < 0) return -1;
-			if(n == 0) return 0;
-			if(n > 0) return 1;
+			OTNumber n = asNumber();
+			if(n.compareTo(OTNumber.ZERO) < 0) return -1;
+			if(n.compareTo(OTNumber.ZERO) == 0) return 0;
+			if(n.compareTo(OTNumber.ZERO) > 0) return 1;
 		}
 
 		// NOTE: We treat function calls, similar as variables, as positive.
@@ -179,9 +175,9 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 
 		if(op.equals("^")) {
-			Utils.Pair<OperatorTree,Integer> pot = normedPot();
-			if(pot.second == 0) return 1;
-			if(pot.second > 0) return pot.first.signum();
+			Utils.Pair<OperatorTree,OTNumber> pot = normedPot();
+			if(pot.second.compareTo(OTNumber.ZERO) == 0) return 1;
+			if(pot.second.compareTo(OTNumber.ZERO) > 0) return pot.first.signum();
 			return null;
 		}
 
@@ -253,11 +249,11 @@ class OperatorTree implements Comparable<OperatorTree> {
     	return Utils.filter(leafs, new Utils.Predicate<String>() {
 			public boolean apply(String s) {
 				try {
-					Integer.parseInt(s);
-					return false; // it's an integer -> it's not a var
+					new OTNumber(s);
+					return false; // it's an OTNumber -> it's not a var
 				}
 				catch(NumberFormatException ex) {
-					return true; // it's not an integer -> it's a var
+					return true; // it's not an OTNumber -> it's a var
 				}
 			}
     	});
@@ -269,10 +265,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 				if(obj instanceof OTRawString) {
 					String s = ((OTRawString) obj).content;
 					try {
-						Integer.parseInt(s);
-						return Utils.listFromArgs(); // it's an integer -> it's not a var
+						new OTNumber(s);
+						return Utils.listFromArgs(); // it's an OTNumber -> it's not a var
 					}
-					catch(NumberFormatException ignored) {} // it's not an integer -> it's a var
+					catch(NumberFormatException ignored) {} // it's not an OTNumber -> it's a var
 					return Utils.listFromArgs(Variable(s));
 				}
 				else { // obj instanceof OTSubtree
@@ -546,14 +542,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(other.isOne()) return this;
 		if(other.isNumber(-1)) return this.minusOne();
 		{
-			Integer thisNum = this.asNumber(), otherNum = other.asNumber();
+			OTNumber thisNum = this.asNumber(), otherNum = other.asNumber();
 			if(thisNum != null && otherNum != null) {
-				if(otherNum == 0)
-					return new OperatorTree("/", Utils.listFromArgs(Number(1).asEntity(), Number(0).asEntity()));
-				if(thisNum % otherNum == 0)
-					return Number(thisNum / otherNum);
-				int gcd = BigInteger.valueOf(thisNum).gcd(BigInteger.valueOf(otherNum)).intValue();
-				return new OperatorTree("/", Utils.listFromArgs(Number(thisNum / gcd).asEntity(), Number(otherNum / gcd).asEntity()));
+				try { return Number(thisNum.divide(otherNum)); }
+				catch(ArithmeticException ignored) {}
 			}
 		}
 		if(op.equals("/")) {
@@ -630,65 +622,65 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return Product(Utils.listFromArgs(asEntity()));
 	}
 
-	Utils.Pair<OperatorTree,Integer> normedPot() {
-		if(!op.equals("^")) return new Utils.Pair<OperatorTree,Integer>(this,1);
-		if(entities.size() == 0) return new Utils.Pair<OperatorTree,Integer>(Number(1),1);
-		if(entities.size() == 1) return new Utils.Pair<OperatorTree,Integer>(entities.get(0).asTree(),1);
+	Utils.Pair<OperatorTree,OTNumber> normedPot() {
+		if(!op.equals("^")) return new Utils.Pair<OperatorTree,OTNumber>(this,OTNumber.ONE);
+		if(entities.size() == 0) return new Utils.Pair<OperatorTree,OTNumber>(Number(1),OTNumber.ONE);
+		if(entities.size() == 1) return new Utils.Pair<OperatorTree,OTNumber>(entities.get(0).asTree(),OTNumber.ONE);
 
-		Integer power = entities.get(entities.size()-1).asTree().asNumber();
-		if(power == null) return new Utils.Pair<OperatorTree,Integer>(this,1);
-		if(power == 0) return new Utils.Pair<OperatorTree,Integer>(One(),1);
-		if(entities.size() == 2) return new Utils.Pair<OperatorTree,Integer>(entities.get(0).asTree(),power);
+		OTNumber power = entities.get(entities.size()-1).asTree().asNumber();
+		if(power == null) return new Utils.Pair<OperatorTree,OTNumber>(this,OTNumber.ONE);
+		if(power.compareTo(OTNumber.ZERO) == 0) return new Utils.Pair<OperatorTree,OTNumber>(One(),OTNumber.ONE);
+		if(entities.size() == 2) return new Utils.Pair<OperatorTree,OTNumber>(entities.get(0).asTree(),power);
 
-		Utils.Pair<OperatorTree,Integer> rest = subtree(0, entities.size()-1).normedPot();
-		rest.second *= power;
-		if(rest.first.isOne() || rest.first.isZero()) rest.second = 1;
+		Utils.Pair<OperatorTree,OTNumber> rest = subtree(0, entities.size()-1).normedPot();
+		rest.second = rest.second.multiply(power);
+		if(rest.first.isOne() || rest.first.isZero()) rest.second = OTNumber.ONE;
 		return rest;
 	}
 
-	static private void __mergeProductFactor(SortedMap<OperatorTree,Integer> facs, OperatorTree ot) {
-		Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
-		Integer power = facs.get(pot.first);
-		if(power == null) power = 0;
-		power += pot.second;
+	static private void __mergeProductFactor(SortedMap<OperatorTree,OTNumber> facs, OperatorTree ot) {
+		Utils.Pair<OperatorTree,OTNumber> pot = ot.normedPot();
+		OTNumber power = facs.get(pot.first);
+		if(power == null) power = OTNumber.ZERO;
+		power = power.add(pot.second);
 		facs.put(pot.first, power);
 	}
 
-	Utils.Pair<Integer,List<OperatorTree>> normedProductFactorList() {
-		if(isNumber()) return new Utils.Pair<Integer,List<OperatorTree>>(asNumber(), Utils.<OperatorTree>listFromArgs());
+	Utils.Pair<OTNumber,List<OperatorTree>> normedProductFactorList() {
+		if(isNumber()) return new Utils.Pair<OTNumber,List<OperatorTree>>(asNumber(), Utils.<OperatorTree>listFromArgs());
 		if(op.equals("^")) {
-			Utils.Pair<OperatorTree,Integer> pot = normedPot();
-			return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.<OperatorTree>listFromArgs(Power(pot)));
+			Utils.Pair<OperatorTree,OTNumber> pot = normedPot();
+			return new Utils.Pair<OTNumber,List<OperatorTree>>(OTNumber.ONE, Utils.<OperatorTree>listFromArgs(Power(pot)));
 		}
 		if(op.equals("-") && canBeInterpretedAsUnaryPrefixed()) {
-			Utils.Pair<Integer,List<OperatorTree>> ret = unaryPrefixedContent().asTree().normedProductFactorList();
-			ret.first *= -1;
+			Utils.Pair<OTNumber,List<OperatorTree>> ret = unaryPrefixedContent().asTree().normedProductFactorList();
+			ret.first = ret.first.negate();
 			return ret;
 		}
-		if(!op.equals("∙")) return new Utils.Pair<Integer,List<OperatorTree>>(1, Utils.listFromArgs(this));
+		if(!op.equals("∙")) return new Utils.Pair<OTNumber,List<OperatorTree>>(OTNumber.ONE, Utils.listFromArgs(this));
 
-		Integer fac = 1;
-		SortedMap<OperatorTree,Integer> facs = new java.util.TreeMap<OperatorTree,Integer>();
+		OTNumber fac = OTNumber.ONE;
+		SortedMap<OperatorTree,OTNumber> facs = new java.util.TreeMap<OperatorTree,OTNumber>();
 
 		for(OTEntity e : entities) {
 			OperatorTree eOt = e.asTree();
 			if(eOt.isNumber()) {
-				fac *= eOt.asNumber();
-				if(fac == 0)
-					return new Utils.Pair<Integer,List<OperatorTree>>(0, Utils.<OperatorTree>listFromArgs());
+				fac = fac.multiply(eOt.asNumber());
+				if(fac.compareTo(OTNumber.ZERO) == 0)
+					return new Utils.Pair<OTNumber,List<OperatorTree>>(OTNumber.ZERO, Utils.<OperatorTree>listFromArgs());
 				continue;
 			}
 
 			if(eOt.isNegative()) {
 				eOt = eOt.minusOne();
-				fac *= -1;
+				fac = fac.negate();
 			}
 
 			if(eOt.op.equals("∙")) {
-				Utils.Pair<Integer,List<OperatorTree>> prod = eOt.normedProductFactorList();
-				fac *= prod.first;
-				if(fac == 0)
-					return new Utils.Pair<Integer,List<OperatorTree>>(0, Utils.<OperatorTree>listFromArgs());
+				Utils.Pair<OTNumber,List<OperatorTree>> prod = eOt.normedProductFactorList();
+				fac = fac.multiply(prod.first);
+				if(fac.compareTo(OTNumber.ZERO) == 0)
+					return new Utils.Pair<OTNumber,List<OperatorTree>>(OTNumber.ZERO, Utils.<OperatorTree>listFromArgs());
 				for(OperatorTree ot : prod.second)
 					__mergeProductFactor(facs, ot);
 				continue;
@@ -697,28 +689,28 @@ class OperatorTree implements Comparable<OperatorTree> {
 			__mergeProductFactor(facs, eOt);
 		}
 
-		Utils.Pair<Integer,List<OperatorTree>> ret = new Utils.Pair<Integer,List<OperatorTree>>(fac, new LinkedList<OperatorTree>());
+		Utils.Pair<OTNumber,List<OperatorTree>> ret = new Utils.Pair<OTNumber,List<OperatorTree>>(fac, new LinkedList<OperatorTree>());
 		for(OperatorTree ot : facs.keySet()) {
-			Integer power = facs.get(ot);
-			if(power == 1)
+			OTNumber power = facs.get(ot);
+			if(power.compareTo(OTNumber.ONE) == 0)
 				ret.second.add(ot);
-			else if(power != 0)
+			else if(power.compareTo(OTNumber.ZERO) != 0)
 				ret.second.add(Power(ot, Number(power)));
 		}
 		return ret;
 	}
 
-	static OperatorTree productFactorListAsTree(Utils.Pair<Integer,List<OperatorTree>> prod) {
-		if(prod.first == 0) return Zero();
+	static OperatorTree productFactorListAsTree(Utils.Pair<OTNumber,List<OperatorTree>> prod) {
+		if(prod.first.compareTo(OTNumber.ZERO) == 0) return Zero();
 		if(prod.second.isEmpty()) return Number(prod.first);
-		if(prod.first == 1 && prod.second.size() == 1) return prod.second.get(0);
+		if(prod.first.compareTo(OTNumber.ONE) == 0 && prod.second.size() == 1) return prod.second.get(0);
 
 		OperatorTree ot = new OperatorTree("∙");
-		if(prod.first != 1 && prod.first != -1)
+		if(prod.first.compareTo(OTNumber.ONE) != 0 && prod.first.compareTo(OTNumber.ONE.negate()) != 0)
 			ot.entities.add(Number(prod.first).asEntity());
 		boolean first = true;
 		for(OperatorTree e : prod.second) {
-			if(first && prod.first == -1)
+			if(first && prod.first.compareTo(OTNumber.ONE.negate()) == 0)
 				ot.entities.add(e.minusOne().asEntity());
 			else
 				ot.entities.add(e.asEntity());
@@ -728,23 +720,23 @@ class OperatorTree implements Comparable<OperatorTree> {
 	}
 
 	OperatorTree normedSum() { return normedSum(true); }
-	OperatorTree normedSum(boolean makePositive) {
+	OperatorTree normedSum(boolean alsoNormFactor) {
 		if(isNumber()) return Number(asNumber());
 		if(op.equals("∙") || op.equals("^")) return productFactorListAsTree(normedProductFactorList());
 		if(!op.equals("+")) return this;
 
-		List<Utils.Pair<Integer,List<OperatorTree>>> newEntries = new LinkedList<Utils.Pair<Integer,List<OperatorTree>>>();
+		List<Utils.Pair<OTNumber,List<OperatorTree>>> newEntries = new LinkedList<Utils.Pair<OTNumber,List<OperatorTree>>>();
 		for(OTEntity prod : entities)
-			newEntries.add(prod.asTree().asProduct().normedProductFactorList());
-		Collections.sort(newEntries, Utils.<Integer,List<OperatorTree>>pairComparatorSecond(Utils.<OperatorTree,List<OperatorTree>>collectionComparator()));
-		Utils.Pair<Integer,List<OperatorTree>> lastProd = null;
+			newEntries.add(prod.asTree().asProduct().normedProductFactorList());		
+		Collections.sort(newEntries, Utils.<OTNumber,List<OperatorTree>>pairComparatorSecond(Utils.<OperatorTree,List<OperatorTree>>collectionComparator()));
+		Utils.Pair<OTNumber,List<OperatorTree>> lastProd = null;
 
 		OperatorTree sum = new OperatorTree("+");
-		for(Utils.Pair<Integer,List<OperatorTree>> prod : newEntries) {
-			Integer fac = prod.first;
+		for(Utils.Pair<OTNumber,List<OperatorTree>> prod : newEntries) {
+			OTNumber fac = prod.first;
 			List<OperatorTree> facs = prod.second;
 			if(lastProd != null && lastProd.second.equals(facs)) {
-				lastProd.first += fac;
+				lastProd.first = lastProd.first.add(fac);
 				sum.entities.set(sum.entities.size()-1, productFactorListAsTree(lastProd).asEntity());
 			} else {
 				lastProd = prod;
@@ -756,7 +748,16 @@ class OperatorTree implements Comparable<OperatorTree> {
 				pit.remove();
 		}
 
-		if(makePositive && !sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
+		if(alsoNormFactor) {
+			OTNumber gcd = OTNumber.gcd(Utils.map(sum.entities, new Utils.Function<OTEntity,OTNumber>() {
+				public OTNumber eval(OTEntity prod) {
+					return prod.asTree().asProduct().normedProductFactorList().first;
+				}
+			}));
+			sum = sum.multiply(Number(gcd.multiplicativeInverse()));	
+		}
+
+		if(alsoNormFactor && !sum.entities.isEmpty() && sum.entities.get(0).asTree().isNegative())
 			return sum.minusOne();
 		return sum;
 	}
@@ -792,7 +793,8 @@ class OperatorTree implements Comparable<OperatorTree> {
 	OperatorTree divideIfReducing(OperatorTree ot, boolean requireRemove) {
 		if(equals(ot)) return One();
 		if(minusOne().equals(ot)) return Number(-1);
-
+		if(ot.isOne()) return null;
+		
 		if(op.equals("+")) {
 			OperatorTree sum = new OperatorTree("+");
 			for(OTEntity p : entities) {
@@ -804,25 +806,24 @@ class OperatorTree implements Comparable<OperatorTree> {
 		}
 
 		else { // take as product
-			Utils.Pair<Integer,List<OperatorTree>> prod = normedProductFactorList();
+			Utils.Pair<OTNumber,List<OperatorTree>> prod = normedProductFactorList();
 			
 			if(ot.isNumber()) {
-				if(prod.first % ot.asNumber() == 0) {
-					prod.first /= ot.asNumber();
+				prod.first = prod.first.divide(ot.asNumber());
+				if(prod.first.isInteger())
 					return productFactorListAsTree(prod);
-				}
 				return null;
 			}
 			
 			for(int i = 0; i < prod.second.size(); ++i) {
-				Utils.Pair<OperatorTree,Integer> p = prod.second.get(i).normedPot();
+				Utils.Pair<OperatorTree,OTNumber> p = prod.second.get(i).normedPot();
 				if(p.first.equals(ot)) {
-					if(p.second > 1 && !requireRemove) {
-						p.second--;
+					if(p.second.compareTo(OTNumber.ONE) > 0 && !requireRemove) {
+						p.second = p.second.subtract(OTNumber.ONE);
 						prod.second.set(i, Power(p));
 						return productFactorListAsTree(prod);
 					}
-					if(p.second == 1) {
+					if(p.second.isOne()) {
 						prod.second.remove(i);
 						return productFactorListAsTree(prod);
 					}
@@ -841,8 +842,10 @@ class OperatorTree implements Comparable<OperatorTree> {
 		List<OperatorTree> firstProdEntries = new LinkedList<OperatorTree>(sumEntries().iterator().next().prodEntries());
 		OperatorTree sum = this;
 		for(OperatorTree p : firstProdEntries) {
-			Utils.Pair<OperatorTree,Integer> pot = p.normedPot();
-			for(int i = 0; i < pot.second; ++i) {
+			if(p.isNumber()) continue; // we only want to handle variables here
+			Utils.Pair<OperatorTree,OTNumber> pot = p.normedPot();
+			int potSecond = pot.second.intValueExact();
+			for(int i = 0; i < potSecond; ++i) {
 				OperatorTree newSum = sum.divideIfReducing(pot.first, false);
 				if(newSum == null) break;
 				sum = newSum;
@@ -851,16 +854,15 @@ class OperatorTree implements Comparable<OperatorTree> {
 		return sum;
 	}
 
-	static int commonPowerInProductFactorList(Utils.Pair<Integer,List<OperatorTree>> prod) {
-		BigInteger c = null;
+	static OTNumber commonPowerInProductFactorList(Utils.Pair<OTNumber,List<OperatorTree>> prod) {
+		OTNumber c = null;
 		for(OperatorTree ot : prod.second) {
-			Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
-			if(c == null) c = BigInteger.valueOf(pot.second);
-			else c = c.gcd(BigInteger.valueOf(pot.second));
-			if(c.equals(BigInteger.ONE)) return 1;
+			Utils.Pair<OperatorTree,OTNumber> pot = ot.normedPot();
+			if(c == null) c = pot.second;
+			else c = c.gcd(pot.second);
 		}
-		if(c == null) return 1;
-		return c.intValue();
+		if(c == null) return OTNumber.ONE;
+		return c;
 	}
 
 	@SuppressWarnings({"UnusedDeclaration"})
@@ -871,19 +873,19 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(entries.size() != 2) return this;
 		Iterator<OperatorTree> entriesIter = entries.iterator();
 
-		Utils.Pair<Integer,List<OperatorTree>> prod1 = entriesIter.next().normedProductFactorList();
-		Utils.Pair<Integer,List<OperatorTree>> prod2 = entriesIter.next().normedProductFactorList();
-		if(prod1.first * prod2.first != -1) return this; // we require that we can write this as 'A = B'
+		Utils.Pair<OTNumber,List<OperatorTree>> prod1 = entriesIter.next().normedProductFactorList();
+		Utils.Pair<OTNumber,List<OperatorTree>> prod2 = entriesIter.next().normedProductFactorList();
+		if(prod1.first.multiply(prod2.first).compareTo(OTNumber.valueOf(-1)) != 0) return this; // we require that we can write this as 'A = B'
 
-		int c1 = commonPowerInProductFactorList(prod1), c2 = commonPowerInProductFactorList(prod2);
-		int c = BigInteger.valueOf(c1).gcd(BigInteger.valueOf(c2)).intValue();
-		if(c <= 1) return this;
+		OTNumber c1 = commonPowerInProductFactorList(prod1), c2 = commonPowerInProductFactorList(prod2);
+		OTNumber c = c1.gcd(c2);
+		if(c.compareTo(OTNumber.ONE) <= 0) return this;
 
 		// we can divide each power by c
 		for(List<OperatorTree> prodList : Utils.listFromArgs(prod1.second,prod2.second)) {
 			for(int i = 0; i < prodList.size(); ++i) {
-				Utils.Pair<OperatorTree,Integer> pot = prodList.get(i).normedPot();
-				pot.second /= c;
+				Utils.Pair<OperatorTree,OTNumber> pot = prodList.get(i).normedPot();
+				pot.second = pot.second.divide(c);
 				prodList.set(i, Power(pot));
 			}
 		}
@@ -926,11 +928,11 @@ class OperatorTree implements Comparable<OperatorTree> {
 		if(op.equals("/") && entities.size() == 2) {
 			OperatorTree nom = entities.get(0).asTree().normedSum(false).asSum().copy(), denom = entities.get(1).asTree().normedSum(false).asSum().copy();
 			if(nom.entities.isEmpty() || denom.entities.isEmpty()) return this;
-			Utils.Pair<Integer,List<OperatorTree>> nomProd = nom.firstProductInSum().normedProductFactorList();
-			Utils.Pair<Integer,List<OperatorTree>> denomProd = denom.firstProductInSum().normedProductFactorList();
-			if(denomProd.first < 0) {
-				nomProd.first *= -1;
-				denomProd.first *= -1;
+			Utils.Pair<OTNumber,List<OperatorTree>> nomProd = nom.firstProductInSum().normedProductFactorList();
+			Utils.Pair<OTNumber,List<OperatorTree>> denomProd = denom.firstProductInSum().normedProductFactorList();
+			if(denomProd.first.compareTo(OTNumber.ZERO) < 0) {
+				nomProd.first = nomProd.first.negate();
+				denomProd.first = denomProd.first.negate();
 				for(int i = 1; i < nom.entities.size(); ++i)
 					nom.entities.set(i, nom.entities.get(i).asTree().minusOne().asEntity());
 				for(int i = 1; i < denom.entities.size(); ++i)
@@ -943,7 +945,7 @@ class OperatorTree implements Comparable<OperatorTree> {
 			for(OperatorTree ot : new ArrayList<OperatorTree>(Utils.concatCollectionView(denomProd.second, Utils.listFromArgs(denom, Number(denomProd.first))))) {
 				if(ot.isNumber(1) || ot.isNumber(-1)) continue;
 
-				Utils.Pair<OperatorTree,Integer> pot = ot.normedPot();
+				Utils.Pair<OperatorTree,OTNumber> pot = ot.normedPot();
 				while(true) {
 					OperatorTree newNom = nom.divideIfReducing(pot.first, false);
 					OperatorTree newDenom = denom.divideIfReducing(pot.first, false);
@@ -1024,12 +1026,16 @@ class OperatorTree implements Comparable<OperatorTree> {
     	if(isNumber(-1)) return other.minusOne();
     	if(other.isOne()) return this;
     	if(other.isNumber(-1)) return this.minusOne();
-
+    	if(isNumber() && other.isNumber())
+    		return Number(asNumber().multiply(other.asNumber()));
+    	
     	OperatorTree ot = new OperatorTree(op);
 
     	if(op.equals("∙")) {
     		for(int i = 0; i < entities.size(); ++i) {
-    			if(entities.get(i).asTree().haveDenominatorInSubtree(other)) {
+    			OperatorTree subtree = entities.get(i).asTree(); 
+    			if(subtree.haveDenominatorInSubtree(other) || (subtree.isNumber() && other.isNumber())) {
+    				// multiply exactly with this index
     				for(int j = 0; j < entities.size(); ++j) {
     					if(i != j)
     						ot.entities.add(entities.get(j));

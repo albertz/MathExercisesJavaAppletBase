@@ -237,10 +237,13 @@ public class EquationSystem {
 		// NOTE: here would probably the starting place to allow vars=0.
 		//if(newSum.nextDivision() != null) { if(debugVerbose >= 3) System.out.println("newSum.nextDiv != null"); continue; }
 
-		OperatorTree resultingEquSum = fixedEq.sum(newSum).normalized();
+		OperatorTree resultingEquSum = fixedEq.sum(newSum);
+		if(debugVerbose >= 2) System.out.print(".. result: " + resultingEquSum);
+		resultingEquSum = resultingEquSum.normalized();
+		if(debugVerbose >= 2) System.out.print(" -> " + resultingEquSum);
 		resultingEquSum = resultingEquSum.reducedSum();
 		//resultingEquSum = resultingEquSum.reducedPotInSum();
-		if(debugVerbose >= 3) System.out.println(".. result: " + resultingEquSum);
+		if(debugVerbose >= 2) System.out.println(" -> " + resultingEquSum);
 		return resultingEquSum;
 	}
 
@@ -398,12 +401,26 @@ public class EquationSystem {
 			//debugEquationParsing("I1 ∙ I4 ∙ R1 ∙ R4 + I1 ∙ I4 ∙ R1 ^ 2 + I4 ^ 2 ∙ R1 ∙ R4 + I4 ^ 2 ∙ R4 ^ 2 + -(U3 ^ 2) + I1 ∙ R1 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + I1 ∙ R4 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) + -U3 ∙ (-I4 ∙ R1 ∙ R4 + -I4 ∙ R1 ^ 2) / (R1 + R4) = 0");
 			//debugEquationParsing("0 = f ∙ k ∙ -D f ∙ D(1 / f) + f ∙ k ∙ D f ∙ D(1 / f) + -f ∙ r ∙ -D f + k ∙ r ∙ -D f + k ∙ r ∙ D f + f ^ 3 ∙ r ∙ D(1 / f)");
 			//debugEquationParsing("f ∙ k ∙ r ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + -k ∙ D f ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + -(f ^ 2) ∙ r ∙ (f ∙ D(1 / f) + r) / (f ∙ r + -D f) + " + "-(f ∙ k ∙ D(1 / f) + -f ∙ r + k ∙ r)" + " = 0");
+			//debugEquationParsing("y = 650 - 15/10 * z");
 			debugSimplifications();
 
-			sys.addAuto("x + y + z = 500");
+			// NOTE: These don't work right now because of how the reduction system works.
+			// The reduction system always tries to eliminate variables in what we are
+			// trying to conclude to. It cannot reduce to some term with more variables.
+			// Thus, the base equation system you enter should always be reduced in a way
+			// that all terms have as less variables as possible.
+			/*sys.addAuto("x + y + z = 500");
 			sys.addAuto("80*x + 90*y + 95*z = 500*93");
 			sys.assertCanConcludeTo("10*y + 15*z = 6500");
 			sys.assertCanConcludeTo("y = 650 - 15/10 * z");
+			sys.equations.clear();
+			*/
+
+			// This direction should work.
+			sys.addAuto("x = 5/10 * z - 150");
+			sys.addAuto("y = 650 - 15/10 * z");
+			sys.assertCanConcludeTo("x + y + z = 500");
+			sys.assertCanConcludeTo("80*x + 90*y + 95*z = 500*93");
 			sys.equations.clear();
 			
 			sys.addAuto("Df = r∙f∙(1 - f/k)");
