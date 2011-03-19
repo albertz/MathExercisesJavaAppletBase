@@ -9,7 +9,7 @@ der neuen Lösung verwendet werden.
 Stellen Sie eine Gleichung auf, die die Gesamtsumme von \m{500} beschreibt:
 \equinput[
 	x + y + z = 500
-	? 500 : x,y,z
+	? 1 : x,y,z
 ]
 
 Stellen Sie die weitere Gleichung auf, die sich ergibt.
@@ -18,19 +18,22 @@ Stellen Sie die weitere Gleichung auf, die sich ergibt.
  Multiplizieren Sie also einfach entsprechend.)
 \equinput[
 	80*x + 90*y + 95*z = 500*93
-	? 46500 : x,y,z
+	? 1 : x,y,z
 ]
 
 Geben Sie nun \m{y} in Abhängigkeit von \m{z} an:
 \equinput[
-	x + y + z = 500
-	80*x + 90*y + 95*z = 500*93
+	x = 5/10 * z - 150
+	y = 650 - 15/10 * z
 	? y: z
 ]
 
 Geben Sie nun \m{x} in Abhängigkeit von \m{z} an:
 \equinput[
-	x + y + z = 500
-	80*x + 90*y + 95*z = 500*93
+	x = 5/10 * z - 150
+	y = 650 - 15/10 * z
 	? x: z
 ]
+
+\%{Die Gleichungen sind wie oben eingegeben, weil es sonst Probs gibt.
+Siehe Kommentar in EquationSystem.java bei den Tests.}
