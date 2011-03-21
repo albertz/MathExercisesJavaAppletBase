@@ -48,6 +48,8 @@ public class Applet extends JApplet {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		System.setProperty("awt.useSystemAAFontSettings","on");
+		System.setProperty("swing.aatext", "true");
 
 		//testLocalFonts();
 		
