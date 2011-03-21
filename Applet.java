@@ -1,18 +1,28 @@
 package applets.Termumformungen$in$der$Technik_08_Ethanolloesungen;
 
+import javax.swing.AbstractButton;
+import javax.swing.ButtonModel;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JApplet;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
@@ -22,6 +32,8 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 import javax.swing.JComboBox;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.metal.MetalButtonUI;
 
 
 public class Applet extends JApplet {
@@ -41,6 +53,44 @@ public class Applet extends JApplet {
 		instance = this;
 	}
 	
+	static public class ButtonUI extends MetalButtonUI {
+	    public static ComponentUI createUI(JComponent c) {
+	    	return new ButtonUI();
+	    }
+
+	    @Override public void paint(Graphics g, JComponent c) {
+			JSimpleLabel.activateAntiAliasing(g);
+
+			AbstractButton b = (AbstractButton) c;
+	        ButtonModel model = b.getModel();
+
+	        String text = b.getText();
+	        clearTextShiftOffset();
+
+	        // perform UI specific press action, e.g. Windows L&F shifts text
+	        if (model.isArmed() && model.isPressed()) {
+	            paintButtonPressed(g,b); 
+	        }
+
+	        FontMetrics metrics = g.getFontMetrics();
+	        Rectangle2D stringBounds = metrics.getStringBounds(text, g);
+			g.drawString(text,
+					(b.getWidth() - (int)stringBounds.getWidth()) / 2,
+					metrics.getLeading() + metrics.getMaxAscent() + (b.getHeight() - (int)stringBounds.getHeight()) / 2);
+
+	        if (b.isFocusPainted() && b.hasFocus()) {
+		        Rectangle viewRect = new Rectangle();
+		        final int inset = 1;
+		        viewRect.x = inset;
+		        viewRect.y = inset;
+		        viewRect.width = b.getWidth() - (inset + viewRect.x) - 1;
+		        viewRect.height = b.getHeight() - (inset + viewRect.y) - 1;
+	            g.setColor(getFocusColor());
+	        	g.drawRect(viewRect.x, viewRect.y, viewRect.width, viewRect.height);
+	        }
+	    }	    
+	}
+	
 	public void init() {
 		try {
 			defaultFont = Font.createFont(Font.TRUETYPE_FONT, getResource("DejaVuSans.ttf")).deriveFont(12.0f);
@@ -48,11 +98,32 @@ public class Applet extends JApplet {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		try {
+			UIManager.setLookAndFeel(new javax.swing.plaf.metal.MetalLookAndFeel() {
+				private static final long serialVersionUID = 1L;
+				@Override public UIDefaults getDefaults() {
+					UIDefaults table = super.getDefaults();
+					
+					final String ButtonUIClassName = "ButtonUI@" + ButtonUI.class.hashCode();
+			        table.put("ButtonUI", ButtonUIClassName);
+					table.put("ClassLoader", new ClassLoader() {
+						@Override protected Class<?> findClass(String name) throws ClassNotFoundException {
+							if(name.equals(ButtonUIClassName)) 
+								return ButtonUI.class;
+							return SwingUtilities.class.getClassLoader().loadClass(name);
+						}
+					});
+					return table;
+				}
+			});
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		try { System.setProperty("awt.useSystemAAFontSettings","on"); }
 		catch(java.security.AccessControlException ignored) {}
 		try { System.setProperty("swing.aatext", "true"); }
 		catch(java.security.AccessControlException ignored) {}
-
+		
 		//testLocalFonts();
 		
 		content.init();
