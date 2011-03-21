@@ -103,16 +103,7 @@ public class Applet extends JApplet {
 				private static final long serialVersionUID = 1L;
 				@Override public UIDefaults getDefaults() {
 					UIDefaults table = super.getDefaults();
-					
-					final String ButtonUIClassName = "ButtonUI@" + ButtonUI.class.hashCode();
-			        table.put("ButtonUI", ButtonUIClassName);
-					table.put("ClassLoader", new ClassLoader() {
-						@Override protected Class<?> findClass(String name) throws ClassNotFoundException {
-							if(name.equals(ButtonUIClassName)) 
-								return ButtonUI.class;
-							return SwingUtilities.class.getClassLoader().loadClass(name);
-						}
-					});
+			        table.put("ButtonUI", ButtonUI.class.getName());
 					return table;
 				}
 			});
