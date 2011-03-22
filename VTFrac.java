@@ -1,5 +1,8 @@
-/**
+/*
+ *  MathExercisesJavaAppletBase
  * 
+ * by Albert Zeyer / developed for Lehrstuhl A für Mathematik at the RWTH Aachen University
+ * code under GPLv3+
  */
 package applets.Termumformungen$in$der$Technik_08_Ethanolloesungen;
 
