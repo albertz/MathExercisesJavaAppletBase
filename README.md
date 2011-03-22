@@ -8,6 +8,7 @@ It was developed to implement Java Applets with Math exercises and demonstration
 This Git repository shows the full development history (always of the most-recent Applet).
 
 Some of the functions:
+
 * VTMeta: LaTeX-like language to define the content of an Applet.
  This is where every Applet gets its content from. The source itself is in the file `content.vtmeta`. There is some detailed German documentation about it in `VTMeta*.txt`.
 * PGraph: 2D plotting/visualizing functions
