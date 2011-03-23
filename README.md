@@ -3,7 +3,7 @@ MathExercisesJavaAppletBase
 
 This code was developed by Albert Zeyer for the Lehrstuhl A für Mathematik at the RWTH Aachen University.
 
-It was developed to implement Java Applets with Math exercises and demonstrations to include them on some [Ilias](http://www.ilias.de/) platform. All developed Java Applets can be seen online [here](http://www.matha.rwth-aachen.de/~ilias/jars/). Each new Java Applet was a fork of the previous one and was extended by the newly needed functionality. Thus the code base has evolved into some sort of generic framework with a wide range of functions.
+It was developed to implement Java Applets with Math exercises and demonstrations to include them on some [Ilias](http://www.ilias.de/) platform. All developed Java Applets can be seen online [here](http://www.matha.rwth-aachen.de/~ilias/jars/) (the most recent Applets [here](http://www.matha.rwth-aachen.de/~ilias/jars/Termumformungen%20in%20der%20Technik/Termumformungen%20in%20der%20Technik.html)). Each new Java Applet was a fork of the previous one and was extended by the newly needed functionality. Thus the code base has evolved into some sort of generic framework with a wide range of functions.
 
 This Git repository shows the full development history (always of the most-recent Applet).
 
