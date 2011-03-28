@@ -41,6 +41,26 @@ import javax.swing.plaf.metal.MetalButtonUI;
 
 
 public class Applet extends JApplet {
+
+	public static void main(String[] args) {
+		System.out.print("Applet: " + Applet.class.getName());
+		System.out.print(", args: [");
+		for(int i = 0; i < args.length; ++i) {
+			if(i > 0) System.out.print(" ,");
+			System.out.print(args[i]);
+		}
+		System.out.println("]");
+			
+		JApplet theApplet = new Applet();
+		theApplet.init();
+		theApplet.start();
+	        
+		javax.swing.JFrame window = new javax.swing.JFrame(Applet.class.getName());
+		window.setContentPane(theApplet);
+		window.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+		window.setSize(theApplet.getSize());
+		window.setVisible(true);
+	}
 	private static final long serialVersionUID = 1L;
 	static Applet instance;
 	
