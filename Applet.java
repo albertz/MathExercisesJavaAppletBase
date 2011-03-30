@@ -26,6 +26,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
@@ -41,6 +42,7 @@ import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.plaf.ComponentUI;
 import javax.swing.plaf.metal.MetalButtonUI;
+import javax.swing.plaf.metal.MetalLabelUI;
 
 
 public class Applet extends JApplet {
@@ -86,6 +88,12 @@ public class Applet extends JApplet {
 	    	return new ButtonUI();
 	    }
 
+	    @Override public void installDefaults(AbstractButton b) {
+	    	super.installDefaults(b);
+	    	b.setMargin(new Insets(2, 6, 2, 6));
+	    	b.setFont(defaultFont);
+	    }
+
 	    @Override public void paint(Graphics g, JComponent c) {
 			activateAntiAliasing(g);
 
@@ -118,7 +126,23 @@ public class Applet extends JApplet {
 	        }
 	    }	    
 	}
-	
+
+	static public class LabelUI extends MetalLabelUI {
+	    public static ComponentUI createUI(JComponent c) {
+	    	return new LabelUI();
+	    }
+
+	    @Override protected void installDefaults(JLabel c) {
+	    	super.installDefaults(c);
+	    	c.setFont(defaultFont);
+	    }
+	    
+	    @Override public void paint(Graphics g, JComponent c) {
+			activateAntiAliasing(g);
+	    	super.paint(g, c);
+	    }
+	}
+
 	public void init() {
 		try {
 			defaultFont = Font.createFont(Font.TRUETYPE_FONT, getResource("DejaVuSans.ttf")).deriveFont(12.0f);
@@ -132,6 +156,7 @@ public class Applet extends JApplet {
 				@Override public UIDefaults getDefaults() {
 					UIDefaults table = super.getDefaults();
 			        table.put("ButtonUI", ButtonUI.class.getName());
+			        table.put("LabelUI", LabelUI.class.getName());
 					return table;
 				}
 			});
