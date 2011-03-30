@@ -696,12 +696,19 @@ public class Applet extends JApplet {
 			g2d.setRenderingHint( RenderingHints.KEY_TEXT_ANTIALIASING,
 			                      RenderingHints.VALUE_TEXT_ANTIALIAS_ON );
 			
+			// sub-pixel accuracy
+			g2d.setRenderingHint( RenderingHints.KEY_FRACTIONALMETRICS,
+								  RenderingHints.VALUE_FRACTIONALMETRICS_ON );
+			
+			// sub-pixel accuracy
+			g2d.setRenderingHint( RenderingHints.KEY_STROKE_CONTROL, 
+								  RenderingHints.VALUE_STROKE_PURE );
+			
 			// to go for quality over speed
 			g2d.setRenderingHint( RenderingHints.KEY_RENDERING,
 			                      RenderingHints.VALUE_RENDER_QUALITY );
 		}
 		catch(ClassCastException ignored) {}
 	}
-
 
 } // @jve:decl-index=0:visual-constraint="10,10"
