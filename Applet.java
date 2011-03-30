@@ -41,6 +41,17 @@ import javax.swing.plaf.metal.MetalButtonUI;
 
 
 public class Applet extends JApplet {
+	
+	private static final long serialVersionUID = 1L;
+	static Applet instance;
+	
+	private JPanel jContentPane = null;
+	public Content content = new Content(this);
+
+	public static Font monospaceFont; 
+	public static Font defaultFont;
+	
+	JScrollPane scrollPane = null;
 
 	public static void main(String[] args) {
 		System.out.print("Applet: " + Applet.class.getName());
@@ -61,22 +72,12 @@ public class Applet extends JApplet {
 		window.setSize(theApplet.getSize());
 		window.setVisible(true);
 	}
-	private static final long serialVersionUID = 1L;
-	static Applet instance;
-	
-	private JPanel jContentPane = null;
-	public Content content = new Content(this);
 
-	public static Font monospaceFont; 
-	public static Font defaultFont;
-	
-	JScrollPane scrollPane = null;
-	
 	public Applet() {
 		super();
 		instance = this;
 	}
-	
+
 	static public class ButtonUI extends MetalButtonUI {
 	    public static ComponentUI createUI(JComponent c) {
 	    	return new ButtonUI();
