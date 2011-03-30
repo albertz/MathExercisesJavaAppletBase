@@ -9,6 +9,7 @@ package applets.Termumformungen$in$der$Technik_08_Ethanolloesungen;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonModel;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JApplet;
 import javax.swing.JLabel;
@@ -66,9 +67,9 @@ public class Applet extends JApplet {
 		theApplet.init();
 		theApplet.start();
 	        
-		javax.swing.JFrame window = new javax.swing.JFrame(Applet.class.getName());
+		JFrame window = new JFrame(Applet.class.getName());
 		window.setContentPane(theApplet);
-		window.setDefaultCloseOperation(javax.swing.JFrame.EXIT_ON_CLOSE);
+		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		window.setSize(theApplet.getSize());
 		window.setVisible(true);
 	}
