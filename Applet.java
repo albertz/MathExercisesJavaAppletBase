@@ -149,6 +149,8 @@ public class Applet extends JApplet {
 			monospaceFont = Font.createFont(Font.TRUETYPE_FONT, getResource("DejaVuSansCondensed.ttf")).deriveFont(12.0f);
 		} catch (Exception e) {
 			e.printStackTrace();
+			defaultFont = this.getFont();
+			monospaceFont = this.getFont();
 		}
 		try {
 			UIManager.setLookAndFeel(new javax.swing.plaf.metal.MetalLookAndFeel() {
